@@ -1,15 +1,21 @@
 package queue
 
+import (
+	"encoding/json"
+	"io/ioutil"
+	"os"
+)
+
 type User struct {
-	Id string
+	Id string `json:"id"`
 }
 
 type Queue struct {
-	users []User
+	Users []User `json:"users"`
 }
 
 func (q Queue) indexOf(user User) int {
-	for i, u := range q.users {
+	for i, u := range q.Users {
 		if u == user {
 			return i
 		}
@@ -33,12 +39,31 @@ type fileRepository struct {
 	filename string
 }
 
-func (f fileRepository) Save(Queue) {
-	panic("implement me")
+func (f fileRepository) Save(queue Queue) {
+	bytes, err := json.Marshal(queue)
+	if err != nil {
+		panic(err)
+	}
+	err = ioutil.WriteFile(f.filename, bytes, 0644)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (f fileRepository) Read() Queue {
-	panic("implement me")
+	bytes, err := ioutil.ReadFile(f.filename)
+	if os.IsNotExist(err) {
+		return Queue{}
+	}
+	if err != nil {
+		panic(err)
+	}
+	queue := &Queue{}
+	err = json.Unmarshal(bytes, queue)
+	if err != nil {
+		panic(err)
+	}
+	return *queue
 }
 
 type service struct {
@@ -50,7 +75,7 @@ func (s service) Add(user User) {
 
 	i := queue.indexOf(user)
 	if i == -1 {
-		queue.users = append(queue.users, user)
+		queue.Users = append(queue.Users, user)
 		s.Repository.Save(queue)
 	}
 }
@@ -59,7 +84,7 @@ func (s service) Delete(user User) {
 	queue := s.Repository.Read()
 	i := queue.indexOf(user)
 	if i != -1 {
-		queue.users = append(queue.users[:i], queue.users[i+1:]...)
+		queue.Users = append(queue.Users[:i], queue.Users[i+1:]...)
 		s.Repository.Save(queue)
 	}
 }
