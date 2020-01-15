@@ -57,10 +57,9 @@ func (s service) Add(user User) {
 
 func (s service) Delete(user User) {
 	queue := s.Repository.Read()
-
 	i := queue.indexOf(user)
 	if i != -1 {
-		queue.users = append(queue.users[:i], queue.users[:i+1]...)
+		queue.users = append(queue.users[:i], queue.users[i+1:]...)
 		s.Repository.Save(queue)
 	}
 }
