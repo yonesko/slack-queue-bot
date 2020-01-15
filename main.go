@@ -1,24 +1,26 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
-	"net/http"
+	"log"
+	"os"
+
+	"github.com/nlopes/slack"
 )
 
 func main() {
-	http.HandleFunc("/add-cmd", func(writer http.ResponseWriter, request *http.Request) {
-		bytes, err := ioutil.ReadAll(request.Body)
-		if err != nil {
-			fmt.Println(err)
-			return
+	api := slack.New(
+		os.Getenv("SLACK_QUEUE_BOT_TOKEN"),
+		slack.OptionDebug(true),
+		slack.OptionLog(log.New(os.Stdout, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
+	)
+
+	rtm := api.NewRTM()
+	go rtm.ManageConnection()
+
+	for msg := range rtm.IncomingEvents {
+		switch ev := msg.Data.(type) {
+		case *slack.MessageEvent:
+			rtm.SendMessage(rtm.NewOutgoingMessage(ev.Text, ev.Channel))
 		}
-		fmt.Println(string(bytes))
-		if err := request.Body.Close(); err != nil {
-			fmt.Println(err)
-		}
-	})
-	if err := http.ListenAndServe(":5678", nil); err != nil {
-		fmt.Println(err)
 	}
 }
