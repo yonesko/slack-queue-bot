@@ -16,9 +16,7 @@ func (i *inmemRepository) Read() Queue {
 
 func TestAdd(t *testing.T) {
 	service := newInmemService()
-	if len(service.Show().users) != 0 {
-		t.Error("must be 0")
-	}
+	assertState(t, service.Show(), []string{})
 	service.Add(User{Id: "123"})
 	assertState(t, service.Show(), []string{"123"})
 	//no 2 times
@@ -30,6 +28,25 @@ func TestAdd(t *testing.T) {
 	//no 2 times again
 	service.Add(User{Id: "123"})
 	assertState(t, service.Show(), []string{"123", "ABC"})
+}
+
+func TestAdd_Many(t *testing.T) {
+	service := newInmemService()
+	assertState(t, service.Show(), []string{})
+	N := 1000
+	for i := 0; i < N; i++ {
+		service.Add(User{Id: string(i)})
+	}
+	if len(service.Show().users) != N {
+		t.Error()
+	}
+	N2 := N - 647
+	for i := 0; i < N2; i++ {
+		service.Delete(User{Id: string(i)})
+	}
+	if len(service.Show().users) != N-N2 {
+		t.Error()
+	}
 }
 
 func TestDelete(t *testing.T) {
@@ -50,6 +67,7 @@ func TestDelete(t *testing.T) {
 	service.Delete(User{Id: "ABC"})
 	assertState(t, service.Show(), []string{})
 }
+
 func assertState(t *testing.T, queue Queue, userIds []string) {
 	if !equals(queue, userIds) {
 		t.Errorf("got=%s want=%s", queue, userIds)
