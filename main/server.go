@@ -96,7 +96,6 @@ func (s *Server) composeShowText(queue queue.Queue) (string, error) {
 		if err != nil {
 			return "", errors.WithMessage(err, "can't composeShowText")
 		}
-		//> `' +  (i + 1) + 'º` ' +  user.name + '\n';
 		txt += fmt.Sprintf(">`%dº` %s (%s)\n", i+1, info.RealName, info.Name)
 	}
 	return txt, nil
