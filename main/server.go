@@ -125,6 +125,20 @@ func (s *Server) clean(ev *slack.MessageEvent) {
 	s.showQueue(ev)
 }
 
+func (s *Server) pop(ev *slack.MessageEvent) {
+	q, err := s.queueService.Show()
+	if err != nil {
+		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
+		return
+	}
+	err = s.queueService.Delete(q.Users[0])
+	if err != nil {
+		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
+		return
+	}
+	s.showQueue(ev)
+}
+
 func title(s *Server, ev *slack.MessageEvent) string {
 	title := "human"
 	info, err := s.getUserInfo(ev.User)

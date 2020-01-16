@@ -24,6 +24,8 @@ func main() {
 				srv.showQueue(ev)
 			case "clean":
 				srv.clean(ev)
+			case "pop":
+				srv.pop(ev)
 			default:
 				srv.showHelp(ev)
 			}
