@@ -11,7 +11,7 @@ type User struct {
 
 func (q Queue) indexOf(user User) int {
 	for i, u := range q.Users {
-		if u == user {
+		if u.Id == user.Id {
 			return i
 		}
 	}
