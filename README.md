@@ -8,5 +8,11 @@ Turnio expose a API with main functionalities of a queue. You only need to menti
 * `del`   >   Delete user of the queue
 * `show`  >   Show the queue 
 * `clean` >   Delete all users in the queue 
-* `help`  >   Show the turnioAPI avalaible 
+* `pop`  >   Delete first user of the queue
+
+##todo
+* mention
+* notifications (your turn)
+* estimate (dry add)
+
 
