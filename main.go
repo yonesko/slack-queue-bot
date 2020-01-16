@@ -30,7 +30,15 @@ func main() {
 		case *slack.MessageEvent:
 			switch {
 			case strings.HasPrefix(ev.Text, "add"):
-				queueService.Add(queue.User{Id: ev.User})
+				err := queueService.Add(queue.User{Id: ev.User})
+				if err == queue.AlreadyExistErr {
+					rtm.SendMessage(rtm.NewOutgoingMessage("You are already in queue", ev.Channel))
+					break
+				}
+				if err != nil {
+					rtm.SendMessage(rtm.NewOutgoingMessage("Error: "+err.Error(), ev.Channel))
+					break
+				}
 				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(queueService.Show()), ev.Channel))
 			case strings.HasPrefix(ev.Text, "del"):
 				queueService.Delete(queue.User{Id: ev.User})

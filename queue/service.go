@@ -12,6 +12,11 @@ type service struct {
 	Repository
 }
 
+var (
+	AlreadyExistErr = errors.New("already exist")
+	NoSuchUser      = errors.New("no such user")
+)
+
 func (s service) Add(user User) error {
 	queue, err := s.Repository.Read()
 	if err != nil {
@@ -20,7 +25,7 @@ func (s service) Add(user User) error {
 
 	i := queue.indexOf(user)
 	if i != -1 {
-		return errors.New("already exist")
+		return AlreadyExistErr
 	}
 	queue.Users = append(queue.Users, user)
 	err = s.Repository.Save(queue)
@@ -37,7 +42,7 @@ func (s service) Delete(user User) error {
 	}
 	i := queue.indexOf(user)
 	if i == -1 {
-		return errors.New("absent")
+		return NoSuchUser
 	}
 	queue.Users = append(queue.Users[:i], queue.Users[i+1:]...)
 	err = s.Repository.Save(queue)
