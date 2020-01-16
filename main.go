@@ -13,7 +13,7 @@ import (
 func main() {
 	env, err := getenv("SLACK_QUEUE_BOT_TOKEN")
 	if err != nil {
-		log.Fatal(env)
+		log.Fatal(err)
 	}
 	api := slack.New(
 		env,
