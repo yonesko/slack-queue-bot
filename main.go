@@ -10,9 +10,11 @@ import (
 	"github.com/nlopes/slack"
 )
 
+const SlackQueueBotTokenVarName = "SLACK_QUEUE_BOT_TOKEN"
+
 func main() {
 	api := slack.New(
-		os.Getenv("SLACK_QUEUE_BOT_TOKEN"),
+		getNotEmptyEnv(),
 		slack.OptionDebug(true),
 		slack.OptionLog(log.New(os.Stdout, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
 	)
@@ -40,4 +42,12 @@ func main() {
 			log.Fatal(msg)
 		}
 	}
+}
+
+func getNotEmptyEnv() string {
+	s := os.Getenv(SlackQueueBotTokenVarName)
+	if len(s) == 0 {
+		panic(SlackQueueBotTokenVarName + " is absent today")
+	}
+	return s
 }
