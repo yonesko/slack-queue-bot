@@ -4,37 +4,24 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"slack-queue-bot/queue"
 	"strings"
 
 	"github.com/nlopes/slack"
 )
 
 func main() {
-	env, err := getenv("BOT_USER_OAUTH_ACCESS_TOKEN")
-	if err != nil {
-		log.Fatal(err)
-	}
-	api := slack.New(
-		env,
-		slack.OptionDebug(true),
-		slack.OptionLog(log.New(os.Stdout, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
-	)
+	srv := NewServer()
 
-	queueService := queue.NewService()
-	rtm := api.NewRTM()
-	go rtm.ManageConnection()
-
-	for msg := range rtm.IncomingEvents {
+	for msg := range srv.rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
 			switch strings.TrimSpace(ev.Text) {
 			case "add":
-				handlerAdd(queueService, ev, rtm)
+				srv.handlerAdd(ev)
 			case "del":
-				handlerDel(queueService, ev, rtm)
+				srv.handlerDel(ev)
 			case "show":
-				handlerShow(queueService, ev, rtm)
+				srv.handlerShow(ev)
 			}
 		case *slack.OutgoingErrorEvent:
 			fmt.Printf("Can't send msg: %s", ev.Error())
