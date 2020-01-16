@@ -16,7 +16,7 @@ type Server struct {
 	userInfoCache map[string]*slack.User
 }
 
-func NewServer() Server {
+func NewServer() *Server {
 	env, err := getenv("BOT_USER_OAUTH_ACCESS_TOKEN")
 	if err != nil {
 		log.Fatal(err)
@@ -39,7 +39,7 @@ func NewServer() Server {
 
 const unexpectedErrorText = "Some error has occurred :("
 
-func (s Server) handlerAdd(ev *slack.MessageEvent) {
+func (s *Server) handlerAdd(ev *slack.MessageEvent) {
 	err := s.queueService.Add(queue.User{Id: ev.User, Channel: ev.User})
 	if err == queue.AlreadyExistErr {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage("You are already in the queue", ev.Channel))
@@ -57,7 +57,7 @@ func (s Server) handlerAdd(ev *slack.MessageEvent) {
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
 }
 
-func (s Server) handlerDel(ev *slack.MessageEvent) {
+func (s *Server) handlerDel(ev *slack.MessageEvent) {
 	err := s.queueService.Delete(queue.User{Id: ev.User})
 	if err == queue.NoSuchUser {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage("You are not in the queue", ev.Channel))
@@ -75,7 +75,7 @@ func (s Server) handlerDel(ev *slack.MessageEvent) {
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
 }
 
-func (s Server) handlerShow(ev *slack.MessageEvent) {
+func (s *Server) handlerShow(ev *slack.MessageEvent) {
 	q, err := s.queueService.Show()
 	if err != nil {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
@@ -89,7 +89,7 @@ func (s Server) handlerShow(ev *slack.MessageEvent) {
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(text, ev.Channel))
 }
 
-func (s Server) composeShowText(queue queue.Queue) (string, error) {
+func (s *Server) composeShowText(queue queue.Queue) (string, error) {
 	txt := ""
 	for i, u := range queue.Users {
 		info, err := s.getUserInfo(u)
@@ -101,7 +101,7 @@ func (s Server) composeShowText(queue queue.Queue) (string, error) {
 	return txt, nil
 }
 
-func (s Server) getUserInfo(u queue.User) (*slack.User, error) {
+func (s *Server) getUserInfo(u queue.User) (*slack.User, error) {
 	info, err := s.api.GetUserInfo(u.Id)
 	if info, exists := s.userInfoCache[u.Id]; err != nil && exists {
 		return info, nil
