@@ -92,7 +92,7 @@ func (s *Server) showQueue(ev *slack.MessageEvent) {
 func (s *Server) composeShowText(queue queue.Queue) (string, error) {
 	txt := ""
 	for i, u := range queue.Users {
-		info, err := s.getUserInfo(u)
+		info, err := s.getUserInfo(u.Id)
 		if err != nil {
 			return "", errors.WithMessage(err, "can't composeShowText")
 		}
@@ -101,9 +101,9 @@ func (s *Server) composeShowText(queue queue.Queue) (string, error) {
 	return txt, nil
 }
 
-func (s *Server) getUserInfo(u queue.User) (*slack.User, error) {
-	info, err := s.api.GetUserInfo(u.Id)
-	if info, exists := s.userInfoCache[u.Id]; err != nil && exists {
+func (s *Server) getUserInfo(userId string) (*slack.User, error) {
+	info, err := s.api.GetUserInfo(userId)
+	if info, exists := s.userInfoCache[userId]; err != nil && exists {
 		return info, nil
 	}
 	return info, err
@@ -111,9 +111,16 @@ func (s *Server) getUserInfo(u queue.User) (*slack.User, error) {
 
 func (s *Server) showHelp(ev *slack.MessageEvent) {
 	txt := `
+Hello %s, This is my API:
 add - Add you to the queue
 del - Delete you of the queue
 show - Show the queue
 `
+	call := "bro"
+	info, err := s.getUserInfo(ev.User)
+	if err == nil {
+		call = info.RealName
+	}
+	txt = fmt.Sprintf(txt, call)
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(txt, ev.Channel))
 }
