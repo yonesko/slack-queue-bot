@@ -10,11 +10,13 @@ import (
 	"github.com/nlopes/slack"
 )
 
-const SlackQueueBotTokenVarName = "SLACK_QUEUE_BOT_TOKEN"
-
 func main() {
+	env, err := getenv("SLACK_QUEUE_BOT_TOKEN")
+	if err != nil {
+		log.Fatal(env)
+	}
 	api := slack.New(
-		getNotEmptyEnv(),
+		env,
 		slack.OptionDebug(true),
 		slack.OptionLog(log.New(os.Stdout, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
 	)
@@ -44,10 +46,10 @@ func main() {
 	}
 }
 
-func getNotEmptyEnv() string {
-	s := os.Getenv(SlackQueueBotTokenVarName)
+func getenv(name string) (string, error) {
+	s := os.Getenv(name)
 	if len(s) == 0 {
-		panic(SlackQueueBotTokenVarName + " is absent today")
+		return "", fmt.Errorf(name + " is absent today")
 	}
-	return s
+	return s, nil
 }
