@@ -1,6 +1,7 @@
 package main
 
 import (
+	errors "dwatcher/pkg/dep/sources/https---github.com-pkg-errors"
 	"fmt"
 	"github.com/nlopes/slack"
 	"log"
@@ -79,5 +80,23 @@ func (s Server) handlerShow(ev *slack.MessageEvent) {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 		return
 	}
-	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
+	text, err := s.composeShowText(q)
+	if err != nil {
+		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
+		return
+	}
+	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(text, ev.Channel))
+}
+
+func (s Server) composeShowText(queue queue.Queue) (string, error) {
+
+	txt := ""
+	for i, u := range queue.Users {
+		info, err := s.api.GetUserInfo(u.Id)
+		if err != nil {
+			return "", errors.WithMessage(err, "can't composeShowText")
+		}
+		txt += fmt.Sprintf("%d %s (%s)\n", i+1, info.RealName, info.Name)
+	}
+	return txt, nil
 }
