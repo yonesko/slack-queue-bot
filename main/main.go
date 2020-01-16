@@ -17,13 +17,13 @@ func main() {
 		case *slack.MessageEvent:
 			switch strings.TrimSpace(ev.Text) {
 			case "add":
-				srv.handlerAdd(ev)
+				srv.addUser(ev)
 			case "del":
-				srv.handlerDel(ev)
+				srv.deleteUser(ev)
 			case "show":
-				srv.handlerShow(ev)
+				srv.showQueue(ev)
 			default:
-				srv.handlerHelp(ev)
+				srv.showHelp(ev)
 			}
 		case *slack.OutgoingErrorEvent:
 			fmt.Printf("Can't send msg: %s", ev.Error())

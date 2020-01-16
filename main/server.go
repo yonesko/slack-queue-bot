@@ -39,7 +39,7 @@ func NewServer() *Server {
 
 const unexpectedErrorText = "Some error has occurred :("
 
-func (s *Server) handlerAdd(ev *slack.MessageEvent) {
+func (s *Server) addUser(ev *slack.MessageEvent) {
 	err := s.queueService.Add(queue.User{Id: ev.User, Channel: ev.User})
 	if err == queue.AlreadyExistErr {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage("You are already in the queue", ev.Channel))
@@ -57,7 +57,7 @@ func (s *Server) handlerAdd(ev *slack.MessageEvent) {
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
 }
 
-func (s *Server) handlerDel(ev *slack.MessageEvent) {
+func (s *Server) deleteUser(ev *slack.MessageEvent) {
 	err := s.queueService.Delete(queue.User{Id: ev.User})
 	if err == queue.NoSuchUser {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage("You are not in the queue", ev.Channel))
@@ -75,7 +75,7 @@ func (s *Server) handlerDel(ev *slack.MessageEvent) {
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
 }
 
-func (s *Server) handlerShow(ev *slack.MessageEvent) {
+func (s *Server) showQueue(ev *slack.MessageEvent) {
 	q, err := s.queueService.Show()
 	if err != nil {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
@@ -109,7 +109,7 @@ func (s *Server) getUserInfo(u queue.User) (*slack.User, error) {
 	return info, err
 }
 
-func (s *Server) handlerHelp(ev *slack.MessageEvent) {
+func (s *Server) showHelp(ev *slack.MessageEvent) {
 	txt := `
 add - Add you to the queue
 del - Delete you of the queue
