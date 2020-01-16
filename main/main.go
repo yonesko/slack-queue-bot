@@ -32,21 +32,7 @@ func main() {
 			case strings.HasPrefix(ev.Text, "add"):
 				handlerAdd(queueService, ev, rtm)
 			case strings.HasPrefix(ev.Text, "del"):
-				err := queueService.Delete(queue.User{Id: ev.User})
-				if err == queue.NoSuchUser {
-					rtm.SendMessage(rtm.NewOutgoingMessage("You are not in the queue", ev.Channel))
-					break
-				}
-				if err != nil {
-					rtm.SendMessage(rtm.NewOutgoingMessage("Some error occurred :(", ev.Channel))
-					break
-				}
-				q, err := queueService.Show()
-				if err != nil {
-					rtm.SendMessage(rtm.NewOutgoingMessage("Some error occurred :(", ev.Channel))
-					break
-				}
-				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
+				handlerDel(queueService, ev, rtm)
 			case strings.HasPrefix(ev.Text, "show"):
 				q, err := queueService.Show()
 				if err != nil {
@@ -56,29 +42,11 @@ func main() {
 				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
 			}
 		case *slack.OutgoingErrorEvent:
-			fmt.Printf("Can't send msg: %s", ev.Error())
+			fmt.Printf("Can't send msg: %unexpectedErrorText", ev.Error())
 		case *slack.InvalidAuthEvent, *slack.ConnectionErrorEvent:
 			log.Fatal(msg)
 		}
 	}
-}
-
-func handlerAdd(queueService queue.Service, ev *slack.MessageEvent, rtm *slack.RTM) {
-	err := queueService.Add(queue.User{Id: ev.User, Channel: ev.User})
-	if err == queue.AlreadyExistErr {
-		rtm.SendMessage(rtm.NewOutgoingMessage("You are already in the queue", ev.Channel))
-		return
-	}
-	if err != nil {
-		rtm.SendMessage(rtm.NewOutgoingMessage("Some error occurred :(", ev.Channel))
-		return
-	}
-	q, err := queueService.Show()
-	if err != nil {
-		rtm.SendMessage(rtm.NewOutgoingMessage("Some error occurred :(", ev.Channel))
-		return
-	}
-	rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
 }
 
 func getenv(name string) (string, error) {
