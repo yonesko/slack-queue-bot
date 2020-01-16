@@ -123,6 +123,20 @@ func (s *Server) showHelp(ev *slack.MessageEvent) {
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(txt, ev.Channel))
 }
 
+func (s *Server) clean(ev *slack.MessageEvent) {
+	err := s.queueService.DeleteAll()
+	if err != nil {
+		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
+		return
+	}
+	q, err := s.queueService.Show()
+	if err != nil {
+		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
+		return
+	}
+	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
+}
+
 func title(s *Server, ev *slack.MessageEvent) string {
 	title := "human"
 	info, err := s.getUserInfo(ev.User)

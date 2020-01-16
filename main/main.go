@@ -22,6 +22,8 @@ func main() {
 				srv.deleteUser(ev)
 			case "show":
 				srv.showQueue(ev)
+			case "clean":
+				srv.clean(ev)
 			default:
 				srv.showHelp(ev)
 			}

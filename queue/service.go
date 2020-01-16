@@ -5,6 +5,7 @@ import "errors"
 type Service interface {
 	Add(User) error
 	Delete(User) error
+	DeleteAll() error
 	Show() (Queue, error)
 }
 
@@ -46,6 +47,14 @@ func (s service) Delete(user User) error {
 	}
 	queue.Users = append(queue.Users[:i], queue.Users[i+1:]...)
 	err = s.Repository.Save(queue)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s service) DeleteAll() error {
+	err := s.Repository.Save(Queue{})
 	if err != nil {
 		return err
 	}
