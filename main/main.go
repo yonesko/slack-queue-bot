@@ -22,6 +22,8 @@ func main() {
 				srv.handlerDel(ev)
 			case "show":
 				srv.handlerShow(ev)
+			default:
+				srv.handlerHelp(ev)
 			}
 		case *slack.OutgoingErrorEvent:
 			fmt.Printf("Can't send msg: %s", ev.Error())

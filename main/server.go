@@ -108,3 +108,12 @@ func (s *Server) getUserInfo(u queue.User) (*slack.User, error) {
 	}
 	return info, err
 }
+
+func (s *Server) handlerHelp(ev *slack.MessageEvent) {
+	txt := `
+add - Add you to the queue
+del - Delete you of the queue
+show - Show the queue
+`
+	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(txt, ev.Channel))
+}
