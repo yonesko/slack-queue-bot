@@ -110,17 +110,19 @@ func (s *Server) getUserInfo(userId string) (*slack.User, error) {
 }
 
 func (s *Server) showHelp(ev *slack.MessageEvent) {
-	txt := `
-Hello %s, This is my API:
-add - Add you to the queue
-del - Delete you of the queue
-show - Show the queue
-`
-	call := "bro"
+	template := "Hello %s, This is my API:\n" +
+		"`add` - Add you to the queue\n" +
+		"`del` - Delete you of the queue\n" +
+		"`show` - Show the queue\n"
+	txt := fmt.Sprintf(template, title(s, ev))
+	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(txt, ev.Channel))
+}
+
+func title(s *Server, ev *slack.MessageEvent) string {
+	title := "human"
 	info, err := s.getUserInfo(ev.User)
 	if err == nil {
-		call = info.RealName
+		title = info.RealName
 	}
-	txt = fmt.Sprintf(txt, call)
-	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(txt, ev.Channel))
+	return title
 }
