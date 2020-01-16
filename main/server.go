@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"slack-queue-bot/queue"
+	"strings"
 )
 
 type Server struct {
@@ -122,7 +123,7 @@ func title(s *Server, ev *slack.MessageEvent) string {
 	title := "human"
 	info, err := s.getUserInfo(ev.User)
 	if err == nil {
-		title = info.RealName
+		title = strings.TrimSpace(info.RealName)
 	}
 	return title
 }
