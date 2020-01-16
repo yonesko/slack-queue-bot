@@ -82,6 +82,9 @@ func (s *Server) showQueue(ev *slack.MessageEvent) {
 
 func (s *Server) composeShowQueueText(queue queue.Queue, userId string) (string, error) {
 	txt := ""
+	if len(queue.Users) == 0 {
+		return "Queue is empty", nil
+	}
 	for i, u := range queue.Users {
 		info, err := s.getUserInfo(u.Id)
 		if err != nil {
