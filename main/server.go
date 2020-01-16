@@ -111,7 +111,9 @@ func (s *Server) showHelp(ev *slack.MessageEvent) {
 	template := "Hello %s, This is my API:\n" +
 		"`add` - Add you to the queue\n" +
 		"`del` - Delete you of the queue\n" +
-		"`show` - Show the queue\n"
+		"`show` - Show the queue\n" +
+		"`clean` - Clean all\n" +
+		"`pop` - Delete first user of the queue\n"
 	txt := fmt.Sprintf(template, title(s, ev))
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(txt, ev.Channel))
 }
