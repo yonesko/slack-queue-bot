@@ -41,6 +41,9 @@ func (s service) Delete(user User) error {
 	if err != nil {
 		return err
 	}
+	if len(queue.Users) == 0 {
+		return nil
+	}
 	i := queue.indexOf(user)
 	if i == -1 {
 		return NoSuchUser
