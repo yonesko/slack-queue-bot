@@ -50,12 +50,7 @@ func (s *Server) addUser(ev *slack.MessageEvent) {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 		return
 	}
-	q, err := s.queueService.Show()
-	if err != nil {
-		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
-		return
-	}
-	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
+	s.showQueue(ev)
 }
 
 func (s *Server) deleteUser(ev *slack.MessageEvent) {
@@ -68,12 +63,7 @@ func (s *Server) deleteUser(ev *slack.MessageEvent) {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 		return
 	}
-	q, err := s.queueService.Show()
-	if err != nil {
-		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
-		return
-	}
-	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
+	s.showQueue(ev)
 }
 
 func (s *Server) showQueue(ev *slack.MessageEvent) {
@@ -129,12 +119,7 @@ func (s *Server) clean(ev *slack.MessageEvent) {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 		return
 	}
-	q, err := s.queueService.Show()
-	if err != nil {
-		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
-		return
-	}
-	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
+	s.showQueue(ev)
 }
 
 func title(s *Server, ev *slack.MessageEvent) string {
