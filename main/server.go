@@ -89,7 +89,6 @@ func (s Server) handlerShow(ev *slack.MessageEvent) {
 }
 
 func (s Server) composeShowText(queue queue.Queue) (string, error) {
-
 	txt := ""
 	for i, u := range queue.Users {
 		info, err := s.api.GetUserInfo(u.Id)
