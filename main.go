@@ -32,19 +32,42 @@ func main() {
 			case strings.HasPrefix(ev.Text, "add"):
 				err := queueService.Add(queue.User{Id: ev.User})
 				if err == queue.AlreadyExistErr {
-					rtm.SendMessage(rtm.NewOutgoingMessage("You are already in queue", ev.Channel))
+					rtm.SendMessage(rtm.NewOutgoingMessage("You are already in the queue", ev.Channel))
 					break
 				}
 				if err != nil {
 					rtm.SendMessage(rtm.NewOutgoingMessage("Error: "+err.Error(), ev.Channel))
 					break
 				}
-				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(queueService.Show()), ev.Channel))
+				q, err := queueService.Show()
+				if err != nil {
+					rtm.SendMessage(rtm.NewOutgoingMessage("Error: "+err.Error(), ev.Channel))
+					break
+				}
+				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
 			case strings.HasPrefix(ev.Text, "del"):
-				queueService.Delete(queue.User{Id: ev.User})
-				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(queueService.Show()), ev.Channel))
+				err := queueService.Delete(queue.User{Id: ev.User})
+				if err == queue.NoSuchUser {
+					rtm.SendMessage(rtm.NewOutgoingMessage("You are not in the queue", ev.Channel))
+					break
+				}
+				if err != nil {
+					rtm.SendMessage(rtm.NewOutgoingMessage("Error: "+err.Error(), ev.Channel))
+					break
+				}
+				q, err := queueService.Show()
+				if err != nil {
+					rtm.SendMessage(rtm.NewOutgoingMessage("Error: "+err.Error(), ev.Channel))
+					break
+				}
+				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
 			case strings.HasPrefix(ev.Text, "show"):
-				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(queueService.Show()), ev.Channel))
+				q, err := queueService.Show()
+				if err != nil {
+					rtm.SendMessage(rtm.NewOutgoingMessage("Error: "+err.Error(), ev.Channel))
+					break
+				}
+				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
 			}
 		case *slack.OutgoingErrorEvent:
 			fmt.Printf("Can't send msg: %s", ev.Error())
