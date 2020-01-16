@@ -34,12 +34,7 @@ func main() {
 			case strings.HasPrefix(ev.Text, "del"):
 				handlerDel(queueService, ev, rtm)
 			case strings.HasPrefix(ev.Text, "show"):
-				q, err := queueService.Show()
-				if err != nil {
-					rtm.SendMessage(rtm.NewOutgoingMessage("Some error occurred:(", ev.Channel))
-					break
-				}
-				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
+				handlerShow(queueService, rtm, ev)
 			}
 		case *slack.OutgoingErrorEvent:
 			fmt.Printf("Can't send msg: %s", ev.Error())

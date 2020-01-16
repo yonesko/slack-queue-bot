@@ -43,3 +43,12 @@ func handlerDel(queueService queue.Service, ev *slack.MessageEvent, rtm *slack.R
 	}
 	rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
 }
+
+func handlerShow(queueService queue.Service, rtm *slack.RTM, ev *slack.MessageEvent) {
+	q, err := queueService.Show()
+	if err != nil {
+		rtm.SendMessage(rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
+		return
+	}
+	rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
+}
