@@ -1,35 +1,53 @@
 package queue
 
+import "errors"
+
 type Service interface {
-	Add(User)
-	Delete(User)
-	Show() Queue
+	Add(User) error
+	Delete(User) error
+	Show() (Queue, error)
 }
 
 type service struct {
 	Repository
 }
 
-func (s service) Add(user User) {
-	queue := s.Repository.Read()
-
-	i := queue.indexOf(user)
-	if i == -1 {
-		queue.Users = append(queue.Users, user)
-		s.Repository.Save(queue)
+func (s service) Add(user User) error {
+	queue, err := s.Repository.Read()
+	if err != nil {
+		return err
 	}
-}
 
-func (s service) Delete(user User) {
-	queue := s.Repository.Read()
 	i := queue.indexOf(user)
 	if i != -1 {
-		queue.Users = append(queue.Users[:i], queue.Users[i+1:]...)
-		s.Repository.Save(queue)
+		return errors.New("already exist")
 	}
+	queue.Users = append(queue.Users, user)
+	err = s.Repository.Save(queue)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (s service) Show() Queue {
+func (s service) Delete(user User) error {
+	queue, err := s.Repository.Read()
+	if err != nil {
+		return err
+	}
+	i := queue.indexOf(user)
+	if i == -1 {
+		return errors.New("absent")
+	}
+	queue.Users = append(queue.Users[:i], queue.Users[i+1:]...)
+	err = s.Repository.Save(queue)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s service) Show() (Queue, error) {
 	return s.Read()
 }
 
