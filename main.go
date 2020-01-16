@@ -36,12 +36,12 @@ func main() {
 					break
 				}
 				if err != nil {
-					rtm.SendMessage(rtm.NewOutgoingMessage("Error: "+err.Error(), ev.Channel))
+					rtm.SendMessage(rtm.NewOutgoingMessage("Some error occurred :(", ev.Channel))
 					break
 				}
 				q, err := queueService.Show()
 				if err != nil {
-					rtm.SendMessage(rtm.NewOutgoingMessage("Error: "+err.Error(), ev.Channel))
+					rtm.SendMessage(rtm.NewOutgoingMessage("Some error occurred :(", ev.Channel))
 					break
 				}
 				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
@@ -52,19 +52,19 @@ func main() {
 					break
 				}
 				if err != nil {
-					rtm.SendMessage(rtm.NewOutgoingMessage("Error: "+err.Error(), ev.Channel))
+					rtm.SendMessage(rtm.NewOutgoingMessage("Some error occurred :(", ev.Channel))
 					break
 				}
 				q, err := queueService.Show()
 				if err != nil {
-					rtm.SendMessage(rtm.NewOutgoingMessage("Error: "+err.Error(), ev.Channel))
+					rtm.SendMessage(rtm.NewOutgoingMessage("Some error occurred :(", ev.Channel))
 					break
 				}
 				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
 			case strings.HasPrefix(ev.Text, "show"):
 				q, err := queueService.Show()
 				if err != nil {
-					rtm.SendMessage(rtm.NewOutgoingMessage("Error: "+err.Error(), ev.Channel))
+					rtm.SendMessage(rtm.NewOutgoingMessage("Some error occurred:(", ev.Channel))
 					break
 				}
 				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
