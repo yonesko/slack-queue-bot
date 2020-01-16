@@ -126,12 +126,7 @@ func (s *Server) clean(ev *slack.MessageEvent) {
 }
 
 func (s *Server) pop(ev *slack.MessageEvent) {
-	q, err := s.queueService.Show()
-	if err != nil {
-		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
-		return
-	}
-	err = s.queueService.Delete(q.Users[0])
+	err := s.queueService.Pop()
 	if err != nil {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 		return
