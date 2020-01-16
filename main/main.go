@@ -42,7 +42,7 @@ func main() {
 				rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprint(q), ev.Channel))
 			}
 		case *slack.OutgoingErrorEvent:
-			fmt.Printf("Can't send msg: %unexpectedErrorText", ev.Error())
+			fmt.Printf("Can't send msg: %s", ev.Error())
 		case *slack.InvalidAuthEvent, *slack.ConnectionErrorEvent:
 			log.Fatal(msg)
 		}
