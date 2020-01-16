@@ -49,7 +49,7 @@ func main() {
 func getenv(name string) (string, error) {
 	s := os.Getenv(name)
 	if len(s) == 0 {
-		return "", fmt.Errorf(name + " is absent today")
+		return "", fmt.Errorf("env var " + name + " is absent today")
 	}
 	return s, nil
 }
