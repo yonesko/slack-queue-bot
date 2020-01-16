@@ -34,7 +34,7 @@ func main() {
 			case strings.HasPrefix(ev.Text, "del"):
 				handlerDel(queueService, ev, rtm)
 			case strings.HasPrefix(ev.Text, "show"):
-				handlerShow(queueService, rtm, ev)
+				handlerShow(queueService, ev, rtm)
 			}
 		case *slack.OutgoingErrorEvent:
 			fmt.Printf("Can't send msg: %s", ev.Error())
