@@ -10,9 +10,10 @@ import (
 )
 
 type Server struct {
-	rtm          *slack.RTM
-	api          *slack.Client
-	queueService queue.Service
+	rtm           *slack.RTM
+	api           *slack.Client
+	queueService  queue.Service
+	userInfoCache map[string]*slack.User
 }
 
 func NewServer() Server {
@@ -91,11 +92,19 @@ func (s Server) handlerShow(ev *slack.MessageEvent) {
 func (s Server) composeShowText(queue queue.Queue) (string, error) {
 	txt := ""
 	for i, u := range queue.Users {
-		info, err := s.api.GetUserInfo(u.Id)
+		info, err := s.getUserInfo(u)
 		if err != nil {
 			return "", errors.WithMessage(err, "can't composeShowText")
 		}
 		txt += fmt.Sprintf("%d %s (%s)\n", i+1, info.RealName, info.Name)
 	}
 	return txt, nil
+}
+
+func (s Server) getUserInfo(u queue.User) (*slack.User, error) {
+	info, err := s.api.GetUserInfo(u.Id)
+	if info, exists := s.userInfoCache[u.Id]; err != nil && exists {
+		return info, nil
+	}
+	return info, err
 }
