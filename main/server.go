@@ -82,7 +82,7 @@ func (s *Server) showQueue(ev *slack.MessageEvent) {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 		return
 	}
-	text, err := s.composeShowText(q, ev.User)
+	text, err := s.composeShowQueueText(q, ev.User)
 	if err != nil {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 		return
@@ -90,12 +90,12 @@ func (s *Server) showQueue(ev *slack.MessageEvent) {
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(text, ev.Channel))
 }
 
-func (s *Server) composeShowText(queue queue.Queue, userId string) (string, error) {
+func (s *Server) composeShowQueueText(queue queue.Queue, userId string) (string, error) {
 	txt := ""
 	for i, u := range queue.Users {
 		info, err := s.getUserInfo(u.Id)
 		if err != nil {
-			return "", errors.WithMessage(err, "can't composeShowText")
+			return "", errors.WithMessage(err, "can't composeShowQueueText")
 		}
 		highlight := ""
 		if u.Id == userId {
