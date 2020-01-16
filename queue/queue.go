@@ -6,24 +6,6 @@ import (
 	"os"
 )
 
-type User struct {
-	Id string `json:"id"`
-}
-
-type Queue struct {
-	Users []User `json:"users"`
-}
-
-func (q Queue) indexOf(user User) int {
-	for i, u := range q.Users {
-		if u == user {
-			return i
-		}
-	}
-
-	return -1
-}
-
 type Service interface {
 	Add(User)
 	Delete(User)
