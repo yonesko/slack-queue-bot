@@ -28,12 +28,12 @@ func main() {
 	for msg := range rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
-			switch {
-			case strings.HasPrefix(ev.Text, "add"):
+			switch strings.TrimSpace(ev.Text) {
+			case "add":
 				handlerAdd(queueService, ev, rtm)
-			case strings.HasPrefix(ev.Text, "del"):
+			case "del":
 				handlerDel(queueService, ev, rtm)
-			case strings.HasPrefix(ev.Text, "show"):
+			case "show":
 				handlerShow(queueService, ev, rtm)
 			}
 		case *slack.OutgoingErrorEvent:
