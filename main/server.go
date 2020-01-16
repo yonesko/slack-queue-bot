@@ -101,7 +101,7 @@ func (s *Server) composeShowText(queue queue.Queue, userId string) (string, erro
 		if u.Id == userId {
 			highlight = ":point_left::skin-tone-2:"
 		}
-		txt += fmt.Sprintf(">`%dº` %s (%s) %s\n", i+1, info.RealName, info.Name, highlight)
+		txt += fmt.Sprintf("`%dº` %s (%s) %s\n", i+1, info.RealName, info.Name, highlight)
 	}
 	return txt, nil
 }
