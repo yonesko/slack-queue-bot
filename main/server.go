@@ -30,7 +30,7 @@ func NewServer() *Server {
 	queueService := queue.NewService()
 	rtm := api.NewRTM()
 	go rtm.ManageConnection()
-	return Server{
+	return &Server{
 		rtm:          rtm,
 		api:          api,
 		queueService: queueService,
