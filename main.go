@@ -36,6 +36,8 @@ func main() {
 			}
 		case *slack.OutgoingErrorEvent:
 			fmt.Printf("Can't send msg: %s", ev.Error())
+		case *slack.InvalidAuthEvent, *slack.ConnectionErrorEvent:
+			log.Fatal(msg)
 		}
 	}
 }
