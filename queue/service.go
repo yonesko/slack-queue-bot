@@ -5,12 +5,29 @@ import "errors"
 type Service interface {
 	Add(User) error
 	Delete(User) error
+	Pop() error
 	DeleteAll() error
 	Show() (Queue, error)
 }
 
 type service struct {
 	Repository
+}
+
+func (s service) Pop() error {
+	queue, err := s.Repository.Read()
+	if err != nil {
+		return err
+	}
+	if len(queue.Users) == 0 {
+		return nil
+	}
+	queue.Users = queue.Users[1:]
+	err = s.Repository.Save(queue)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 var (
