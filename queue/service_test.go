@@ -2,7 +2,7 @@ package queue
 
 import "testing"
 
-func TestService_Add_1(t *testing.T) {
+func TestService_Add_DifferentUsers(t *testing.T) {
 	service := newInmemService()
 	err := service.Add(User{Id: "123"})
 	if err != nil {
@@ -13,6 +13,9 @@ func TestService_Add_1(t *testing.T) {
 		t.Error(err)
 	}
 	equals(queue, []string{"123"})
+	_ = service.Add(User{Id: "ABC"})
+	_ = service.Add(User{Id: "ABCD"})
+	equals(queue, []string{"123", "ABC", "ABCD"})
 }
 
 func TestService_Add_Idempotent(t *testing.T) {
