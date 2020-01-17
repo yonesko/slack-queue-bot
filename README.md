@@ -18,6 +18,8 @@ This bot supports next commands:
 * TTL to userInfoCache
 * pass queue command
 * i18n
+* mutex to repo
+* graceful shutdown
 
 
 ## Docs
