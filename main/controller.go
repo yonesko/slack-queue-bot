@@ -59,7 +59,15 @@ func (s *Controller) deleteUser(ev *slack.MessageEvent) {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 		return
 	}
-	s.showQueue(ev)
+	q, err := s.queueService.Show()
+	if err != nil {
+		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
+		return
+	}
+	if len(q.Users) > 0 {
+		firstUser := q.Users[0]
+		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(fmt.Sprintf("<@%s> is your turn! When you finish, you should delete you from the queue", firstUser.Id), ev.Channel))
+	}
 }
 
 func (s *Controller) showQueue(ev *slack.MessageEvent) {
@@ -96,11 +104,15 @@ func (s *Controller) composeShowQueueText(queue queue.Queue, userId string) (str
 }
 
 func (s *Controller) getUserInfo(userId string) (*slack.User, error) {
-	info, err := s.api.GetUserInfo(userId)
-	if info, exists := s.userInfoCache[userId]; err != nil && exists {
+	if info, exists := s.userInfoCache[userId]; exists {
 		return info, nil
 	}
-	return info, err
+	info, err := s.api.GetUserInfo(userId)
+	if err != nil {
+		return nil, err
+	}
+	s.userInfoCache[userId] = info
+	return info, nil
 }
 
 func (s *Controller) showHelp(ev *slack.MessageEvent) {
