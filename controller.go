@@ -104,6 +104,10 @@ func (s *Controller) ShowQueue(ev *slack.MessageEvent) {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 		return
 	}
+	if len(q.Users) == 0 {
+		s.rtm.SendMessage(s.rtm.NewOutgoingMessage("Queue is empty", ev.Channel))
+		return
+	}
 	text, err := s.composeShowQueueText(q, ev.User)
 	if err != nil {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
@@ -114,9 +118,6 @@ func (s *Controller) ShowQueue(ev *slack.MessageEvent) {
 
 func (s *Controller) composeShowQueueText(queue queue.Queue, userId string) (string, error) {
 	txt := ""
-	if len(queue.Users) == 0 {
-		return "Queue is empty", nil
-	}
 	for i, u := range queue.Users {
 		info, err := s.getUserInfo(u.Id)
 		if err != nil {
