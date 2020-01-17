@@ -18,3 +18,5 @@ Turnio expose a API with main functionalities of a queue. You only need to menti
 * estimate (dry add)
 
 
+##Docs
+https://api.slack.com/rtm
