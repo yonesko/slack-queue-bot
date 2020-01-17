@@ -36,7 +36,7 @@ func NewController() *Controller {
 const unexpectedErrorText = "Some error has occurred :pepe_sad:"
 
 func (s *Controller) addUser(ev *slack.MessageEvent) {
-	err := s.queueService.Add(queue.User{Id: ev.User, Channel: ev.User})
+	err := s.queueService.Add(queue.User{Id: ev.User})
 	if err == queue.AlreadyExistErr {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage("You are already in the queue", ev.Channel))
 		s.showQueue(ev)

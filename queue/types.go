@@ -5,8 +5,7 @@ type Queue struct {
 }
 
 type User struct {
-	Id      string `json:"id"`
-	Channel string `json:"channel"`
+	Id string `json:"id"`
 }
 
 func (q Queue) indexOf(user User) int {
