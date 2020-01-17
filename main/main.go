@@ -42,7 +42,7 @@ func main() {
 
 //wee need only direct message or mentions
 func needProcess(m *slack.MessageEvent) bool {
-	return m.SubType == ""
+	return m.SubType == "" || strings.HasPrefix(m.Text, "<@USMRFHHPE>")
 }
 
 func extractCommand(text string) string {
