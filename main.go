@@ -27,7 +27,7 @@ func main() {
 			if !needProcess(ev) {
 				break
 			}
-			logger.Printf("process event: %T", ev)
+			logger.Printf("process event: %#v", ev)
 			switch extractCommand(ev.Text) {
 			case "add":
 				controller.AddUser(ev)
