@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/nlopes/slack"
 	"github.com/yonesko/slack-queue-bot/queue"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"log"
-	"os"
 	"strings"
 )
 
@@ -17,10 +17,15 @@ type Controller struct {
 }
 
 func NewController() *Controller {
+	logger := &lumberjack.Logger{
+		Filename: "slack-queue-bot.log",
+		MaxSize:  500,
+		Compress: true,
+	}
 	api := slack.New(
 		mustGetEnv("BOT_USER_OAUTH_ACCESS_TOKEN"),
 		slack.OptionDebug(true),
-		slack.OptionLog(log.New(os.Stdout, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
+		slack.OptionLog(log.New(logger, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
 	)
 
 	rtm := api.NewRTM()
