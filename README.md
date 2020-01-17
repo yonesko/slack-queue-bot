@@ -20,6 +20,7 @@ This bot supports next commands:
 * i18n
 * mutex to repo
 * graceful shutdown
+* catch panic
 
 
 ## Docs
