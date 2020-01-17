@@ -38,7 +38,7 @@ func NewServer() *Server {
 	}
 }
 
-const unexpectedErrorText = "Some error has occurred :("
+const unexpectedErrorText = "Some error has occurred :pepe_sad:"
 
 func (s *Server) addUser(ev *slack.MessageEvent) {
 	err := s.queueService.Add(queue.User{Id: ev.User, Channel: ev.User})
