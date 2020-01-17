@@ -45,7 +45,7 @@ func main() {
 func needProcess(m *slack.MessageEvent) bool {
 	mention := strings.HasPrefix(m.Text, thisBotUserId)
 	isDirect := strings.HasPrefix(m.Channel, "D")
-	simple := m.SubType == "" && !m.Hidden
+	simple := m.SubType == "" && !m.Hidden && m.BotID == "" && m.Edited == nil
 	return simple && (isDirect || mention)
 }
 
