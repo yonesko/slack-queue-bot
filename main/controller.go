@@ -67,7 +67,12 @@ func (s *Controller) deleteUser(ev *slack.MessageEvent) {
 	}
 	if len(q.Users) > 0 {
 		firstUser := q.Users[0]
-		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(fmt.Sprintf("<@%s> is your turn! When you finish, you should delete you from the queue", firstUser.Id), ev.Channel))
+		info, err := s.getUserInfo(firstUser.Id)
+		if err != nil {
+			s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
+			return
+		}
+		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(fmt.Sprintf("<@%s> is your turn! When you finish, you should delete you from the queue", info.Name), ev.Channel))
 	}
 }
 

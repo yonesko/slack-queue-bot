@@ -15,6 +15,7 @@ Turnio expose a API with main functionalities of a queue. You only need to menti
 * direct notifications (your turn)
 * estimate (dry add)
 * require reason to add in the queue
+* TTL to userInfoCache
 
 
 ##Docs
