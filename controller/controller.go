@@ -1,4 +1,4 @@
-package main
+package controller
 
 import (
 	"fmt"
@@ -16,9 +16,9 @@ type Controller struct {
 	userInfoCache map[string]*slack.User
 }
 
-func NewController() *Controller {
+func NewController(token string) *Controller {
 	api := slack.New(
-		mustGetEnv("BOT_USER_OAUTH_ACCESS_TOKEN"),
+		token,
 		slack.OptionDebug(true),
 		slack.OptionLog(log.New(os.Stdout, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
 	)
