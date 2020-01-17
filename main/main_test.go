@@ -10,7 +10,6 @@ func Test_extractCommand(t *testing.T) {
 		{text: "", want: ""},
 		{text: "uhvbknjlm", want: "uhvbknjlm"},
 		{text: "<@USMRFHHPE> add", want: "add"},
-		{text: "<SOMEID> add", want: "add"},
 		{text: "<@USMRFHHPE> someCmd \t", want: "someCmd"},
 		{text: " someCmd", want: "someCmd"},
 		{text: "add", want: "add"},
