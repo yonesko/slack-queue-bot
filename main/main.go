@@ -18,7 +18,7 @@ func main() {
 			if ev.SubType == "message_changed" {
 				break
 			}
-			switch strings.TrimSpace(ev.Text) {
+			switch extractCommand(ev.Text) {
 			case "add":
 				srv.addUser(ev)
 			case "del":
@@ -38,6 +38,10 @@ func main() {
 			log.Fatal(msg)
 		}
 	}
+}
+
+func extractCommand(text string) string {
+	return strings.TrimSpace(strings.Replace(text, "<@USMRFHHPE>", "", 1))
 }
 
 func getenv(name string) (string, error) {
