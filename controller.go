@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/nlopes/slack"
 	"github.com/yonesko/slack-queue-bot/queue"
-	"gopkg.in/natefinch/lumberjack.v2"
+	"io"
 	"log"
 	"strings"
 )
@@ -16,11 +16,11 @@ type Controller struct {
 	userInfoCache map[string]*slack.User
 }
 
-func newController(logger *lumberjack.Logger) *Controller {
+func newController(loggerWriter io.Writer) *Controller {
 	api := slack.New(
 		mustGetEnv("BOT_USER_OAUTH_ACCESS_TOKEN"),
 		slack.OptionDebug(true),
-		slack.OptionLog(log.New(logger, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
+		slack.OptionLog(log.New(loggerWriter, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
 	)
 
 	rtm := api.NewRTM()
