@@ -1,7 +1,6 @@
 package main
 
 import (
-	errors "dwatcher/pkg/dep/sources/https---github.com-pkg-errors"
 	"fmt"
 	"github.com/nlopes/slack"
 	"log"
@@ -83,7 +82,7 @@ func (s *Controller) composeShowQueueText(queue queue.Queue, userId string) (str
 	for i, u := range queue.Users {
 		info, err := s.getUserInfo(u.Id)
 		if err != nil {
-			return "", errors.WithMessage(err, "can't composeShowQueueText")
+			return "", fmt.Errorf("can't composeShowQueueText: %s", err)
 		}
 		highlight := ""
 		if u.Id == userId {
