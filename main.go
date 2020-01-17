@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"log"
 	"os"
 	"strings"
@@ -12,7 +13,12 @@ import (
 const thisBotUserId = "<@USMRFHHPE>"
 
 func main() {
-	controller := NewController()
+	logger := &lumberjack.Logger{
+		Filename: "slack-queue-bot.log",
+		MaxSize:  500,
+		Compress: true,
+	}
+	controller := NewController(logger)
 
 	for msg := range controller.rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {

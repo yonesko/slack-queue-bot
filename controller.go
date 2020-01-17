@@ -16,12 +16,7 @@ type Controller struct {
 	userInfoCache map[string]*slack.User
 }
 
-func NewController() *Controller {
-	logger := &lumberjack.Logger{
-		Filename: "slack-queue-bot.log",
-		MaxSize:  500,
-		Compress: true,
-	}
+func NewController(logger *lumberjack.Logger) *Controller {
 	api := slack.New(
 		mustGetEnv("BOT_USER_OAUTH_ACCESS_TOKEN"),
 		slack.OptionDebug(true),
