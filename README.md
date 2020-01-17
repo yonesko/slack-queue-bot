@@ -10,7 +10,7 @@ Turnio expose a API with main functionalities of a queue. You only need to menti
 * `clean` >   Delete all users in the queue 
 * `pop`  >   Delete first user of the queue
 
-##todo
+## todo
 * logs round robin
 * direct notifications (your turn)
 * estimate (dry add)
@@ -19,5 +19,5 @@ Turnio expose a API with main functionalities of a queue. You only need to menti
 * pass queue
 
 
-##Docs
+## Docs
 https://api.slack.com/rtm
