@@ -16,6 +16,7 @@ Turnio expose a API with main functionalities of a queue. You only need to menti
 * estimate (dry add)
 * require reason to add in the queue
 * TTL to userInfoCache
+* pass queue
 
 
 ##Docs
