@@ -16,7 +16,8 @@ This bot supports next commands:
 * estimate (dry add)
 * require reason to add in the queue
 * TTL to userInfoCache
-* pass queue
+* pass queue command
+* i18n
 
 
 ## Docs
