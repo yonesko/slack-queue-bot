@@ -15,6 +15,9 @@ func main() {
 	for msg := range srv.rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
+			if ev.SubType == "message_changed" {
+				break
+			}
 			switch strings.TrimSpace(ev.Text) {
 			case "add":
 				srv.addUser(ev)
