@@ -9,6 +9,8 @@ import (
 	"github.com/nlopes/slack"
 )
 
+const thisBotUserId = "<@USMRFHHPE>"
+
 func main() {
 	srv := NewServer()
 
@@ -42,11 +44,11 @@ func main() {
 
 //wee need only direct message or mentions
 func needProcess(m *slack.MessageEvent) bool {
-	return m.SubType == "" || strings.HasPrefix(m.Text, "<@USMRFHHPE>")
+	return m.SubType == "" || strings.HasPrefix(m.Text, thisBotUserId)
 }
 
 func extractCommand(text string) string {
-	return strings.TrimSpace(strings.Replace(text, "<@USMRFHHPE>", "", 1))
+	return strings.TrimSpace(strings.Replace(text, thisBotUserId, "", 1))
 }
 
 func getenv(name string) (string, error) {
