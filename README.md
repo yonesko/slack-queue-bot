@@ -21,6 +21,7 @@ This bot supports next commands:
 * mutex to repo
 * graceful shutdown
 * catch panic
+* answer to the thread
 
 
 ## Docs
