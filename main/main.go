@@ -15,7 +15,7 @@ func main() {
 	for msg := range srv.rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
-			if ev.SubType == "message_changed" {
+			if !needProcess(ev) {
 				break
 			}
 			switch extractCommand(ev.Text) {
@@ -38,6 +38,11 @@ func main() {
 			log.Fatal(msg)
 		}
 	}
+}
+
+//wee need only direct message or mentions
+func needProcess(m *slack.MessageEvent) bool {
+	return m.SubType == ""
 }
 
 func extractCommand(text string) string {
