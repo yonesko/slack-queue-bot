@@ -15,7 +15,7 @@ const thisBotUserId = "<@USMRFHHPE>"
 func main() {
 	ctrl := controller.NewController(mustGetEnv("BOT_USER_OAUTH_ACCESS_TOKEN"))
 
-	for msg := range ctrl.rtm.IncomingEvents {
+	for msg := range ctrl.Rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
 			if !needProcess(ev) {
@@ -23,17 +23,17 @@ func main() {
 			}
 			switch extractCommand(ev.Text) {
 			case "add":
-				ctrl.addUser(ev)
+				ctrl.AddUser(ev)
 			case "del":
-				ctrl.deleteUser(ev)
+				ctrl.DeleteUser(ev)
 			case "show":
-				ctrl.showQueue(ev)
+				ctrl.ShowQueue(ev)
 			case "clean":
-				ctrl.clean(ev)
+				ctrl.Clean(ev)
 			case "pop":
-				ctrl.pop(ev)
+				ctrl.Pop(ev)
 			default:
-				ctrl.showHelp(ev)
+				ctrl.ShowHelp(ev)
 			}
 		case *slack.OutgoingErrorEvent:
 			fmt.Printf("Can't send msg: %s", ev.Error())
