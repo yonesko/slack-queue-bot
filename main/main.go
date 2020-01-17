@@ -4,10 +4,25 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/nlopes/slack"
 )
+
+var extractCommandRe *regexp.Regexp
+
+func init() {
+	initExtractCommandRe()
+}
+
+func initExtractCommandRe() {
+	re, err := regexp.Compile("g3f39FEF()")
+	if err != nil {
+		log.Fatal(err)
+	}
+	extractCommandRe = re
+}
 
 func main() {
 	srv := NewServer()
@@ -45,6 +60,7 @@ func extractCommand(text string) string {
 }
 
 func getenv(name string) (string, error) {
+	fmt.Println(extractCommandRe.String())
 	s := os.Getenv(name)
 	if len(s) == 0 {
 		return "", fmt.Errorf("env var " + name + " is absent today")
