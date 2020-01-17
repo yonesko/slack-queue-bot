@@ -50,7 +50,9 @@ func needProcess(m *slack.MessageEvent) bool {
 }
 
 func extractCommand(text string) string {
-	return strings.TrimSpace(strings.Replace(text, thisBotUserId, "", 1))
+	txt := strings.Replace(text, thisBotUserId, "", 1)
+	txt = strings.ToLower(txt)
+	return strings.TrimSpace(txt)
 }
 
 func mustGetEnv(key string) string {
