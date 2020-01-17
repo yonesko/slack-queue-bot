@@ -14,7 +14,7 @@ const thisBotUserId = "<@USMRFHHPE>"
 func main() {
 	controller := NewController()
 
-	for msg := range controller.Rtm.IncomingEvents {
+	for msg := range controller.rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
 			if !needProcess(ev) {
