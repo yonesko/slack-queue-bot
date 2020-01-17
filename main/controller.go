@@ -151,7 +151,7 @@ func (s *Controller) pop(ev *slack.MessageEvent) {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 		return
 	}
-	s.showQueue(ev)
+	s.notifyHolder(ev.Channel)
 }
 
 func title(s *Controller, ev *slack.MessageEvent) string {
