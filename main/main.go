@@ -12,9 +12,9 @@ import (
 const thisBotUserId = "<@USMRFHHPE>"
 
 func main() {
-	srv := NewServer()
+	controller := NewController()
 
-	for msg := range srv.rtm.IncomingEvents {
+	for msg := range controller.rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
 			if !needProcess(ev) {
@@ -22,17 +22,17 @@ func main() {
 			}
 			switch extractCommand(ev.Text) {
 			case "add":
-				srv.addUser(ev)
+				controller.addUser(ev)
 			case "del":
-				srv.deleteUser(ev)
+				controller.deleteUser(ev)
 			case "show":
-				srv.showQueue(ev)
+				controller.showQueue(ev)
 			case "clean":
-				srv.clean(ev)
+				controller.clean(ev)
 			case "pop":
-				srv.pop(ev)
+				controller.pop(ev)
 			default:
-				srv.showHelp(ev)
+				controller.showHelp(ev)
 			}
 		case *slack.OutgoingErrorEvent:
 			fmt.Printf("Can't send msg: %s", ev.Error())
