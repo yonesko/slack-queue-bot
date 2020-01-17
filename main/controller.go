@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/nlopes/slack"
+	"github.com/yonesko/slack-queue-bot/queue"
 	"log"
 	"os"
-	"slack-queue-bot/queue"
 	"strings"
 )
 
