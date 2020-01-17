@@ -18,7 +18,7 @@ func main() {
 		MaxSize:  500,
 		Compress: true,
 	}
-	controller := NewController(logger)
+	controller := newController(logger)
 
 	for msg := range controller.rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {

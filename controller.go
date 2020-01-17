@@ -16,7 +16,7 @@ type Controller struct {
 	userInfoCache map[string]*slack.User
 }
 
-func NewController(logger *lumberjack.Logger) *Controller {
+func newController(logger *lumberjack.Logger) *Controller {
 	api := slack.New(
 		mustGetEnv("BOT_USER_OAUTH_ACCESS_TOKEN"),
 		slack.OptionDebug(true),
