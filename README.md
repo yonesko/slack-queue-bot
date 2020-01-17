@@ -2,7 +2,7 @@ A Slack bot to manage a queue of slack users in a channel.
 
 ## How?
 
-Turnio expose a API with main functionalities of a queue. You only need to mention him with some of next commands:
+This bot supports next commands:
 
 * `add`   >   Add a user to the queue
 * `del`   >   Delete user of the queue
