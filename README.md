@@ -12,8 +12,9 @@ Turnio expose a API with main functionalities of a queue. You only need to menti
 
 ##todo
 * logs round robin
-* notifications (your turn)
+* direct notifications (your turn)
 * estimate (dry add)
+* require reason to add in the queue
 
 
 ##Docs
