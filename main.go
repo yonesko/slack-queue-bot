@@ -13,12 +13,13 @@ import (
 const thisBotUserId = "<@USMRFHHPE>"
 
 func main() {
-	logger := &lumberjack.Logger{
+	lumberWriter := &lumberjack.Logger{
 		Filename: "slack-queue-bot.log",
 		MaxSize:  500,
 		Compress: true,
 	}
-	controller := newController(logger)
+	logger := log.New(lumberWriter, "queue-bot: ", log.Lshortfile|log.LstdFlags)
+	controller := newController(lumberWriter)
 
 	for msg := range controller.rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
@@ -26,6 +27,7 @@ func main() {
 			if !needProcess(ev) {
 				break
 			}
+			logger.Printf("process event: %T", ev)
 			switch extractCommand(ev.Text) {
 			case "add":
 				controller.AddUser(ev)

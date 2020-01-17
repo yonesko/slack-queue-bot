@@ -72,7 +72,7 @@ func (s *Controller) DeleteUser(ev *slack.MessageEvent) {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage("You are not in the queue", ev.Channel))
 		s.ShowQueue(ev)
 	case nil:
-		if deletedUser.Id == holder.Id {
+		if holder != nil && deletedUser.Id == holder.Id {
 			s.notifyNewHolder(ev.Channel)
 		}
 		s.ShowQueue(ev)
