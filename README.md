@@ -11,9 +11,7 @@ Turnio expose a API with main functionalities of a queue. You only need to menti
 * `pop`  >   Delete first user of the queue
 
 ##todo
-* mention
 * logs round robin
-* refac : logic in service only
 * notifications (your turn)
 * estimate (dry add)
 
