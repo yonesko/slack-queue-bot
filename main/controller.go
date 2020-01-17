@@ -26,9 +26,10 @@ func NewController() *Controller {
 	rtm := api.NewRTM()
 	go rtm.ManageConnection()
 	return &Controller{
-		rtm:          rtm,
-		api:          api,
-		queueService: queue.NewService(),
+		rtm:           rtm,
+		api:           api,
+		queueService:  queue.NewService(),
+		userInfoCache: map[string]*slack.User{},
 	}
 }
 
