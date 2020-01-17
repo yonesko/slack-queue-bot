@@ -52,6 +52,7 @@ func (s *Controller) deleteUser(ev *slack.MessageEvent) {
 	err := s.queueService.Delete(queue.User{Id: ev.User})
 	if err == queue.NoSuchUserErr {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage("You are not in the queue", ev.Channel))
+		s.showQueue(ev)
 		return
 	}
 	if err != nil {
