@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/yonesko/slack-queue-bot/controller"
 	"log"
 	"os"
 	"strings"
@@ -13,9 +12,9 @@ import (
 const thisBotUserId = "<@USMRFHHPE>"
 
 func main() {
-	ctrl := controller.NewController(mustGetEnv("BOT_USER_OAUTH_ACCESS_TOKEN"))
+	controller := NewController()
 
-	for msg := range ctrl.Rtm.IncomingEvents {
+	for msg := range controller.Rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
 			if !needProcess(ev) {
@@ -23,17 +22,17 @@ func main() {
 			}
 			switch extractCommand(ev.Text) {
 			case "add":
-				ctrl.AddUser(ev)
+				controller.AddUser(ev)
 			case "del":
-				ctrl.DeleteUser(ev)
+				controller.DeleteUser(ev)
 			case "show":
-				ctrl.ShowQueue(ev)
+				controller.ShowQueue(ev)
 			case "clean":
-				ctrl.Clean(ev)
+				controller.Clean(ev)
 			case "pop":
-				ctrl.Pop(ev)
+				controller.Pop(ev)
 			default:
-				ctrl.ShowHelp(ev)
+				controller.ShowHelp(ev)
 			}
 		case *slack.OutgoingErrorEvent:
 			fmt.Printf("Can't send msg: %s", ev.Error())
