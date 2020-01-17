@@ -171,6 +171,7 @@ func (s *Controller) Pop(ev *slack.MessageEvent) {
 		return
 	}
 	s.notifyNewHolder(ev.Channel)
+	s.ShowQueue(ev)
 }
 
 func title(s *Controller, ev *slack.MessageEvent) string {
