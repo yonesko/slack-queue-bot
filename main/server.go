@@ -108,7 +108,7 @@ func (s *Server) getUserInfo(userId string) (*slack.User, error) {
 }
 
 func (s *Server) showHelp(ev *slack.MessageEvent) {
-	template := "Hello %s, This is my API:\n" +
+	template := "Hello, %s, This is my API:\n" +
 		"`add` - Add you to the queue\n" +
 		"`del` - Delete you of the queue\n" +
 		"`show` - Show the queue\n" +
