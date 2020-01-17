@@ -18,23 +18,18 @@ type Controller struct {
 }
 
 func NewController() *Controller {
-	env, err := getenv("BOT_USER_OAUTH_ACCESS_TOKEN")
-	if err != nil {
-		log.Fatal(err)
-	}
 	api := slack.New(
-		env,
+		mustGetEnv("BOT_USER_OAUTH_ACCESS_TOKEN"),
 		slack.OptionDebug(true),
 		slack.OptionLog(log.New(os.Stdout, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
 	)
 
-	queueService := queue.NewService()
 	rtm := api.NewRTM()
 	go rtm.ManageConnection()
 	return &Controller{
 		rtm:          rtm,
 		api:          api,
-		queueService: queueService,
+		queueService: queue.NewService(),
 	}
 }
 

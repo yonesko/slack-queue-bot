@@ -53,10 +53,9 @@ func extractCommand(text string) string {
 	return strings.TrimSpace(strings.Replace(text, thisBotUserId, "", 1))
 }
 
-func getenv(name string) (string, error) {
-	s := os.Getenv(name)
-	if len(s) == 0 {
-		return "", fmt.Errorf("env var " + name + " is absent today")
+func mustGetEnv(key string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
 	}
-	return s, nil
+	panic(fmt.Sprintf("environment variable %s unset", key))
 }
