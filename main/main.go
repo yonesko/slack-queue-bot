@@ -42,9 +42,11 @@ func main() {
 	}
 }
 
-//wee need only direct message or mentions
 func needProcess(m *slack.MessageEvent) bool {
-	return m.SubType == "" || strings.HasPrefix(m.Text, thisBotUserId)
+	mention := strings.HasPrefix(m.Text, thisBotUserId)
+	isDirect := m.User[:1] == "D"
+	simple := m.SubType == "" && !m.Hidden
+	return simple && (isDirect || mention)
 }
 
 func extractCommand(text string) string {
