@@ -3,7 +3,7 @@ package queue
 import "testing"
 
 func TestFileRepository(t *testing.T) {
-	repository := fileRepository{filename: "db/slack-queue-bot.test-db.json"}
+	repository := newFileRepository()
 	err := repository.Save(Queue{Users: []User{{Id: "54"}, {Id: "154"}}})
 	if err != nil {
 		t.Error(err)

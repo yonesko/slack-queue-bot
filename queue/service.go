@@ -2,7 +2,6 @@ package queue
 
 import (
 	"errors"
-	"os"
 )
 
 type Service interface {
