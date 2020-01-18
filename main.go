@@ -26,21 +26,7 @@ func main() {
 			if !needProcess(ev) {
 				break
 			}
-			logger.Printf("process event: %#v", ev)
-			switch extractCommand(ev.Text) {
-			case "add":
-				controller.addUser(ev)
-			case "del":
-				controller.deleteUser(ev)
-			case "show":
-				controller.showQueue(ev)
-			case "clean":
-				controller.clean(ev)
-			case "pop":
-				controller.pop(ev)
-			default:
-				controller.showHelp(ev)
-			}
+			go controller.handleMessageEvent(ev)
 		case *slack.OutgoingErrorEvent:
 			fmt.Printf("Can't send msg: %s", ev.Error())
 		case *slack.InvalidAuthEvent, *slack.ConnectionErrorEvent:
