@@ -126,7 +126,7 @@ func (cont *Controller) notifyNewHolder(ev *slack.MessageEvent) {
 			cont.logger.Print(err)
 			return
 		}
-		txt := fmt.Sprintf("<@%cont> is your turn! When you finish, you should delete you from the queue", info.Name)
+		txt := fmt.Sprintf("<@%s> is your turn! When you finish, you should delete you from the queue", info.Name)
 		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 	}
 }
@@ -156,13 +156,13 @@ func (cont *Controller) composeShowQueueText(queue queue.Queue, userId string) (
 	for i, u := range queue.Users {
 		info, err := cont.getUserInfo(u.Id)
 		if err != nil {
-			return "", fmt.Errorf("can't composeShowQueueText: %cont", err)
+			return "", fmt.Errorf("can't composeShowQueueText: %s", err)
 		}
 		highlight := ""
 		if u.Id == userId {
 			highlight = ":point_left::skin-tone-2:"
 		}
-		txt += fmt.Sprintf("`%dº` %cont (%cont) %cont\n", i+1, info.RealName, info.Name, highlight)
+		txt += fmt.Sprintf("`%dº` %s (%s) %s\n", i+1, info.RealName, info.Name, highlight)
 	}
 	return txt, nil
 }
