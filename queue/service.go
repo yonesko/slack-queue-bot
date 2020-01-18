@@ -1,6 +1,9 @@
 package queue
 
-import "errors"
+import (
+	"errors"
+	"os"
+)
 
 type Service interface {
 	Add(User) error
@@ -86,5 +89,9 @@ func (s service) Show() (Queue, error) {
 }
 
 func NewService() Service {
+	err := os.Mkdir("db", os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
 	return service{fileRepository{filename: "db/slack-queue-bot.db.json"}}
 }
