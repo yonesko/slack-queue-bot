@@ -10,7 +10,7 @@ This bot supports next commands:
 * `clean` >   Delete all users in the queue 
 * `pop`  >   Delete first user of the queue
 
-## todo
+## backlog
 * logs round robin
 * direct notifications (your turn)
 * estimate (dry add)
