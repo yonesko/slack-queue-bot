@@ -86,5 +86,5 @@ func (s service) Show() (Queue, error) {
 }
 
 func NewService() Service {
-	return service{fileRepository{filename: "slack-queue-bot.db.json"}}
+	return service{fileRepository{filename: "db/slack-queue-bot.db.json"}}
 }

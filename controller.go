@@ -14,6 +14,7 @@ type Controller struct {
 	api           *slack.Client
 	queueService  queue.Service
 	userInfoCache map[string]*slack.User
+	logger        *log.Logger
 }
 
 func newController(loggerWriter io.Writer) *Controller {
@@ -30,6 +31,7 @@ func newController(loggerWriter io.Writer) *Controller {
 		api:           api,
 		queueService:  queue.NewService(),
 		userInfoCache: map[string]*slack.User{},
+		logger:        log.New(loggerWriter, "controller: ", log.Lshortfile|log.LstdFlags),
 	}
 }
 
@@ -42,6 +44,7 @@ func (s *Controller) addUser(ev *slack.MessageEvent) {
 	}
 	if err != nil {
 		s.reportError(ev)
+		s.logger.Print(err)
 		return
 	}
 	s.showQueue(ev)
@@ -66,6 +69,7 @@ func (s *Controller) deleteUser(ev *slack.MessageEvent) {
 	holder, err := s.findHolder()
 	if err != nil {
 		s.reportError(ev)
+		s.logger.Print(err)
 		return
 	}
 	deletedUser := queue.User{Id: ev.User}
@@ -80,6 +84,7 @@ func (s *Controller) deleteUser(ev *slack.MessageEvent) {
 		s.showQueue(ev)
 	default:
 		s.reportError(ev)
+		s.logger.Print(err)
 	}
 }
 
@@ -87,6 +92,7 @@ func (s *Controller) notifyNewHolder(ev *slack.MessageEvent) {
 	q, err := s.queueService.Show()
 	if err != nil {
 		s.reportError(ev)
+		s.logger.Print(err)
 		return
 	}
 	if len(q.Users) > 0 {
@@ -94,6 +100,7 @@ func (s *Controller) notifyNewHolder(ev *slack.MessageEvent) {
 		info, err := s.getUserInfo(firstUser.Id)
 		if err != nil {
 			s.reportError(ev)
+			s.logger.Print(err)
 			return
 		}
 		txt := fmt.Sprintf("<@%s> is your turn! When you finish, you should delete you from the queue", info.Name)
@@ -105,6 +112,7 @@ func (s *Controller) showQueue(ev *slack.MessageEvent) {
 	q, err := s.queueService.Show()
 	if err != nil {
 		s.reportError(ev)
+		s.logger.Print(err)
 		return
 	}
 	if len(q.Users) == 0 {
@@ -114,6 +122,7 @@ func (s *Controller) showQueue(ev *slack.MessageEvent) {
 	text, err := s.composeShowQueueText(q, ev.User)
 	if err != nil {
 		s.reportError(ev)
+		s.logger.Print(err)
 		return
 	}
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(text, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
@@ -162,6 +171,7 @@ func (s *Controller) clean(ev *slack.MessageEvent) {
 	err := s.queueService.DeleteAll()
 	if err != nil {
 		s.reportError(ev)
+		s.logger.Print(err)
 		return
 	}
 	s.showQueue(ev)
@@ -171,6 +181,7 @@ func (s *Controller) pop(ev *slack.MessageEvent) {
 	err := s.queueService.Pop()
 	if err != nil {
 		s.reportError(ev)
+		s.logger.Print(err)
 		return
 	}
 	s.notifyNewHolder(ev)
