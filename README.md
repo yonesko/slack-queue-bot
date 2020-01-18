@@ -20,7 +20,7 @@ This bot supports next commands:
 * i18n
 * mutex to repo
 * graceful shutdown
-* catch panic
+* run handler in goroutine and catch panic
 * answer to the thread
 * defensive limit msg per user
 
