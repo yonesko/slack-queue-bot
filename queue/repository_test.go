@@ -30,23 +30,6 @@ func assertState(t *testing.T, queue Queue, userIds []string) {
 	}
 }
 
-func newInmemService() Service {
-	return service{&inmemRepository{Queue{}}}
-}
-
-type inmemRepository struct {
-	Queue
-}
-
-func (i *inmemRepository) Save(queue Queue) error {
-	i.Queue = queue
-	return nil
-}
-
-func (i *inmemRepository) Read() (Queue, error) {
-	return i.Queue, nil
-}
-
 func equals(queue Queue, userIds []string) bool {
 	if len(queue.Users) != len(userIds) {
 		return false

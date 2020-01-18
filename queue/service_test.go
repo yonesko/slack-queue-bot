@@ -67,3 +67,6 @@ func TestService_Add_Idempotent(t *testing.T) {
 		t.Error("must be already exist")
 	}
 }
+func newInmemService() Service {
+	return service{&inmemRepository{Queue{}}}
+}
