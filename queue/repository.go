@@ -18,6 +18,18 @@ type fileRepository struct {
 	mtx      sync.Mutex
 }
 
+func newFileRepository() *fileRepository {
+	createDbIfNeed()
+	return &fileRepository{filename: "db/slack-queue-bot.db.json"}
+}
+func createDbIfNeed() {
+	if _, err := os.Stat("db"); os.IsNotExist(err) {
+		err := os.Mkdir("db", os.ModePerm)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
 func (f *fileRepository) Save(queue Queue) error {
 	f.mtx.Lock()
 	defer f.mtx.Unlock()
