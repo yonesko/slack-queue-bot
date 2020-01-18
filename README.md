@@ -24,7 +24,7 @@ This bot supports next commands:
 * TTL to userInfoCache
 * mutex to repo
 * graceful shutdown
-* run handler in goroutine and catch panic
+* **run handler in goroutine and catch panic**
 * defensive limit msg per user
 
 
