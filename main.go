@@ -29,17 +29,17 @@ func main() {
 			logger.Printf("process event: %#v", ev)
 			switch extractCommand(ev.Text) {
 			case "add":
-				controller.AddUser(ev)
+				controller.addUser(ev)
 			case "del":
-				controller.DeleteUser(ev)
+				controller.deleteUser(ev)
 			case "show":
-				controller.ShowQueue(ev)
+				controller.showQueue(ev)
 			case "clean":
-				controller.Clean(ev)
+				controller.clean(ev)
 			case "pop":
-				controller.Pop(ev)
+				controller.pop(ev)
 			default:
-				controller.ShowHelp(ev)
+				controller.showHelp(ev)
 			}
 		case *slack.OutgoingErrorEvent:
 			fmt.Printf("Can't send msg: %s", ev.Error())

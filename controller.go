@@ -35,18 +35,18 @@ func newController(loggerWriter io.Writer) *Controller {
 
 const unexpectedErrorText = "Some error has occurred :pepe_sad:"
 
-func (s *Controller) AddUser(ev *slack.MessageEvent) {
+func (s *Controller) addUser(ev *slack.MessageEvent) {
 	err := s.queueService.Add(queue.User{Id: ev.User})
 	if err == queue.AlreadyExistErr {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage("You are already in the queue", ev.Channel))
-		s.ShowQueue(ev)
+		s.showQueue(ev)
 		return
 	}
 	if err != nil {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 		return
 	}
-	s.ShowQueue(ev)
+	s.showQueue(ev)
 }
 
 func (s *Controller) findHolder() (*queue.User, error) {
@@ -60,7 +60,7 @@ func (s *Controller) findHolder() (*queue.User, error) {
 	return &q.Users[0], nil
 }
 
-func (s *Controller) DeleteUser(ev *slack.MessageEvent) {
+func (s *Controller) deleteUser(ev *slack.MessageEvent) {
 	holder, err := s.findHolder()
 	if err != nil {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
@@ -70,12 +70,12 @@ func (s *Controller) DeleteUser(ev *slack.MessageEvent) {
 	switch s.queueService.Delete(deletedUser) {
 	case queue.NoSuchUserErr:
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage("You are not in the queue", ev.Channel))
-		s.ShowQueue(ev)
+		s.showQueue(ev)
 	case nil:
 		if holder != nil && deletedUser.Id == holder.Id {
 			s.notifyNewHolder(ev.Channel)
 		}
-		s.ShowQueue(ev)
+		s.showQueue(ev)
 	default:
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 	}
@@ -98,7 +98,7 @@ func (s *Controller) notifyNewHolder(channelId string) {
 	}
 }
 
-func (s *Controller) ShowQueue(ev *slack.MessageEvent) {
+func (s *Controller) showQueue(ev *slack.MessageEvent) {
 	q, err := s.queueService.Show()
 	if err != nil {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
@@ -144,7 +144,7 @@ func (s *Controller) getUserInfo(userId string) (*slack.User, error) {
 	return info, nil
 }
 
-func (s *Controller) ShowHelp(ev *slack.MessageEvent) {
+func (s *Controller) showHelp(ev *slack.MessageEvent) {
 	template := "Hello, %s, This is my API:\n" +
 		"`add` - Add you to the queue\n" +
 		"`del` - Delete you of the queue\n" +
@@ -155,23 +155,23 @@ func (s *Controller) ShowHelp(ev *slack.MessageEvent) {
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(txt, ev.Channel))
 }
 
-func (s *Controller) Clean(ev *slack.MessageEvent) {
+func (s *Controller) clean(ev *slack.MessageEvent) {
 	err := s.queueService.DeleteAll()
 	if err != nil {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 		return
 	}
-	s.ShowQueue(ev)
+	s.showQueue(ev)
 }
 
-func (s *Controller) Pop(ev *slack.MessageEvent) {
+func (s *Controller) pop(ev *slack.MessageEvent) {
 	err := s.queueService.Pop()
 	if err != nil {
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(unexpectedErrorText, ev.Channel))
 		return
 	}
 	s.notifyNewHolder(ev.Channel)
-	s.ShowQueue(ev)
+	s.showQueue(ev)
 }
 
 func title(s *Controller, ev *slack.MessageEvent) string {
