@@ -70,3 +70,16 @@ func TestService_Add_Idempotent(t *testing.T) {
 func newInmemService() Service {
 	return service{&inmemRepository{Queue{}}}
 }
+
+type inmemRepository struct {
+	Queue
+}
+
+func (i *inmemRepository) Save(queue Queue) error {
+	i.Queue = queue
+	return nil
+}
+
+func (i *inmemRepository) Read() (Queue, error) {
+	return i.Queue, nil
+}
