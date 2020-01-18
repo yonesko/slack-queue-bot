@@ -20,7 +20,6 @@ func main() {
 	}
 	logger := log.New(lumberWriter, "queue-bot: ", log.Lshortfile|log.LstdFlags)
 	controller := newController(lumberWriter)
-
 	for msg := range controller.rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
