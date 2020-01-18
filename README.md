@@ -22,6 +22,7 @@ This bot supports next commands:
 * graceful shutdown
 * catch panic
 * answer to the thread
+* defensive limit msg per user
 
 
 ## Docs
