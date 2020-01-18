@@ -3,7 +3,6 @@ package queue
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"sync"
 	"testing"
 )
@@ -40,31 +39,31 @@ func TestFileRepository(t *testing.T) {
 func TestFileRepositoryParallel(t *testing.T) {
 	service := NewService()
 	group := &sync.WaitGroup{}
-	group.Add(1)
-
-	addUsers(service, t, 0, 1000, group)
+	chunks, workers := 100, 100
+	for i := 0; i < workers; i++ {
+		group.Add(1)
+		go addUsers(service, t, i*chunks, (i+1)*chunks, group)
+	}
 	group.Wait()
 
 	queue, err := service.Show()
 	if err != nil {
 		t.Error(err)
 	}
-	if len(queue.Users) != 1000 {
-		t.Error("must be all")
-	}
-	for i := 0; i < 1000; i++ {
-		queue.Users[i].Id = strconv.Itoa(i)
+	if len(queue.Users) != chunks*workers {
+		t.Errorf("must be all: %d", len(queue.Users))
 	}
 }
 
 func addUsers(service Service, t *testing.T, start, end int, group *sync.WaitGroup) {
+	defer group.Done()
+
 	for i := start; i < end; i++ {
 		err := service.Add(User{Id: fmt.Sprint(i)})
 		if err != nil {
 			t.Error(err)
 		}
 	}
-	group.Done()
 }
 
 func assertState(t *testing.T, queue Queue, userIds []string) {
