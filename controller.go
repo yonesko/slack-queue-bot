@@ -42,7 +42,6 @@ func (cont *Controller) handleMessageEvent(ev *slack.MessageEvent) {
 		}
 	}()
 	cont.logger.Printf("process event: %#v", ev)
-	cont = nil
 	switch extractCommand(ev.Text) {
 	case "add":
 		cont.addUser(ev)
