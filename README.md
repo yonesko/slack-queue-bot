@@ -18,7 +18,7 @@ This bot supports next commands:
 * require reason to add in the queue
 * pass queue command
 #### tech
-* cache file repository
+* **cache file repository**
 * i18n
 * TTL to userInfoCache
 * mutex to repo
