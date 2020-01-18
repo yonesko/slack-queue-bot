@@ -12,7 +12,6 @@ This bot supports next commands:
 
 ## backlog
 #### features
-* **answer to the thread**
 * direct notification on turn
 * estimate on show
 * require reason to add in the queue
