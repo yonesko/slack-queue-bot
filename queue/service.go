@@ -89,9 +89,15 @@ func (s service) Show() (Queue, error) {
 }
 
 func NewService() Service {
-	err := os.Mkdir("db", os.ModePerm)
-	if err != nil {
-		panic(err)
+	createDbIfNeed()
+	return service{&fileRepository{filename: "db/slack-queue-bot.db.json"}}
+}
+
+func createDbIfNeed() {
+	if _, err := os.Stat("db"); os.IsNotExist(err) {
+		err := os.Mkdir("db", os.ModePerm)
+		if err != nil {
+			panic(err)
+		}
 	}
-	return service{fileRepository{filename: "db/slack-queue-bot.db.json"}}
 }
