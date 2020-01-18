@@ -11,17 +11,19 @@ This bot supports next commands:
 * `pop`  >   Delete first user of the queue
 
 ## backlog
-* logs round robin
-* direct notifications (your turn)
-* estimate (dry add)
+#### features
+* **answer to the thread**
+* direct notification on turn
+* estimate on show
 * require reason to add in the queue
-* TTL to userInfoCache
 * pass queue command
+#### tech
+* cache file repository
 * i18n
+* TTL to userInfoCache
 * mutex to repo
 * graceful shutdown
 * run handler in goroutine and catch panic
-* answer to the thread
 * defensive limit msg per user
 
 
