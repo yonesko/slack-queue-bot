@@ -18,12 +18,10 @@ This bot supports next commands:
 * pass queue command
 #### tech
 * **cache file repository**
-* server test
+* **server test**
 * i18n
 * TTL to userInfoCache
-* mutex to repo
 * graceful shutdown
-* **run handler in goroutine and catch panic**
 * defensive limit msg per user
 
 
