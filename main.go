@@ -28,7 +28,7 @@ func main() {
 			}
 			go controller.handleMessageEvent(ev)
 		case *slack.OutgoingErrorEvent:
-			fmt.Printf("Can't send msg: %s", ev.Error())
+			logger.Printf("Can't send msg: %s\n", ev.Error())
 		case *slack.InvalidAuthEvent, *slack.ConnectionErrorEvent:
 			log.Fatal(msg)
 		}
