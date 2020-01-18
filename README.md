@@ -19,6 +19,7 @@ This bot supports next commands:
 * pass queue command
 #### tech
 * **cache file repository**
+* server test
 * i18n
 * TTL to userInfoCache
 * mutex to repo
