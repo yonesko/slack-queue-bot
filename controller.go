@@ -42,6 +42,7 @@ func (cont *Controller) handleMessageEvent(ev *slack.MessageEvent) {
 		}
 	}()
 	cont.logger.Printf("process event: %#v", ev)
+	cont = nil
 	switch extractCommand(ev.Text) {
 	case "add":
 		cont.addUser(ev)
@@ -180,7 +181,7 @@ func (cont *Controller) getUserInfo(userId string) (*slack.User, error) {
 }
 
 func (cont *Controller) showHelp(ev *slack.MessageEvent) {
-	template := "Hello, %cont, This is my API:\n" +
+	template := "Hello, %s, This is my API:\n" +
 		"`add` - Add you to the queue\n" +
 		"`del` - Delete you of the queue\n" +
 		"`show` - Show the queue\n" +
