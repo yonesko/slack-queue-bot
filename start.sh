@@ -3,7 +3,7 @@ go build -o run
 
 if [ $? -eq 0 ]; then
   echo "Starting..."
-  supervise .
+  supervise . &
 else
   echo "Failed to test and build"
 fi
