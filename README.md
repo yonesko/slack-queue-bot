@@ -13,6 +13,7 @@ This bot supports next commands:
 ## backlog
 #### features
 * direct notification on turn
+* direct notification when you've been deleted
 * estimate on show
 * require reason to add in the queue
 * pass queue command
