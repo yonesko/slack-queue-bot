@@ -3,6 +3,7 @@ package queue
 import (
 	"errors"
 	"fmt"
+	"sync"
 )
 
 type Service interface {
@@ -15,9 +16,12 @@ type Service interface {
 
 type service struct {
 	Repository
+	mu sync.Mutex
 }
 
-func (s service) Pop() error {
+func (s *service) Pop() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
 	if err != nil {
 		return err
@@ -38,7 +42,9 @@ var (
 	NoSuchUserErr   = errors.New("no such user")
 )
 
-func (s service) Add(user User) error {
+func (s *service) Add(user User) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
 	if err != nil {
 		return err
@@ -56,7 +62,9 @@ func (s service) Add(user User) error {
 	return nil
 }
 
-func (s service) Delete(user User) error {
+func (s *service) Delete(user User) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
 	if err != nil {
 		return err
@@ -76,7 +84,9 @@ func (s service) Delete(user User) error {
 	return nil
 }
 
-func (s service) DeleteAll() error {
+func (s *service) DeleteAll() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	err := s.Repository.Save(Queue{})
 	if err != nil {
 		return err
@@ -84,7 +94,9 @@ func (s service) DeleteAll() error {
 	return nil
 }
 
-func (s service) Show() (Queue, error) {
+func (s *service) Show() (Queue, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.Read()
 }
 
@@ -93,5 +105,5 @@ func NewService() Service {
 	if _, err := repository.Read(); err != nil {
 		panic(fmt.Sprintf("can't crete Service: %s", err))
 	}
-	return service{repository}
+	return &service{repository, sync.Mutex{}}
 }

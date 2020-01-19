@@ -1,6 +1,10 @@
 package queue
 
-import "testing"
+import (
+	"fmt"
+	"sync"
+	"testing"
+)
 
 func TestService_Add_DifferentUsers(t *testing.T) {
 	service := newInmemService()
@@ -67,8 +71,39 @@ func TestService_Add_Idempotent(t *testing.T) {
 		t.Error("must be already exist")
 	}
 }
+
+func TestFileRepositoryParallel(t *testing.T) {
+	service := newInmemService()
+	group := &sync.WaitGroup{}
+	chunks, workers := 100, 100
+	for i := 0; i < workers; i++ {
+		group.Add(1)
+		go addUsers(service, t, i*chunks, (i+1)*chunks, group)
+	}
+	group.Wait()
+
+	queue, err := service.Show()
+	if err != nil {
+		t.Error(err)
+	}
+	if len(queue.Users) != chunks*workers {
+		t.Errorf("must be %d, got %d", chunks*workers, len(queue.Users))
+	}
+}
+
+func addUsers(service Service, t *testing.T, start, end int, group *sync.WaitGroup) {
+	defer group.Done()
+
+	for i := start; i < end; i++ {
+		err := service.Add(User{Id: fmt.Sprint(i)})
+		if err != nil {
+			t.Error(err)
+		}
+	}
+}
+
 func newInmemService() Service {
-	return service{&inmemRepository{Queue{}}}
+	return &service{&inmemRepository{Queue{}}, sync.Mutex{}}
 }
 
 type inmemRepository struct {
