@@ -19,6 +19,19 @@ type service struct {
 	mu sync.Mutex
 }
 
+var (
+	AlreadyExistErr = errors.New("already exist")
+	NoSuchUserErr   = errors.New("no such user")
+)
+
+func NewService() Service {
+	repository := newFileRepository()
+	if _, err := repository.Read(); err != nil {
+		panic(fmt.Sprintf("can't crete Service: %s", err))
+	}
+	return &service{repository, sync.Mutex{}}
+}
+
 func (s *service) Pop() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -36,11 +49,6 @@ func (s *service) Pop() error {
 	}
 	return nil
 }
-
-var (
-	AlreadyExistErr = errors.New("already exist")
-	NoSuchUserErr   = errors.New("no such user")
-)
 
 func (s *service) Add(user User) error {
 	s.mu.Lock()
@@ -98,12 +106,4 @@ func (s *service) Show() (Queue, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.Read()
-}
-
-func NewService() Service {
-	repository := newFileRepository()
-	if _, err := repository.Read(); err != nil {
-		panic(fmt.Sprintf("can't crete Service: %s", err))
-	}
-	return &service{repository, sync.Mutex{}}
 }
