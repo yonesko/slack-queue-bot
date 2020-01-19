@@ -17,7 +17,8 @@ This bot supports next commands:
 * require reason to add in the queue
 * pass queue command
 #### tech
-* **cache file repository**
+* restart proc on crash
+* cache file repository
 * **server test**
 * i18n
 * TTL to userInfoCache
