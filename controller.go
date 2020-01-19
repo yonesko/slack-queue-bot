@@ -125,7 +125,7 @@ func (cont *Controller) notifyNewHolder(ev *slack.MessageEvent) {
 			cont.logger.Print(err)
 			return
 		}
-		txt := fmt.Sprintf("<@%s> is your turn! When you finish, you should delete you from the queue", info.Name)
+		txt := fmt.Sprintf("Dear <@%s>, it is your turn! When you finish, you should delete you from the queue", info.Name)
 		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 	}
 }
