@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/natefinch/lumberjack.v2"
+	_ "github.com/motemen/go-loghttp/global" //log HTTP req and resp
 	"io/ioutil"
 	"log"
 	"os"
