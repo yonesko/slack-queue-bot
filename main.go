@@ -30,7 +30,7 @@ func main() {
 			if !needProcess(ev) {
 				break
 			}
-			go controller.handleMessageEvent(ev)
+			controller.handleMessageEvent(ev)
 		case *slack.OutgoingErrorEvent:
 			logger.Printf("Can't send msg: %s\n", ev.Error())
 		case *slack.InvalidAuthEvent, *slack.ConnectionErrorEvent:
