@@ -2,6 +2,7 @@ package queue
 
 import (
 	"errors"
+	"fmt"
 )
 
 type Service interface {
@@ -88,5 +89,9 @@ func (s service) Show() (Queue, error) {
 }
 
 func NewService() Service {
-	return service{newFileRepository()}
+	repository := newFileRepository()
+	if _, err := repository.Read(); err != nil {
+		panic(fmt.Sprintf("can't crete Service: %s", err))
+	}
+	return service{repository}
 }
