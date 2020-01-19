@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"gopkg.in/natefinch/lumberjack.v2"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
