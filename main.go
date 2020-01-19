@@ -20,6 +20,7 @@ func main() {
 	}
 	logger := log.New(lumberWriter, "queue-bot: ", log.Lshortfile|log.LstdFlags)
 	controller := newController(lumberWriter)
+	fmt.Println("Service is started")
 	for msg := range controller.rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
@@ -30,7 +31,10 @@ func main() {
 		case *slack.OutgoingErrorEvent:
 			logger.Printf("Can't send msg: %s\n", ev.Error())
 		case *slack.InvalidAuthEvent, *slack.ConnectionErrorEvent:
-			log.Fatal(msg)
+			fmt.Println(fmt.Errorf("connection err: %s", msg))
+			os.Exit(1)
+		case *slack.HelloEvent:
+			fmt.Println("Hello from Slack server received")
 		}
 	}
 }
