@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/nlopes/slack"
 	"github.com/yonesko/slack-queue-bot/queue"
-	"io"
 	"log"
 	"strings"
 )
@@ -17,11 +16,11 @@ type Controller struct {
 	logger        *log.Logger
 }
 
-func newController(loggerWriter io.Writer) *Controller {
+func newController() *Controller {
 	api := slack.New(
 		mustGetEnv("BOT_USER_OAUTH_ACCESS_TOKEN"),
 		slack.OptionDebug(true),
-		slack.OptionLog(log.New(loggerWriter, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
+		slack.OptionLog(log.New(lumberWriter, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
 	)
 
 	rtm := api.NewRTM()
@@ -31,7 +30,7 @@ func newController(loggerWriter io.Writer) *Controller {
 		api:           api,
 		queueService:  queue.NewService(),
 		userInfoCache: map[string]*slack.User{},
-		logger:        log.New(loggerWriter, "controller: ", log.Lshortfile|log.LstdFlags),
+		logger:        log.New(lumberWriter, "controller: ", log.Lshortfile|log.LstdFlags),
 	}
 }
 

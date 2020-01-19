@@ -13,15 +13,16 @@ import (
 
 const thisBotUserId = "<@USMRFHHPE>"
 
+var lumberWriter = &lumberjack.Logger{
+	Filename: "slack-queue-bot.log",
+	MaxSize:  500,
+	Compress: true,
+}
+
 func main() {
-	lumberWriter := &lumberjack.Logger{
-		Filename: "slack-queue-bot.log",
-		MaxSize:  500,
-		Compress: true,
-	}
 	logger := log.New(lumberWriter, "queue-bot: ", log.Lshortfile|log.LstdFlags)
-	controller := newController(lumberWriter)
-	fmt.Println("Service is started")
+	controller := newController()
+	logger.Println("Service is started")
 	for msg := range controller.rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
@@ -32,22 +33,21 @@ func main() {
 		case *slack.OutgoingErrorEvent:
 			logger.Printf("Can't send msg: %s\n", ev.Error())
 		case *slack.InvalidAuthEvent, *slack.ConnectionErrorEvent:
-			fmt.Println(fmt.Errorf("connection err: %s", msg))
-			os.Exit(1)
+			log.Fatal(fmt.Errorf("connection err: %s", msg))
 		case *slack.HelloEvent:
-			printOnHello()
+			printOnHello(logger)
 		}
 	}
 }
 
-func printOnHello() {
-	fmt.Println("Hello from Slack server received")
+func printOnHello(logger *log.Logger) {
+	logger.Println("Hello from Slack server received")
 	bytes, err := ioutil.ReadFile("banner.txt")
 	if err != nil {
-		fmt.Println(fmt.Errorf("can't read banner: %s", err))
+		logger.Println(fmt.Errorf("can't read banner: %s", err))
 		return
 	}
-	fmt.Println(string(bytes))
+	logger.Println(string(bytes))
 }
 
 func needProcess(m *slack.MessageEvent) bool {
