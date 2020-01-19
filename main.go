@@ -34,9 +34,19 @@ func main() {
 			fmt.Println(fmt.Errorf("connection err: %s", msg))
 			os.Exit(1)
 		case *slack.HelloEvent:
-			fmt.Println("Hello from Slack server received")
+			printOnHello()
 		}
 	}
+}
+
+func printOnHello() {
+	fmt.Println("Hello from Slack server received")
+	bytes, err := ioutil.ReadFile("banner.txt")
+	if err != nil {
+		fmt.Println(fmt.Errorf("can't read banner: %s", err))
+		return
+	}
+	fmt.Println(string(bytes))
 }
 
 func needProcess(m *slack.MessageEvent) bool {
