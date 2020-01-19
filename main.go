@@ -20,6 +20,7 @@ var lumberWriter = &lumberjack.Logger{
 }
 
 func main() {
+	log.SetOutput(lumberWriter)
 	logger := log.New(lumberWriter, "queue-bot: ", log.Lshortfile|log.LstdFlags)
 	controller := newController()
 	logger.Println("Service is started")
