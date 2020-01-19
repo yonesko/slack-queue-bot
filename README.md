@@ -21,7 +21,6 @@ This bot supports next commands:
 * **server test**
 * i18n
 * TTL to userInfoCache
-* graceful shutdown
 * defensive limit msg per user
 
 
