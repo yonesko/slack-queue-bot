@@ -1,6 +1,6 @@
 A Slack bot to manage a queue of slack users in a channel.
 
-Used in production at https://city-mobil.ru/
+This bot is used in production at https://city-mobil.ru/
 
 ## How?
 
