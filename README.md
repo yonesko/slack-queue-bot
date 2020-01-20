@@ -20,6 +20,7 @@ This bot supports next commands:
 * require reason to add in the queue
 * pass queue command
 #### tech
+* rename slack-queue-bot.db.json
 * cache file repository
 * **decouple controller and server test**
 * i18n
