@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/nlopes/slack"
+	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/queue"
 	"log"
 	"strings"
@@ -60,7 +61,8 @@ func (cont *Controller) handleMessageEvent(ev *slack.MessageEvent) {
 func (cont *Controller) addUser(ev *slack.MessageEvent) {
 	err := cont.queueService.Add(queue.User{Id: ev.User})
 	if err == queue.AlreadyExistErr {
-		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage("You are already in the queue", ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
+		txt := i18n.P.MustGetString("you_are_already_in_the_queue")
+		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 		cont.showQueue(ev)
 		return
 	}
