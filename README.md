@@ -1,4 +1,4 @@
-A Slack bot to manage a queue of slack users in a channel.
+A Slack bot to manage a queue of slack users in a channel written in Golang.
 
 This bot is used in production at https://city-mobil.ru/
 
