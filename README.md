@@ -20,7 +20,7 @@ This bot supports next commands:
 #### tech
 * restart proc on crash
 * cache file repository
-* **server test**
+* **decouple controller and server test**
 * i18n
 * TTL to userInfoCache
 * defensive limit msg per user
