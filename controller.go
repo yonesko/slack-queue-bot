@@ -75,7 +75,8 @@ func (cont *Controller) addUser(ev *slack.MessageEvent) {
 }
 
 func (cont *Controller) reportError(ev *slack.MessageEvent) {
-	cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage("Some error has occurred :pepe_sad:", ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
+	txt := i18n.P.MustGetString("error_occurred")
+	cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 }
 
 func (cont *Controller) findHolder() (*queue.User, error) {
@@ -99,7 +100,8 @@ func (cont *Controller) deleteUser(ev *slack.MessageEvent) {
 	deletedUser := queue.User{Id: ev.User}
 	switch cont.queueService.Delete(deletedUser) {
 	case queue.NoSuchUserErr:
-		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage("You are not in the queue", ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
+		txt := i18n.P.MustGetString("you_are_not_in_the_queue")
+		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 		cont.showQueue(ev)
 	case nil:
 		if holder != nil && deletedUser.Id == holder.Id {
@@ -127,7 +129,7 @@ func (cont *Controller) notifyNewHolder(ev *slack.MessageEvent) {
 			cont.logger.Print(err)
 			return
 		}
-		txt := fmt.Sprintf("Dear <@%s>, it is your turn! When you finish, you should delete you from the queue", info.Name)
+		txt := fmt.Sprintf(i18n.P.MustGetString("your_turn_came"), info.Name)
 		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 	}
 }
@@ -140,7 +142,8 @@ func (cont *Controller) showQueue(ev *slack.MessageEvent) {
 		return
 	}
 	if len(q.Users) == 0 {
-		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage("Queue is empty", ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
+		txt := i18n.P.MustGetString("queue_is_empty")
+		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 		return
 	}
 	text, err := cont.composeShowQueueText(q, ev.User)
@@ -181,13 +184,7 @@ func (cont *Controller) getUserInfo(userId string) (*slack.User, error) {
 }
 
 func (cont *Controller) showHelp(ev *slack.MessageEvent) {
-	template := "Hello, %s, This is my API:\n" +
-		"`add` - Add you to the queue\n" +
-		"`del` - Delete you of the queue\n" +
-		"`show` - Show the queue\n" +
-		"`clean` - Clean all\n" +
-		"`pop` - Delete first user of the queue\n"
-	txt := fmt.Sprintf(template, title(cont, ev))
+	txt := fmt.Sprintf(i18n.P.MustGetString("help_text"), title(cont, ev))
 	cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 }
 
