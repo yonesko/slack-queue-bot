@@ -21,7 +21,6 @@ This bot supports next commands:
 * pass queue command
 #### tech
 * rename slack-queue-bot.db.json
-* cache file repository
 * **decouple controller and server test**
 * i18n
 * TTL to userInfoCache
