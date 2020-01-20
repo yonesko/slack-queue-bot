@@ -26,6 +26,7 @@ This bot supports next commands:
 * i18n
 * TTL to userInfoCache
 * defensive limit msg per user
+* i18n all labels check
 
 
 ## Docs
