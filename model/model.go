@@ -2,6 +2,7 @@ package model
 
 type Queue struct {
 	Users []User `json:"users"`
+	//UserIds []string `json:"users"`
 }
 
 func (q Queue) IndexOf(user User) int {
