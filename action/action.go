@@ -19,6 +19,10 @@ type addToQueue struct {
 	queueRepository queue.Repository
 }
 
+func NewAddToQueue(queueRepository queue.Repository) AddToQueue {
+	return &addToQueue{queueRepository: queueRepository}
+}
+
 func (a *addToQueue) Do(entity model.QueueEntity) error {
 	queue, err := a.queueRepository.Read()
 	if err != nil {
