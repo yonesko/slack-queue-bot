@@ -8,8 +8,8 @@ import (
 )
 
 type Service interface {
-	Add(model.User) error
-	Delete(model.User) error
+	Add(model.QueueEntity) error
+	Delete(model.QueueEntity) error
 	Pop() error
 	DeleteAll() error
 	Show() (model.Queue, error)
@@ -40,10 +40,10 @@ func (s *service) Pop() error {
 	if err != nil {
 		return err
 	}
-	if len(queue.Users) == 0 {
+	if len(queue.Entities) == 0 {
 		return nil
 	}
-	queue.Users = queue.Users[1:]
+	queue.Entities = queue.Entities[1:]
 	err = s.Repository.Save(queue)
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func (s *service) Pop() error {
 	return nil
 }
 
-func (s *service) Add(user model.User) error {
+func (s *service) Add(entity model.QueueEntity) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
@@ -59,11 +59,11 @@ func (s *service) Add(user model.User) error {
 		return err
 	}
 
-	i := queue.IndexOf(user)
+	i := queue.IndexOf(entity)
 	if i != -1 {
 		return AlreadyExistErr
 	}
-	queue.Users = append(queue.Users, user)
+	queue.Entities = append(queue.Entities, entity)
 	err = s.Repository.Save(queue)
 	if err != nil {
 		return err
@@ -71,21 +71,21 @@ func (s *service) Add(user model.User) error {
 	return nil
 }
 
-func (s *service) Delete(user model.User) error {
+func (s *service) Delete(entity model.QueueEntity) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
 	if err != nil {
 		return err
 	}
-	if len(queue.Users) == 0 {
+	if len(queue.Entities) == 0 {
 		return nil
 	}
-	i := queue.IndexOf(user)
+	i := queue.IndexOf(entity)
 	if i == -1 {
 		return NoSuchUserErr
 	}
-	queue.Users = append(queue.Users[:i], queue.Users[i+1:]...)
+	queue.Entities = append(queue.Entities[:i], queue.Entities[i+1:]...)
 	err = s.Repository.Save(queue)
 	if err != nil {
 		return err

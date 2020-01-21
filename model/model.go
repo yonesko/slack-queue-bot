@@ -1,13 +1,16 @@
 package model
 
 type Queue struct {
-	Users []User `json:"users"`
-	//UserIds []string `json:"users"`
+	Entities []QueueEntity `json:"entities"`
 }
 
-func (q Queue) IndexOf(user User) int {
-	for i, u := range q.Users {
-		if u.Id == user.Id {
+type QueueEntity struct {
+	UserId string `json:"user_id"`
+}
+
+func (q Queue) IndexOf(ent QueueEntity) int {
+	for i, e := range q.Entities {
+		if e == ent {
 			return i
 		}
 	}
