@@ -16,5 +16,7 @@ func (q Queue) IndexOf(user User) int {
 }
 
 type User struct {
-	Id string `json:"id"`
+	Id          string `json:"id"`
+	FullName    string `json:"full_name"`
+	DisplayName string `json:"display_name"`
 }
