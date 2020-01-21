@@ -26,7 +26,7 @@ var (
 )
 
 func NewService() Service {
-	repository := newFileRepository()
+	repository := NewRepository()
 	if _, err := repository.Read(); err != nil {
 		panic(fmt.Sprintf("can't crete Service: %s", err))
 	}

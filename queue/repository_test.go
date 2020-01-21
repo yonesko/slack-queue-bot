@@ -14,7 +14,7 @@ func init() {
 }
 
 func TestFileRepository(t *testing.T) {
-	repository := newFileRepository()
+	repository := NewRepository()
 	err := repository.Save(model.Queue{Users: []model.User{{Id: "54"}, {Id: "154"}}})
 	if err != nil {
 		t.Error(err)

@@ -17,7 +17,7 @@ type fileRepository struct {
 	queue    model.Queue
 }
 
-func newFileRepository() *fileRepository {
+func NewRepository() *fileRepository {
 	createDbIfNeed()
 	return &fileRepository{filename: "db/slack-queue-bot.db.json"}
 }
