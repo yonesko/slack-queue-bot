@@ -3,15 +3,16 @@ package queue
 import (
 	"errors"
 	"fmt"
+	"github.com/yonesko/slack-queue-bot/model"
 	"sync"
 )
 
 type Service interface {
-	Add(User) error
-	Delete(User) error
+	Add(model.User) error
+	Delete(model.User) error
 	Pop() error
 	DeleteAll() error
-	Show() (Queue, error)
+	Show() (model.Queue, error)
 }
 
 type service struct {
@@ -50,7 +51,7 @@ func (s *service) Pop() error {
 	return nil
 }
 
-func (s *service) Add(user User) error {
+func (s *service) Add(user model.User) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
@@ -58,7 +59,7 @@ func (s *service) Add(user User) error {
 		return err
 	}
 
-	i := queue.indexOf(user)
+	i := queue.IndexOf(user)
 	if i != -1 {
 		return AlreadyExistErr
 	}
@@ -70,7 +71,7 @@ func (s *service) Add(user User) error {
 	return nil
 }
 
-func (s *service) Delete(user User) error {
+func (s *service) Delete(user model.User) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
@@ -80,7 +81,7 @@ func (s *service) Delete(user User) error {
 	if len(queue.Users) == 0 {
 		return nil
 	}
-	i := queue.indexOf(user)
+	i := queue.IndexOf(user)
 	if i == -1 {
 		return NoSuchUserErr
 	}
@@ -95,14 +96,14 @@ func (s *service) Delete(user User) error {
 func (s *service) DeleteAll() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	err := s.Repository.Save(Queue{})
+	err := s.Repository.Save(model.Queue{})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *service) Show() (Queue, error) {
+func (s *service) Show() (model.Queue, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.Read()

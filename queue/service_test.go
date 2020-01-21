@@ -2,13 +2,14 @@ package queue
 
 import (
 	"fmt"
+	"github.com/yonesko/slack-queue-bot/model"
 	"sync"
 	"testing"
 )
 
 func TestService_Add_DifferentUsers(t *testing.T) {
 	service := newInmemService()
-	err := service.Add(User{Id: "123"})
+	err := service.Add(model.User{Id: "123"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -17,8 +18,8 @@ func TestService_Add_DifferentUsers(t *testing.T) {
 		t.Error(err)
 	}
 	equals(queue, []string{"123"})
-	_ = service.Add(User{Id: "ABC"})
-	_ = service.Add(User{Id: "ABCD"})
+	_ = service.Add(model.User{Id: "ABC"})
+	_ = service.Add(model.User{Id: "ABCD"})
 	equals(queue, []string{"123", "ABC", "ABCD"})
 }
 
@@ -28,7 +29,7 @@ func TestService_Pop(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = service.Add(User{Id: "123"})
+	err = service.Add(model.User{Id: "123"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -49,7 +50,7 @@ func TestService_DeleteAll(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = service.Add(User{Id: "123"})
+	err = service.Add(model.User{Id: "123"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -62,11 +63,11 @@ func TestService_DeleteAll(t *testing.T) {
 
 func TestService_Add_Idempotent(t *testing.T) {
 	service := newInmemService()
-	err := service.Add(User{Id: "123"})
+	err := service.Add(model.User{Id: "123"})
 	if err != nil {
 		t.Error(err)
 	}
-	err = service.Add(User{Id: "123"})
+	err = service.Add(model.User{Id: "123"})
 	if err == nil || err.Error() != "already exist" {
 		t.Error("must be already exist")
 	}
@@ -95,7 +96,7 @@ func addUsers(service Service, t *testing.T, start, end int, group *sync.WaitGro
 	defer group.Done()
 
 	for i := start; i < end; i++ {
-		err := service.Add(User{Id: fmt.Sprint(i)})
+		err := service.Add(model.User{Id: fmt.Sprint(i)})
 		if err != nil {
 			t.Error(err)
 		}
@@ -103,18 +104,18 @@ func addUsers(service Service, t *testing.T, start, end int, group *sync.WaitGro
 }
 
 func newInmemService() Service {
-	return &service{&inmemRepository{Queue{}}, sync.Mutex{}}
+	return &service{&inmemRepository{model.Queue{}}, sync.Mutex{}}
 }
 
 type inmemRepository struct {
-	Queue
+	model.Queue
 }
 
-func (i *inmemRepository) Save(queue Queue) error {
+func (i *inmemRepository) Save(queue model.Queue) error {
 	i.Queue = queue
 	return nil
 }
 
-func (i *inmemRepository) Read() (Queue, error) {
+func (i *inmemRepository) Read() (model.Queue, error) {
 	return i.Queue, nil
 }

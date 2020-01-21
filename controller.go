@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/nlopes/slack"
 	"github.com/yonesko/slack-queue-bot/i18n"
+	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue"
 	"log"
 	"strings"
@@ -59,7 +60,7 @@ func (cont *Controller) handleMessageEvent(ev *slack.MessageEvent) {
 }
 
 func (cont *Controller) addUser(ev *slack.MessageEvent) {
-	err := cont.queueService.Add(queue.User{Id: ev.User})
+	err := cont.queueService.Add(model.User{Id: ev.User})
 	if err == queue.AlreadyExistErr {
 		txt := i18n.P.MustGetString("you_are_already_in_the_queue")
 		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
@@ -79,7 +80,7 @@ func (cont *Controller) reportError(ev *slack.MessageEvent) {
 	cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 }
 
-func (cont *Controller) findHolder() (*queue.User, error) {
+func (cont *Controller) findHolder() (*model.User, error) {
 	q, err := cont.queueService.Show()
 	if err != nil {
 		return nil, err
@@ -97,7 +98,7 @@ func (cont *Controller) deleteUser(ev *slack.MessageEvent) {
 		cont.logger.Print(err)
 		return
 	}
-	deletedUser := queue.User{Id: ev.User}
+	deletedUser := model.User{Id: ev.User}
 	switch cont.queueService.Delete(deletedUser) {
 	case queue.NoSuchUserErr:
 		txt := i18n.P.MustGetString("you_are_not_in_the_queue")
@@ -155,7 +156,7 @@ func (cont *Controller) showQueue(ev *slack.MessageEvent) {
 	cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(text, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 }
 
-func (cont *Controller) composeShowQueueText(queue queue.Queue, userId string) (string, error) {
+func (cont *Controller) composeShowQueueText(queue model.Queue, userId string) (string, error) {
 	txt := ""
 	for i, u := range queue.Users {
 		info, err := cont.getUserInfo(u.Id)

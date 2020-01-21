@@ -1,14 +1,10 @@
-package queue
+package model
 
 type Queue struct {
 	Users []User `json:"users"`
 }
 
-type User struct {
-	Id string `json:"id"`
-}
-
-func (q Queue) indexOf(user User) int {
+func (q Queue) IndexOf(user User) int {
 	for i, u := range q.Users {
 		if u.Id == user.Id {
 			return i
@@ -16,4 +12,8 @@ func (q Queue) indexOf(user User) int {
 	}
 
 	return -1
+}
+
+type User struct {
+	Id string `json:"id"`
 }
