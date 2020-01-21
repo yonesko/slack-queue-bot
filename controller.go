@@ -170,7 +170,7 @@ func (cont *Controller) composeShowQueueText(queue model.Queue, userId string) (
 }
 
 func (cont *Controller) showHelp(ev *slack.MessageEvent) {
-	txt := fmt.Sprintf(i18n.P.MustGetString("help_text"), title(cont, ev))
+	txt := fmt.Sprintf(i18n.P.MustGetString("help_text"), cont.title(ev))
 	cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 }
 
@@ -195,12 +195,9 @@ func (cont *Controller) pop(ev *slack.MessageEvent) {
 	cont.showQueue(ev)
 }
 
-//todo simplify
-func title(s *Controller, ev *slack.MessageEvent) string {
-	title := "human"
-	user, err := s.userRepository.FindById(ev.User)
-	if err == nil {
-		title = strings.TrimSpace(user.FullName)
+func (cont *Controller) title(ev *slack.MessageEvent) string {
+	if user, err := cont.userRepository.FindById(ev.User); err == nil {
+		return strings.TrimSpace(user.FullName)
 	}
-	return title
+	return "human"
 }
