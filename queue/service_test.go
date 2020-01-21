@@ -72,7 +72,7 @@ func TestService_Add_Idempotent(t *testing.T) {
 	}
 }
 
-func TestFileRepositoryParallel(t *testing.T) {
+func TestNoRaceConditionsInService(t *testing.T) {
 	service := newInmemService()
 	group := &sync.WaitGroup{}
 	chunks, workers := 100, 100
