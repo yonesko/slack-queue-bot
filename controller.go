@@ -6,33 +6,30 @@ import (
 	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue"
+	"github.com/yonesko/slack-queue-bot/user"
 	"log"
 	"strings"
 )
 
 type Controller struct {
-	rtm           *slack.RTM
-	api           *slack.Client
-	queueService  queue.Service
-	userInfoCache map[string]*slack.User
-	logger        *log.Logger
+	rtm            *slack.RTM
+	api            *slack.Client
+	queueService   queue.Service
+	userInfoCache  map[string]model.User
+	logger         *log.Logger
+	userRepository user.Repository
 }
 
-func newController() *Controller {
-	api := slack.New(
-		mustGetEnv("BOT_USER_OAUTH_ACCESS_TOKEN"),
-		slack.OptionDebug(true),
-		slack.OptionLog(log.New(lumberWriter, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
-	)
-
-	rtm := api.NewRTM()
+func newController(slackApi *slack.Client, userRepository user.Repository) *Controller {
+	rtm := slackApi.NewRTM()
 	go rtm.ManageConnection()
 	return &Controller{
-		rtm:           rtm,
-		api:           api,
-		queueService:  queue.NewService(),
-		userInfoCache: map[string]*slack.User{},
-		logger:        log.New(lumberWriter, "controller: ", log.Lshortfile|log.LstdFlags),
+		rtm:            rtm,
+		api:            slackApi,
+		queueService:   queue.NewService(),
+		userInfoCache:  map[string]model.User{},
+		logger:         log.New(lumberWriter, "controller: ", log.Lshortfile|log.LstdFlags),
+		userRepository: userRepository,
 	}
 }
 
@@ -124,13 +121,13 @@ func (cont *Controller) notifyNewHolder(ev *slack.MessageEvent) {
 	}
 	if len(q.Users) > 0 {
 		firstUser := q.Users[0]
-		info, err := cont.getUserInfo(firstUser.Id)
+		user, err := cont.userRepository.FindById(firstUser.Id)
 		if err != nil {
 			cont.reportError(ev)
 			cont.logger.Print(err)
 			return
 		}
-		txt := fmt.Sprintf(i18n.P.MustGetString("your_turn_came"), info.Name)
+		txt := fmt.Sprintf(i18n.P.MustGetString("your_turn_came"), user.DisplayName)
 		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 	}
 }
@@ -159,7 +156,7 @@ func (cont *Controller) showQueue(ev *slack.MessageEvent) {
 func (cont *Controller) composeShowQueueText(queue model.Queue, userId string) (string, error) {
 	txt := ""
 	for i, u := range queue.Users {
-		info, err := cont.getUserInfo(u.Id)
+		user, err := cont.userRepository.FindById(u.Id)
 		if err != nil {
 			return "", fmt.Errorf("can't composeShowQueueText: %s", err)
 		}
@@ -167,21 +164,9 @@ func (cont *Controller) composeShowQueueText(queue model.Queue, userId string) (
 		if u.Id == userId {
 			highlight = ":point_left::skin-tone-2:"
 		}
-		txt += fmt.Sprintf("`%dº` %s (%s) %s\n", i+1, info.RealName, info.Name, highlight)
+		txt += fmt.Sprintf("`%dº` %s (%s) %s\n", i+1, user.FullName, user.DisplayName, highlight)
 	}
 	return txt, nil
-}
-
-func (cont *Controller) getUserInfo(userId string) (*slack.User, error) {
-	if info, exists := cont.userInfoCache[userId]; exists {
-		return info, nil
-	}
-	info, err := cont.api.GetUserInfo(userId)
-	if err != nil {
-		return nil, err
-	}
-	cont.userInfoCache[userId] = info
-	return info, nil
 }
 
 func (cont *Controller) showHelp(ev *slack.MessageEvent) {
@@ -210,11 +195,12 @@ func (cont *Controller) pop(ev *slack.MessageEvent) {
 	cont.showQueue(ev)
 }
 
+//todo simplify
 func title(s *Controller, ev *slack.MessageEvent) string {
 	title := "human"
-	info, err := s.getUserInfo(ev.User)
+	user, err := s.userRepository.FindById(ev.User)
 	if err == nil {
-		title = strings.TrimSpace(info.RealName)
+		title = strings.TrimSpace(user.FullName)
 	}
 	return title
 }

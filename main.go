@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	_ "github.com/motemen/go-loghttp/global" //log HTTP req and resp
+	"github.com/yonesko/slack-queue-bot/user"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"io/ioutil"
 	"log"
@@ -23,7 +24,13 @@ var lumberWriter = &lumberjack.Logger{
 func main() {
 	log.SetOutput(lumberWriter)
 	logger := log.New(lumberWriter, "queue-bot: ", log.Lshortfile|log.LstdFlags)
-	controller := newController()
+	slackApi := slack.New(
+		mustGetEnv("BOT_USER_OAUTH_ACCESS_TOKEN"),
+		slack.OptionDebug(true),
+		slack.OptionLog(log.New(lumberWriter, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
+	)
+	userRepository := user.NewRepository(slackApi)
+	controller := newController(slackApi, userRepository)
 	logger.Println("Service is started")
 	for msg := range controller.rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
