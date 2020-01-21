@@ -23,10 +23,8 @@ This bot supports next commands:
 * add logger with levels to grep errors
 * rename slack-queue-bot.db.json
 * **decouple controller and server test**
-* i18n
 * TTL to userInfoCache
 * defensive limit msg per user
-* i18n all labels check
 
 
 ## Docs
