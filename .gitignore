@@ -2,3 +2,4 @@
 /slack-queue-bot.log
 /db/*
 /queue/db/*
+/slack-queue-bot
