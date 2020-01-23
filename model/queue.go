@@ -17,9 +17,3 @@ func (q Queue) IndexOf(ent QueueEntity) int {
 
 	return -1
 }
-
-type User struct {
-	Id          string `json:"id"`
-	FullName    string `json:"full_name"`
-	DisplayName string `json:"display_name"`
-}
