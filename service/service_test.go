@@ -1,14 +1,16 @@
-package queue
+package service
 
 import (
 	"fmt"
+	"github.com/yonesko/slack-queue-bot/model"
+	"github.com/yonesko/slack-queue-bot/queue/mock"
 	"sync"
 	"testing"
 )
 
 func TestService_Add_DifferentUsers(t *testing.T) {
-	service := newInmemService()
-	err := service.Add(User{Id: "123"})
+	service := &service{mock.NewQueueRepositoryMock(), sync.Mutex{}}
+	err := service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -17,18 +19,18 @@ func TestService_Add_DifferentUsers(t *testing.T) {
 		t.Error(err)
 	}
 	equals(queue, []string{"123"})
-	_ = service.Add(User{Id: "ABC"})
-	_ = service.Add(User{Id: "ABCD"})
+	_ = service.Add(model.QueueEntity{UserId: "ABC"})
+	_ = service.Add(model.QueueEntity{UserId: "ABCD"})
 	equals(queue, []string{"123", "ABC", "ABCD"})
 }
 
 func TestService_Pop(t *testing.T) {
-	service := newInmemService()
+	service := &service{mock.NewQueueRepositoryMock(), sync.Mutex{}}
 	err := service.Pop()
 	if err != nil {
 		t.Error(err)
 	}
-	err = service.Add(User{Id: "123"})
+	err = service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -44,12 +46,12 @@ func TestService_Pop(t *testing.T) {
 }
 
 func TestService_DeleteAll(t *testing.T) {
-	service := newInmemService()
+	service := &service{mock.NewQueueRepositoryMock(), sync.Mutex{}}
 	err := service.DeleteAll()
 	if err != nil {
 		t.Error(err)
 	}
-	err = service.Add(User{Id: "123"})
+	err = service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -61,19 +63,19 @@ func TestService_DeleteAll(t *testing.T) {
 }
 
 func TestService_Add_Idempotent(t *testing.T) {
-	service := newInmemService()
-	err := service.Add(User{Id: "123"})
+	service := &service{mock.NewQueueRepositoryMock(), sync.Mutex{}}
+	err := service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
 	}
-	err = service.Add(User{Id: "123"})
+	err = service.Add(model.QueueEntity{UserId: "123"})
 	if err == nil || err.Error() != "already exist" {
 		t.Error("must be already exist")
 	}
 }
 
 func TestNoRaceConditionsInService(t *testing.T) {
-	service := newInmemService()
+	service := &service{mock.NewQueueRepositoryMock(), sync.Mutex{}}
 	group := &sync.WaitGroup{}
 	chunks, workers := 100, 100
 	for i := 0; i < workers; i++ {
@@ -86,35 +88,32 @@ func TestNoRaceConditionsInService(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if len(queue.Users) != chunks*workers {
-		t.Errorf("must be %d, got %d", chunks*workers, len(queue.Users))
+	if len(queue.Entities) != chunks*workers {
+		t.Errorf("must be %d, got %d", chunks*workers, len(queue.Entities))
 	}
 }
 
-func addUsers(service Service, t *testing.T, start, end int, group *sync.WaitGroup) {
+func addUsers(service QueueService, t *testing.T, start, end int, group *sync.WaitGroup) {
 	defer group.Done()
 
 	for i := start; i < end; i++ {
-		err := service.Add(User{Id: fmt.Sprint(i)})
+		err := service.Add(model.QueueEntity{UserId: fmt.Sprint(i)})
 		if err != nil {
 			t.Error(err)
 		}
 	}
 }
 
-func newInmemService() Service {
-	return &service{&inmemRepository{Queue{}}, sync.Mutex{}}
-}
+func equals(queue model.Queue, userIds []string) bool {
+	if len(queue.Entities) != len(userIds) {
+		return false
+	}
 
-type inmemRepository struct {
-	Queue
-}
+	for i := range userIds {
+		if userIds[i] != queue.Entities[i].UserId {
+			return false
+		}
+	}
 
-func (i *inmemRepository) Save(queue Queue) error {
-	i.Queue = queue
-	return nil
-}
-
-func (i *inmemRepository) Read() (Queue, error) {
-	return i.Queue, nil
+	return true
 }

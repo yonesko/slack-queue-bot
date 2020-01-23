@@ -1,21 +1,23 @@
-package queue
+package service
 
 import (
 	"errors"
 	"fmt"
+	"github.com/yonesko/slack-queue-bot/model"
+	"github.com/yonesko/slack-queue-bot/queue"
 	"sync"
 )
 
-type Service interface {
-	Add(User) error
-	Delete(User) error
+type QueueService interface {
+	Add(model.QueueEntity) error
+	Delete(model.QueueEntity) error
 	Pop() error
 	DeleteAll() error
-	Show() (Queue, error)
+	Show() (model.Queue, error)
 }
 
 type service struct {
-	Repository
+	queue.Repository
 	mu sync.Mutex
 }
 
@@ -24,10 +26,9 @@ var (
 	NoSuchUserErr   = errors.New("no such user")
 )
 
-func NewService() Service {
-	repository := newFileRepository()
+func NewQueueService(repository queue.Repository) QueueService {
 	if _, err := repository.Read(); err != nil {
-		panic(fmt.Sprintf("can't crete Service: %s", err))
+		panic(fmt.Sprintf("can't crete QueueService: %s", err))
 	}
 	return &service{repository, sync.Mutex{}}
 }
@@ -39,10 +40,10 @@ func (s *service) Pop() error {
 	if err != nil {
 		return err
 	}
-	if len(queue.Users) == 0 {
+	if len(queue.Entities) == 0 {
 		return nil
 	}
-	queue.Users = queue.Users[1:]
+	queue.Entities = queue.Entities[1:]
 	err = s.Repository.Save(queue)
 	if err != nil {
 		return err
@@ -50,7 +51,7 @@ func (s *service) Pop() error {
 	return nil
 }
 
-func (s *service) Add(user User) error {
+func (s *service) Add(entity model.QueueEntity) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
@@ -58,11 +59,11 @@ func (s *service) Add(user User) error {
 		return err
 	}
 
-	i := queue.indexOf(user)
+	i := queue.IndexOf(entity)
 	if i != -1 {
 		return AlreadyExistErr
 	}
-	queue.Users = append(queue.Users, user)
+	queue.Entities = append(queue.Entities, entity)
 	err = s.Repository.Save(queue)
 	if err != nil {
 		return err
@@ -70,21 +71,21 @@ func (s *service) Add(user User) error {
 	return nil
 }
 
-func (s *service) Delete(user User) error {
+func (s *service) Delete(entity model.QueueEntity) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
 	if err != nil {
 		return err
 	}
-	if len(queue.Users) == 0 {
+	if len(queue.Entities) == 0 {
 		return nil
 	}
-	i := queue.indexOf(user)
+	i := queue.IndexOf(entity)
 	if i == -1 {
 		return NoSuchUserErr
 	}
-	queue.Users = append(queue.Users[:i], queue.Users[i+1:]...)
+	queue.Entities = append(queue.Entities[:i], queue.Entities[i+1:]...)
 	err = s.Repository.Save(queue)
 	if err != nil {
 		return err
@@ -95,14 +96,14 @@ func (s *service) Delete(user User) error {
 func (s *service) DeleteAll() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	err := s.Repository.Save(Queue{})
+	err := s.Repository.Save(model.Queue{})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *service) Show() (Queue, error) {
+func (s *service) Show() (model.Queue, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.Read()

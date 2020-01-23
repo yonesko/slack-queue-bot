@@ -2,21 +2,22 @@ package queue
 
 import (
 	"encoding/json"
+	"github.com/yonesko/slack-queue-bot/model"
 	"io/ioutil"
 	"os"
 )
 
 type Repository interface {
-	Save(Queue) error
-	Read() (Queue, error)
+	Save(model.Queue) error
+	Read() (model.Queue, error)
 }
 
 type fileRepository struct {
 	filename string
-	queue    Queue
+	queue    model.Queue
 }
 
-func newFileRepository() *fileRepository {
+func NewRepository() *fileRepository {
 	createDbIfNeed()
 	return &fileRepository{filename: "db/slack-queue-bot.db.json"}
 }
@@ -28,7 +29,7 @@ func createDbIfNeed() {
 		}
 	}
 }
-func (f *fileRepository) Save(queue Queue) error {
+func (f *fileRepository) Save(queue model.Queue) error {
 	bytes, err := json.Marshal(queue)
 	if err != nil {
 		return err
@@ -40,18 +41,18 @@ func (f *fileRepository) Save(queue Queue) error {
 	return nil
 }
 
-func (f *fileRepository) Read() (Queue, error) {
+func (f *fileRepository) Read() (model.Queue, error) {
 	bytes, err := ioutil.ReadFile(f.filename)
 	if os.IsNotExist(err) {
-		return Queue{}, nil
+		return model.Queue{}, nil
 	}
 	if err != nil {
-		return Queue{}, err
+		return model.Queue{}, err
 	}
-	queue := &Queue{}
+	queue := &model.Queue{}
 	err = json.Unmarshal(bytes, queue)
 	if err != nil {
-		return Queue{}, err
+		return model.Queue{}, err
 	}
 	return *queue, nil
 }

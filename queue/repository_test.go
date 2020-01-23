@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"github.com/yonesko/slack-queue-bot/model"
 	"os"
 	"testing"
 )
@@ -13,8 +14,8 @@ func init() {
 }
 
 func TestFileRepository(t *testing.T) {
-	repository := newFileRepository()
-	err := repository.Save(Queue{Users: []User{{Id: "54"}, {Id: "154"}}})
+	repository := NewRepository()
+	err := repository.Save(model.Queue{Entities: []model.QueueEntity{{UserId: "54"}, {UserId: "154"}}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -23,7 +24,7 @@ func TestFileRepository(t *testing.T) {
 		t.Error(err)
 	}
 	assertState(t, queue, []string{"54", "154"})
-	err = repository.Save(Queue{Users: []User{{Id: "54"}, {Id: "987654"}}})
+	err = repository.Save(model.Queue{Entities: []model.QueueEntity{{UserId: "54"}, {UserId: "987654"}}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -34,23 +35,22 @@ func TestFileRepository(t *testing.T) {
 	assertState(t, queue, []string{"54", "987654"})
 }
 
-func assertState(t *testing.T, queue Queue, userIds []string) {
+func assertState(t *testing.T, queue model.Queue, userIds []string) {
 	if !equals(queue, userIds) {
 		t.Errorf("got=%s want=%s", queue, userIds)
 	}
 }
 
-func equals(queue Queue, userIds []string) bool {
-	if len(queue.Users) != len(userIds) {
+func equals(queue model.Queue, userIds []string) bool {
+	if len(queue.Entities) != len(userIds) {
 		return false
 	}
 
 	for i := range userIds {
-		if userIds[i] != queue.Users[i].Id {
+		if userIds[i] != queue.Entities[i].UserId {
 			return false
 		}
 	}
 
 	return true
-
 }
