@@ -22,7 +22,6 @@ This bot supports next commands:
 #### tech
 * add logger with levels to grep errors
 * rename slack-queue-bot.db.json
-* **decouple controller and server test**
 * persistent userInfoCache. Avoid N API calls on restart
 * defensive limit msg per user
 
