@@ -95,7 +95,7 @@ func (cont *Controller) deleteUser(ev *slack.MessageEvent) {
 		return
 	}
 	deletedEntity := model.QueueEntity{UserId: ev.User}
-	switch cont.queueService.Delete(deletedEntity) {
+	switch cont.queueService.DeleteById(deletedEntity.UserId) {
 	case service.NoSuchUserErr:
 		txt := i18n.P.MustGetString("you_are_not_in_the_queue")
 		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))

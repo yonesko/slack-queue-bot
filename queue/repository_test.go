@@ -37,7 +37,7 @@ func TestFileRepository(t *testing.T) {
 
 func assertState(t *testing.T, queue model.Queue, userIds []string) {
 	if !equals(queue, userIds) {
-		t.Errorf("got=%s want=%s", queue, userIds)
+		t.Errorf("got=%v want=%s", queue, userIds)
 	}
 }
 

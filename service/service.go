@@ -10,7 +10,7 @@ import (
 
 type QueueService interface {
 	Add(model.QueueEntity) error
-	Delete(model.QueueEntity) error
+	DeleteById(userId string) error
 	Pop() error
 	DeleteAll() error
 	Show() (model.Queue, error)
@@ -59,7 +59,7 @@ func (s *service) Add(entity model.QueueEntity) error {
 		return err
 	}
 
-	i := queue.IndexOf(entity)
+	i := queue.IndexOf(entity.UserId)
 	if i != -1 {
 		return AlreadyExistErr
 	}
@@ -71,7 +71,7 @@ func (s *service) Add(entity model.QueueEntity) error {
 	return nil
 }
 
-func (s *service) Delete(entity model.QueueEntity) error {
+func (s *service) DeleteById(userId string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
@@ -81,7 +81,7 @@ func (s *service) Delete(entity model.QueueEntity) error {
 	if len(queue.Entities) == 0 {
 		return nil
 	}
-	i := queue.IndexOf(entity)
+	i := queue.IndexOf(userId)
 	if i == -1 {
 		return NoSuchUserErr
 	}
