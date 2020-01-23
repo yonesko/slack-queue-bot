@@ -1,9 +1,10 @@
-package queue
+package action
 
 import (
 	"errors"
 	"fmt"
 	"github.com/yonesko/slack-queue-bot/model"
+	"github.com/yonesko/slack-queue-bot/queue"
 	"sync"
 )
 
@@ -16,7 +17,7 @@ type Service interface {
 }
 
 type service struct {
-	Repository
+	queue.Repository
 	mu sync.Mutex
 }
 
@@ -26,7 +27,7 @@ var (
 )
 
 func NewService() Service {
-	repository := NewRepository()
+	repository := queue.NewRepository()
 	if _, err := repository.Read(); err != nil {
 		panic(fmt.Sprintf("can't crete Service: %s", err))
 	}

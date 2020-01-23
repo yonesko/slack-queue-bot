@@ -1,4 +1,4 @@
-package queue
+package action
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 
 func TestService_Add_DifferentUsers(t *testing.T) {
 	service := newInmemService()
-	err := service.Add(model.User{Id: "123"})
+	err := service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -18,8 +18,8 @@ func TestService_Add_DifferentUsers(t *testing.T) {
 		t.Error(err)
 	}
 	equals(queue, []string{"123"})
-	_ = service.Add(model.User{Id: "ABC"})
-	_ = service.Add(model.User{Id: "ABCD"})
+	_ = service.Add(model.QueueEntity{UserId: "ABC"})
+	_ = service.Add(model.QueueEntity{UserId: "ABCD"})
 	equals(queue, []string{"123", "ABC", "ABCD"})
 }
 
@@ -29,7 +29,7 @@ func TestService_Pop(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = service.Add(model.User{Id: "123"})
+	err = service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -50,7 +50,7 @@ func TestService_DeleteAll(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = service.Add(model.User{Id: "123"})
+	err = service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -63,11 +63,11 @@ func TestService_DeleteAll(t *testing.T) {
 
 func TestService_Add_Idempotent(t *testing.T) {
 	service := newInmemService()
-	err := service.Add(model.User{Id: "123"})
+	err := service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
 	}
-	err = service.Add(model.User{Id: "123"})
+	err = service.Add(model.QueueEntity{UserId: "123"})
 	if err == nil || err.Error() != "already exist" {
 		t.Error("must be already exist")
 	}
@@ -87,8 +87,8 @@ func TestNoRaceConditionsInService(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if len(queue.Users) != chunks*workers {
-		t.Errorf("must be %d, got %d", chunks*workers, len(queue.Users))
+	if len(queue.Entities) != chunks*workers {
+		t.Errorf("must be %d, got %d", chunks*workers, len(queue.Entities))
 	}
 }
 
@@ -96,7 +96,7 @@ func addUsers(service Service, t *testing.T, start, end int, group *sync.WaitGro
 	defer group.Done()
 
 	for i := start; i < end; i++ {
-		err := service.Add(model.User{Id: fmt.Sprint(i)})
+		err := service.Add(model.QueueEntity{UserId: fmt.Sprint(i)})
 		if err != nil {
 			t.Error(err)
 		}
@@ -118,4 +118,18 @@ func (i *inmemRepository) Save(queue model.Queue) error {
 
 func (i *inmemRepository) Read() (model.Queue, error) {
 	return i.Queue, nil
+}
+
+func equals(queue model.Queue, userIds []string) bool {
+	if len(queue.Entities) != len(userIds) {
+		return false
+	}
+
+	for i := range userIds {
+		if userIds[i] != queue.Entities[i].UserId {
+			return false
+		}
+	}
+
+	return true
 }

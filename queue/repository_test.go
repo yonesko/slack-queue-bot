@@ -15,7 +15,7 @@ func init() {
 
 func TestFileRepository(t *testing.T) {
 	repository := NewRepository()
-	err := repository.Save(model.Queue{Users: []model.User{{Id: "54"}, {Id: "154"}}})
+	err := repository.Save(model.Queue{Entities: []model.QueueEntity{{UserId: "54"}, {UserId: "154"}}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -24,7 +24,7 @@ func TestFileRepository(t *testing.T) {
 		t.Error(err)
 	}
 	assertState(t, queue, []string{"54", "154"})
-	err = repository.Save(model.Queue{Users: []model.User{{Id: "54"}, {Id: "987654"}}})
+	err = repository.Save(model.Queue{Entities: []model.QueueEntity{{UserId: "54"}, {UserId: "987654"}}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -42,16 +42,15 @@ func assertState(t *testing.T, queue model.Queue, userIds []string) {
 }
 
 func equals(queue model.Queue, userIds []string) bool {
-	if len(queue.Users) != len(userIds) {
+	if len(queue.Entities) != len(userIds) {
 		return false
 	}
 
 	for i := range userIds {
-		if userIds[i] != queue.Users[i].Id {
+		if userIds[i] != queue.Entities[i].UserId {
 			return false
 		}
 	}
 
 	return true
-
 }
