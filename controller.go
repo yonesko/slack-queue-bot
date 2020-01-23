@@ -16,7 +16,6 @@ type Controller struct {
 	rtm             *slack.RTM
 	api             *slack.Client
 	queueService    service.QueueService
-	userInfoCache   map[string]model.User
 	logger          *log.Logger
 	userRepository  user.Repository
 	queueRepository queue.Repository
@@ -29,7 +28,6 @@ func newController(slackApi *slack.Client, userRepository user.Repository, queue
 		rtm:             rtm,
 		api:             slackApi,
 		queueService:    service.NewQueueService(queueRepository),
-		userInfoCache:   map[string]model.User{},
 		logger:          log.New(lumberWriter, "controller: ", log.Lshortfile|log.LstdFlags),
 		userRepository:  userRepository,
 		queueRepository: queueRepository,
