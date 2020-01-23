@@ -1,16 +1,23 @@
 package mock
 
-import "github.com/yonesko/slack-queue-bot/model"
+import (
+	"github.com/yonesko/slack-queue-bot/model"
+	"github.com/yonesko/slack-queue-bot/queue"
+)
 
-type QueueRepositoryMock struct {
+type queueRepositoryMock struct {
 	model.Queue
 }
 
-func (i *QueueRepositoryMock) Save(queue model.Queue) error {
+func NewQueueRepositoryMock() queue.Repository {
+	return &queueRepositoryMock{model.Queue{}}
+}
+
+func (i *queueRepositoryMock) Save(queue model.Queue) error {
 	i.Queue = queue
 	return nil
 }
 
-func (i *QueueRepositoryMock) Read() (model.Queue, error) {
+func (i *queueRepositoryMock) Read() (model.Queue, error) {
 	return i.Queue, nil
 }
