@@ -1,4 +1,4 @@
-package action
+package service
 
 import (
 	"fmt"
@@ -93,7 +93,7 @@ func TestNoRaceConditionsInService(t *testing.T) {
 	}
 }
 
-func addUsers(service Service, t *testing.T, start, end int, group *sync.WaitGroup) {
+func addUsers(service QueueService, t *testing.T, start, end int, group *sync.WaitGroup) {
 	defer group.Done()
 
 	for i := start; i < end; i++ {

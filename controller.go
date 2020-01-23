@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/nlopes/slack"
-	"github.com/yonesko/slack-queue-bot/action"
 	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue"
+	"github.com/yonesko/slack-queue-bot/service"
 	"github.com/yonesko/slack-queue-bot/user"
 	"log"
 	"strings"
@@ -15,7 +15,7 @@ import (
 type Controller struct {
 	rtm             *slack.RTM
 	api             *slack.Client
-	queueService    action.Service
+	queueService    service.QueueService
 	userInfoCache   map[string]model.User
 	logger          *log.Logger
 	userRepository  user.Repository
@@ -28,7 +28,7 @@ func newController(slackApi *slack.Client, userRepository user.Repository, queue
 	return &Controller{
 		rtm:             rtm,
 		api:             slackApi,
-		queueService:    action.NewService(),
+		queueService:    service.NewQueueService(),
 		userInfoCache:   map[string]model.User{},
 		logger:          log.New(lumberWriter, "controller: ", log.Lshortfile|log.LstdFlags),
 		userRepository:  userRepository,
@@ -61,7 +61,7 @@ func (cont *Controller) handleMessageEvent(ev *slack.MessageEvent) {
 
 func (cont *Controller) addUser(ev *slack.MessageEvent) {
 	err := cont.queueService.Add(model.QueueEntity{UserId: ev.User})
-	if err == action.AlreadyExistErr {
+	if err == service.AlreadyExistErr {
 		txt := i18n.P.MustGetString("you_are_already_in_the_queue")
 		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 		cont.showQueue(ev)
@@ -100,7 +100,7 @@ func (cont *Controller) deleteUser(ev *slack.MessageEvent) {
 	}
 	deletedEntity := model.QueueEntity{UserId: ev.User}
 	switch cont.queueService.Delete(deletedEntity) {
-	case action.NoSuchUserErr:
+	case service.NoSuchUserErr:
 		txt := i18n.P.MustGetString("you_are_not_in_the_queue")
 		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 		cont.showQueue(ev)

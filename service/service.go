@@ -1,4 +1,4 @@
-package action
+package service
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-type Service interface {
+type QueueService interface {
 	Add(model.QueueEntity) error
 	Delete(model.QueueEntity) error
 	Pop() error
@@ -26,10 +26,10 @@ var (
 	NoSuchUserErr   = errors.New("no such user")
 )
 
-func NewService() Service {
+func NewQueueService() QueueService {
 	repository := queue.NewRepository()
 	if _, err := repository.Read(); err != nil {
-		panic(fmt.Sprintf("can't crete Service: %s", err))
+		panic(fmt.Sprintf("can't crete QueueService: %s", err))
 	}
 	return &service{repository, sync.Mutex{}}
 }
