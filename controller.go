@@ -13,24 +13,22 @@ import (
 )
 
 type Controller struct {
-	rtm             *slack.RTM
-	api             *slack.Client
-	queueService    service.QueueService
-	logger          *log.Logger
-	userRepository  user.Repository
-	queueRepository queue.Repository
+	rtm            *slack.RTM
+	api            *slack.Client
+	queueService   service.QueueService
+	logger         *log.Logger
+	userRepository user.Repository
 }
 
 func newController(slackApi *slack.Client, userRepository user.Repository, queueRepository queue.Repository) *Controller {
 	rtm := slackApi.NewRTM()
 	go rtm.ManageConnection()
 	return &Controller{
-		rtm:             rtm,
-		api:             slackApi,
-		queueService:    service.NewQueueService(queueRepository),
-		logger:          log.New(lumberWriter, "controller: ", log.Lshortfile|log.LstdFlags),
-		userRepository:  userRepository,
-		queueRepository: queueRepository,
+		rtm:            rtm,
+		api:            slackApi,
+		queueService:   service.NewQueueService(queueRepository),
+		logger:         log.New(lumberWriter, "controller: ", log.Lshortfile|log.LstdFlags),
+		userRepository: userRepository,
 	}
 }
 
