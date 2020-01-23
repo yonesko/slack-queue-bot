@@ -26,8 +26,7 @@ var (
 	NoSuchUserErr   = errors.New("no such user")
 )
 
-func NewQueueService() QueueService {
-	repository := queue.NewRepository()
+func NewQueueService(repository queue.Repository) QueueService {
 	if _, err := repository.Read(); err != nil {
 		panic(fmt.Sprintf("can't crete QueueService: %s", err))
 	}

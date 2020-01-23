@@ -28,7 +28,7 @@ func newController(slackApi *slack.Client, userRepository user.Repository, queue
 	return &Controller{
 		rtm:             rtm,
 		api:             slackApi,
-		queueService:    service.NewQueueService(),
+		queueService:    service.NewQueueService(queueRepository),
 		userInfoCache:   map[string]model.User{},
 		logger:          log.New(lumberWriter, "controller: ", log.Lshortfile|log.LstdFlags),
 		userRepository:  userRepository,
