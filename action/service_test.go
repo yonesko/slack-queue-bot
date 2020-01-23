@@ -3,12 +3,13 @@ package action
 import (
 	"fmt"
 	"github.com/yonesko/slack-queue-bot/model"
+	"github.com/yonesko/slack-queue-bot/queue/mock"
 	"sync"
 	"testing"
 )
 
 func TestService_Add_DifferentUsers(t *testing.T) {
-	service := newInmemService()
+	service := &service{&mock.QueueRepositoryMock{Queue: model.Queue{}}, sync.Mutex{}}
 	err := service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
@@ -24,7 +25,7 @@ func TestService_Add_DifferentUsers(t *testing.T) {
 }
 
 func TestService_Pop(t *testing.T) {
-	service := newInmemService()
+	service := &service{&mock.QueueRepositoryMock{Queue: model.Queue{}}, sync.Mutex{}}
 	err := service.Pop()
 	if err != nil {
 		t.Error(err)
@@ -45,7 +46,7 @@ func TestService_Pop(t *testing.T) {
 }
 
 func TestService_DeleteAll(t *testing.T) {
-	service := newInmemService()
+	service := &service{&mock.QueueRepositoryMock{Queue: model.Queue{}}, sync.Mutex{}}
 	err := service.DeleteAll()
 	if err != nil {
 		t.Error(err)
@@ -62,7 +63,7 @@ func TestService_DeleteAll(t *testing.T) {
 }
 
 func TestService_Add_Idempotent(t *testing.T) {
-	service := newInmemService()
+	service := &service{&mock.QueueRepositoryMock{Queue: model.Queue{}}, sync.Mutex{}}
 	err := service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
@@ -74,7 +75,7 @@ func TestService_Add_Idempotent(t *testing.T) {
 }
 
 func TestNoRaceConditionsInService(t *testing.T) {
-	service := newInmemService()
+	service := &service{&mock.QueueRepositoryMock{Queue: model.Queue{}}, sync.Mutex{}}
 	group := &sync.WaitGroup{}
 	chunks, workers := 100, 100
 	for i := 0; i < workers; i++ {
@@ -101,23 +102,6 @@ func addUsers(service Service, t *testing.T, start, end int, group *sync.WaitGro
 			t.Error(err)
 		}
 	}
-}
-
-func newInmemService() Service {
-	return &service{&inmemRepository{model.Queue{}}, sync.Mutex{}}
-}
-
-type inmemRepository struct {
-	model.Queue
-}
-
-func (i *inmemRepository) Save(queue model.Queue) error {
-	i.Queue = queue
-	return nil
-}
-
-func (i *inmemRepository) Read() (model.Queue, error) {
-	return i.Queue, nil
 }
 
 func equals(queue model.Queue, userIds []string) bool {
