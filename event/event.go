@@ -45,6 +45,9 @@ func (q *queueChangedEventBus) notifyNewHolder(userId string) {
 		return
 	}
 	txt := i18n.P.MustGetString("your_turn_came")
-	message, s, err := q.slackApi.PostMessage(userId, slack.MsgOptionText(txt, true))
+	message, s, err := q.slackApi.PostMessage(userId,
+		slack.MsgOptionText(txt, true),
+		slack.MsgOptionAsUser(true),
+	)
 	q.logger.Println(message, s, err)
 }
