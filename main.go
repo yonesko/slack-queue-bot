@@ -38,7 +38,7 @@ func main() {
 	controller := newController(userRepository, queueRepository)
 	logger := log.New(lumberWriter, "queue-bot: ", log.Lshortfile|log.LstdFlags)
 	logger.Println("Service is started")
-	for msg := range controller.rtm.IncomingEvents {
+	for msg := range rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
 			if !needProcess(ev) {
@@ -47,6 +47,7 @@ func main() {
 			responseText, err := controller.execute(extractCommand2(ev))
 			if err != nil {
 				responseText = i18n.P.MustGetString("error_occurred")
+				logger.Println(err)
 			}
 			rtm.SendMessage(rtm.NewOutgoingMessage(responseText, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 		case *slack.OutgoingErrorEvent:

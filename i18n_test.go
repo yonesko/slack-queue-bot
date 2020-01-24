@@ -24,7 +24,7 @@ func TestAllLabelsAreSet(t *testing.T) {
 	}
 	for _, l := range i18n.P.Keys() {
 		if _, ok := usedLabels[l]; !ok {
-			fmt.Printf("label %s is unused\n", l)
+			t.Errorf("label %s is unused\n", l)
 		}
 	}
 }
