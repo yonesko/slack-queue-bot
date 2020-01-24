@@ -13,7 +13,7 @@ const (
 	defaultLanguage = "english"
 )
 
-func init() {
+func Init() {
 	var fileNames []string
 	for _, l := range []string{defaultLanguage, myLanguage} {
 		fileNames = append(fileNames, fmt.Sprintf("i18n/%s.properties", l))

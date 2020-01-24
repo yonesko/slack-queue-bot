@@ -15,6 +15,7 @@ import (
 )
 
 func TestAllLabelsAreUsedAndDefined(t *testing.T) {
+	i18n.Init()
 	usedLabels := collectLabelsInProject()
 	if len(usedLabels) == 0 {
 		t.Error("no labels are used, use some or skip this test")

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	_ "github.com/motemen/go-loghttp/global" //log HTTP req and resp
 	"github.com/yonesko/slack-queue-bot/event"
+	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/queue"
 	"github.com/yonesko/slack-queue-bot/usecase"
 	"github.com/yonesko/slack-queue-bot/user"
@@ -25,6 +26,7 @@ var lumberWriter = &lumberjack.Logger{
 }
 
 func main() {
+	i18n.Init()
 	log.SetOutput(lumberWriter)
 	slackApi := slack.New(
 		mustGetEnv("BOT_USER_OAUTH_ACCESS_TOKEN"),
