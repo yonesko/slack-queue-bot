@@ -31,15 +31,19 @@ type queueChangedEventBus struct {
 }
 
 func (q *queueChangedEventBus) Send(event interface{}) {
-	switch event.(type) {
+	switch event := event.(type) {
 	case NewHolderEvent:
-
+		q.logger.Printf("received event %#v", event)
+		q.notifyNewHolder(event.CurrentHolderUserId)
 	default:
 		q.logger.Printf("unknown event %v", event)
 	}
 }
 
 func (q *queueChangedEventBus) notifyNewHolder(userId string) {
+	if userId != "UNC1HR2V7" {
+		return
+	}
 	txt := i18n.P.MustGetString("your_turn_came")
 	message, s, err := q.slackApi.PostMessage(userId, slack.MsgOptionText(txt, true))
 	q.logger.Println(message, s, err)
