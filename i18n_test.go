@@ -7,17 +7,19 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
 )
 
 func TestAllLabelsAreUsedAndDefined(t *testing.T) {
-	usedLabels := collectUsedLabels()
+	usedLabels := collectLabelsInProject()
 	if len(usedLabels) == 0 {
 		t.Error("no labels are used, use some or skip this test")
 	}
-	for l, _ := range usedLabels {
+	for l := range usedLabels {
 		if val, ok := i18n.P.Get(l); !ok || len(strings.TrimSpace(val)) == 0 {
 			t.Errorf("label %s is undefined", l)
 		}
@@ -29,8 +31,27 @@ func TestAllLabelsAreUsedAndDefined(t *testing.T) {
 	}
 }
 
-func collectUsedLabels() map[string]struct{} {
-	node, err := parser.ParseFile(token.NewFileSet(), "controller.go", nil, parser.ParseComments)
+func shouldScan(info os.FileInfo) bool {
+	return !info.IsDir() && strings.HasSuffix(info.Name(), ".go") && !strings.HasSuffix(info.Name(), "_test.go")
+}
+func collectLabelsInProject() map[string]struct{} {
+	usedLabels := map[string]struct{}{}
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+		if shouldScan(info) {
+			for k := range extractLabelsFromFile(path) {
+				usedLabels[k] = struct{}{}
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return usedLabels
+}
+
+func extractLabelsFromFile(filepath string) map[string]struct{} {
+	node, err := parser.ParseFile(token.NewFileSet(), filepath, nil, parser.ParseComments)
 	if err != nil {
 		log.Fatal(err)
 	}
