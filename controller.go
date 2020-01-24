@@ -44,10 +44,9 @@ func (cont *Controller) execute(command usecase.Command) (string, error) {
 		return cont.clean(command.AuthorUserId)
 	case usecase.PopCommand:
 		return cont.pop(command.AuthorUserId)
-	case usecase.HelpCommand:
-		return cont.showHelp(command.AuthorUserId), nil
 	}
-	return "help msg", nil
+	cont.logger.Printf("undefined command : %v", command)
+	return cont.showHelp(command.AuthorUserId), nil
 }
 
 func (cont *Controller) addUser(userId string) (string, error) {

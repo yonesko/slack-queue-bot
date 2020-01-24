@@ -102,9 +102,8 @@ func extractData(ev *slack.MessageEvent) interface{} {
 		return usecase.CleanCommand{}
 	case "pop":
 		return usecase.PopCommand{}
-	default:
-		return usecase.HelpCommand{}
 	}
+	return nil
 }
 
 func mustGetEnv(key string) string {

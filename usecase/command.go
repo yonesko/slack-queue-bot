@@ -21,6 +21,3 @@ type CleanCommand struct {
 
 type PopCommand struct {
 }
-
-type HelpCommand struct {
-}
