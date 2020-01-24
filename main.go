@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	_ "github.com/motemen/go-loghttp/global" //log HTTP req and resp
-	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/queue"
 	"github.com/yonesko/slack-queue-bot/usecase"
 	"github.com/yonesko/slack-queue-bot/user"
@@ -42,11 +41,7 @@ func main() {
 			if !needProcess(ev) {
 				break
 			}
-			responseText, err := controller.execute(extractCommand(ev))
-			if err != nil {
-				responseText = i18n.P.MustGetString("error_occurred")
-				logger.Println(err)
-			}
+			responseText := controller.execute(extractCommand(ev))
 			rtm.SendMessage(rtm.NewOutgoingMessage(responseText, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 		case *slack.OutgoingErrorEvent:
 			logger.Printf("Can't send msg: %s\n", ev.Error())

@@ -24,8 +24,7 @@ func newController(userRepository user.Repository, queueService usecase.QueueSer
 	}
 }
 
-//return text to answer or error
-func (cont *Controller) execute(command usecase.Command) (string, error) {
+func (cont *Controller) execute(command usecase.Command) string {
 	defer func() {
 		if r := recover(); r != nil {
 			cont.logger.Printf("catch panic: %#v", r)
@@ -47,12 +46,13 @@ func (cont *Controller) execute(command usecase.Command) (string, error) {
 		txt, err = cont.pop()
 	default:
 		cont.logger.Printf("undefined command : %v", command)
-		return cont.showHelp(command.AuthorUserId), nil
+		return cont.showHelp(command.AuthorUserId)
 	}
 	if err != nil {
-		return "", err
+		cont.logger.Println(err)
+		return i18n.P.MustGetString("error_occurred")
 	}
-	return cont.appendQueue(txt, command.AuthorUserId), nil
+	return cont.appendQueue(txt, command.AuthorUserId)
 }
 
 func (cont *Controller) addUser(authorUserId string) (string, error) {
