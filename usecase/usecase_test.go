@@ -122,6 +122,7 @@ func equals(queue model.Queue, userIds []string) bool {
 
 	return true
 }
+
 func mockService() *service {
 	return &service{
 		queuemock.NewQueueRepositoryMock(),
