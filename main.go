@@ -103,7 +103,7 @@ func extractData(ev *slack.MessageEvent) interface{} {
 	case "pop":
 		return usecase.PopCommand{}
 	}
-	return nil
+	return usecase.HelpCommand{}
 }
 
 func mustGetEnv(key string) string {
