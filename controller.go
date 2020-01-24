@@ -136,7 +136,11 @@ func (cont *Controller) clean() (string, error) {
 }
 
 func (cont *Controller) pop() (string, error) {
-	if err := cont.queueService.Pop(); err != nil {
+	err := cont.queueService.Pop()
+	if err == usecase.QueueIsEmpty {
+		return "", nil
+	}
+	if err != nil {
 		return "", err
 	}
 	return i18n.P.MustGetString("popped_successfully"), nil
