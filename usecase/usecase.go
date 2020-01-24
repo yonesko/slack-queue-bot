@@ -27,11 +27,11 @@ var (
 	QueueIsEmpty    = errors.New("queue is empty")
 )
 
-func NewQueueService(repository queue.Repository) QueueService {
+func NewQueueService(repository queue.Repository, queueChangedEventBus event.QueueChangedEventBus) QueueService {
 	if _, err := repository.Read(); err != nil {
 		panic(fmt.Sprintf("can't crete QueueService: %s", err))
 	}
-	return &service{repository, nil}
+	return &service{repository, queueChangedEventBus}
 }
 
 func (s *service) Pop() (string, error) {

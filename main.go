@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	_ "github.com/motemen/go-loghttp/global" //log HTTP req and resp
+	"github.com/yonesko/slack-queue-bot/event"
 	"github.com/yonesko/slack-queue-bot/queue"
 	"github.com/yonesko/slack-queue-bot/usecase"
 	"github.com/yonesko/slack-queue-bot/user"
@@ -32,7 +33,9 @@ func main() {
 	)
 	rtm := slackApi.NewRTM()
 	go rtm.ManageConnection()
-	controller := newController(user.NewRepository(slackApi), usecase.NewQueueService(queue.NewRepository()))
+	userRepository := user.NewRepository(slackApi)
+	queueChangedEventBus := event.NewQueueChangedEventBus(slackApi, userRepository, lumberWriter)
+	controller := newController(userRepository, usecase.NewQueueService(queue.NewRepository(), queueChangedEventBus))
 	logger := log.New(lumberWriter, "queue-bot: ", log.Lshortfile|log.LstdFlags)
 	logger.Println("Service is started")
 	for msg := range rtm.IncomingEvents {
