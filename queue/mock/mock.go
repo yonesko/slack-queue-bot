@@ -5,19 +5,19 @@ import (
 	"github.com/yonesko/slack-queue-bot/queue"
 )
 
-type queueRepositoryMock struct {
+type queueRepository struct {
 	model.Queue
 }
 
 func NewQueueRepositoryMock() queue.Repository {
-	return &queueRepositoryMock{model.Queue{}}
+	return &queueRepository{model.Queue{}}
 }
 
-func (i *queueRepositoryMock) Save(queue model.Queue) error {
+func (i *queueRepository) Save(queue model.Queue) error {
 	i.Queue = queue
 	return nil
 }
 
-func (i *queueRepositoryMock) Read() (model.Queue, error) {
+func (i *queueRepository) Read() (model.Queue, error) {
 	return i.Queue, nil
 }
