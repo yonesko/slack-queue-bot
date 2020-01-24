@@ -27,16 +27,19 @@ func TestService_Add_DifferentUsers(t *testing.T) {
 func TestService_Pop(t *testing.T) {
 	service := &service{mock.NewQueueRepositoryMock()}
 	_, err := service.Pop()
-	if err != nil {
+	if err != QueueIsEmpty {
 		t.Error(err)
 	}
 	err = service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = service.Pop()
+	deletedUserId, err := service.Pop()
 	if err != nil {
 		t.Error(err)
+	}
+	if deletedUserId != "123" {
+		t.Errorf("wrong deletedUserId: %s", deletedUserId)
 	}
 	queue, err := service.Show()
 	if err != nil {
@@ -48,7 +51,7 @@ func TestService_Pop(t *testing.T) {
 func TestService_DeleteAll(t *testing.T) {
 	service := &service{mock.NewQueueRepositoryMock()}
 	err := service.DeleteAll()
-	if err != nil {
+	if err != QueueIsEmpty {
 		t.Error(err)
 	}
 	err = service.Add(model.QueueEntity{UserId: "123"})
@@ -75,6 +78,7 @@ func TestService_Add_Idempotent(t *testing.T) {
 }
 
 func TestNoRaceConditionsInService(t *testing.T) {
+	t.Skip("code run in 1 routine now")
 	service := &service{mock.NewQueueRepositoryMock()}
 	group := &sync.WaitGroup{}
 	chunks, workers := 100, 100
