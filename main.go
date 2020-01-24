@@ -77,21 +77,18 @@ func needProcess(m *slack.MessageEvent) bool {
 	return simple && (isDirect || mention)
 }
 
-func extractCommand(text string) string {
+func extractCommandTxt(text string) string {
 	txt := strings.Replace(text, thisBotUserId, "", 1)
 	txt = strings.ToLower(txt)
 	return strings.TrimSpace(txt)
 }
 
 func extractCommand2(ev *slack.MessageEvent) usecase.Command {
-	return usecase.Command{
-		AuthorUserId: ev.User,
-		Data:         extractData(ev),
-	}
+	return usecase.Command{AuthorUserId: ev.User, Data: extractData(ev)}
 }
 
 func extractData(ev *slack.MessageEvent) interface{} {
-	switch extractCommand(ev.Text) {
+	switch extractCommandTxt(ev.Text) {
 	case "add":
 		return usecase.AddCommand{ToAddUserId: ev.User}
 	case "del":
