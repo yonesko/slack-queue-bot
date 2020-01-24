@@ -7,6 +7,7 @@ import (
 	"github.com/yonesko/slack-queue-bot/model"
 	queuemock "github.com/yonesko/slack-queue-bot/queue/mock"
 	"testing"
+	"time"
 )
 
 func TestNewHolderEvent(t *testing.T) {
@@ -15,13 +16,12 @@ func TestNewHolderEvent(t *testing.T) {
 	service := &service{&queueRepository, &bus}
 
 	err := service.DeleteById("123")
+	time.Sleep(time.Millisecond * 5) //wait async sending
 	if err != nil {
 		t.Error(err)
 	}
 
-	assert.Equal(t, bus.Inbox, []interface{}{
-		event.NewHolderEvent{CurrentHolderUserId: "abc"},
-	})
+	assert.Equal(t, []interface{}{event.NewHolderEvent{CurrentHolderUserId: "abc"}}, bus.Inbox)
 }
 func TestNewHolderEvent2(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
@@ -29,6 +29,7 @@ func TestNewHolderEvent2(t *testing.T) {
 	service := &service{&queueRepository, &bus}
 
 	err := service.DeleteById("abc")
+	time.Sleep(time.Millisecond * 5) //wait async sending
 	if err != nil {
 		t.Error(err)
 	}
@@ -42,11 +43,10 @@ func TestNewHolderEvent3(t *testing.T) {
 	service := &service{&queueRepository, &bus}
 
 	_, err := service.Pop()
+	time.Sleep(time.Millisecond * 5) //wait async sending
 	if err != nil {
 		t.Error(err)
 	}
 
-	assert.Equal(t, bus.Inbox, []interface{}{
-		event.NewHolderEvent{CurrentHolderUserId: "abc"},
-	})
+	assert.Equal(t, []interface{}{event.NewHolderEvent{CurrentHolderUserId: "abc"}}, bus.Inbox)
 }
