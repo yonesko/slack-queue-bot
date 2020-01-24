@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-const thisBotUserId = "<@USMRFHHPE>"
+const thisBotUserId = "<@USMRFHHPE>" //test bot user USG0TPHGA
 
 type App struct {
 	userRepository user.Repository
