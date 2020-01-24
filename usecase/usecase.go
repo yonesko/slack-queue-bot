@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue"
-	"sync"
 )
 
 type QueueService interface {
@@ -18,7 +17,6 @@ type QueueService interface {
 
 type service struct {
 	queue.Repository
-	mu sync.Mutex
 }
 
 var (
@@ -31,12 +29,10 @@ func NewQueueService(repository queue.Repository) QueueService {
 	if _, err := repository.Read(); err != nil {
 		panic(fmt.Sprintf("can't crete QueueService: %s", err))
 	}
-	return &service{repository, sync.Mutex{}}
+	return &service{repository}
 }
 
 func (s *service) Pop() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
 	if err != nil {
 		return err
@@ -48,8 +44,6 @@ func (s *service) Pop() error {
 }
 
 func (s *service) Add(entity model.QueueEntity) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
 	if err != nil {
 		return err
@@ -68,8 +62,6 @@ func (s *service) Add(entity model.QueueEntity) error {
 }
 
 func (s *service) DeleteById(userId string) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
 	if err != nil {
 		return err
@@ -90,8 +82,6 @@ func (s *service) DeleteById(userId string) error {
 }
 
 func (s *service) DeleteAll() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	q, err := s.Repository.Read()
 	if err != nil {
 		return err
@@ -107,7 +97,5 @@ func (s *service) DeleteAll() error {
 }
 
 func (s *service) Show() (model.Queue, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	return s.Read()
 }
