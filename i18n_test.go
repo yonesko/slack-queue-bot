@@ -30,8 +30,7 @@ func TestAllLabelsAreUsedAndDefined(t *testing.T) {
 }
 
 func collectUsedLabels() map[string]struct{} {
-	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, "controller.go", nil, parser.ParseComments)
+	node, err := parser.ParseFile(token.NewFileSet(), "controller.go", nil, parser.ParseComments)
 	if err != nil {
 		log.Fatal(err)
 	}
