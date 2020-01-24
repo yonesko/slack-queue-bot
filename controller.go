@@ -32,68 +32,72 @@ func (cont *Controller) execute(command usecase.Command) (string, error) {
 		}
 	}()
 
+	var txt string
+	var err error
 	switch command.Data.(type) {
 	case usecase.AddCommand:
-		return cont.addUser(command.AuthorUserId)
+		txt, err = cont.addUser(command.AuthorUserId)
 	case usecase.DelCommand:
-		return cont.deleteUser(command.AuthorUserId)
+		txt, err = cont.deleteUser(command.AuthorUserId)
 	case usecase.ShowCommand:
-		return cont.showQueue(command.AuthorUserId)
+		txt, err = cont.showQueue(command.AuthorUserId)
 	case usecase.CleanCommand:
-		return cont.clean(command.AuthorUserId)
+		txt, err = cont.clean()
 	case usecase.PopCommand:
-		return cont.pop(command.AuthorUserId)
+		txt, err = cont.pop()
+	default:
+		cont.logger.Printf("undefined command : %v", command)
+		return cont.showHelp(command.AuthorUserId), nil
 	}
-	cont.logger.Printf("undefined command : %v", command)
-	return cont.showHelp(command.AuthorUserId), nil
+	if err != nil {
+		return "", err
+	}
+	return cont.appendQueue(txt, command.AuthorUserId), nil
 }
 
 func (cont *Controller) addUser(userId string) (string, error) {
 	err := cont.queueService.Add(model.QueueEntity{UserId: userId})
 	if err == usecase.AlreadyExistErr {
-		txt := i18n.P.MustGetString("you_are_already_in_the_queue")
-		return cont.appendQueue(txt, userId), nil
+		return i18n.P.MustGetString("you_are_already_in_the_queue"), nil
 	}
 	if err != nil {
 		return "", err
 	}
-	return cont.showQueue(userId)
+	return i18n.P.MustGetString("added_successfully"), nil
 }
 
 func (cont *Controller) deleteUser(userId string) (string, error) {
 	err := cont.queueService.DeleteById(userId)
 	if err == usecase.NoSuchUserErr {
-		txt := i18n.P.MustGetString("you_are_not_in_the_queue")
-		return cont.appendQueue(txt, userId), nil
+		return i18n.P.MustGetString("you_are_not_in_the_queue"), nil
 	}
 	if err != nil {
 		return "", err
 	}
-	//todo add deleted successfully msg
-	return cont.showQueue(userId)
+	return i18n.P.MustGetString("deleted_successfully"), nil
 }
 
-func (cont *Controller) appendQueue(txt string, userId string) string {
-	queueTxt, err := cont.showQueue(userId)
+func (cont *Controller) appendQueue(txt string, authorUserId string) string {
+	queueTxt, err := cont.showQueue(authorUserId)
 	if err != nil {
 		return txt
 	}
 	return txt + "\n" + queueTxt
 }
 
-func (cont *Controller) showQueue(userId string) (string, error) {
+func (cont *Controller) showQueue(authorUserId string) (string, error) {
 	q, err := cont.queueService.Show()
 	if err != nil {
 		return "", err
 	}
-	text, err := cont.composeShowQueueText(q, userId)
+	text, err := cont.composeShowQueueText(q, authorUserId)
 	if err != nil {
 		return "", err
 	}
 	return text, nil
 }
 
-func (cont *Controller) composeShowQueueText(queue model.Queue, userId string) (string, error) {
+func (cont *Controller) composeShowQueueText(queue model.Queue, authorUserId string) (string, error) {
 	if len(queue.Entities) == 0 {
 		return i18n.P.MustGetString("queue_is_empty"), nil
 	}
@@ -104,7 +108,7 @@ func (cont *Controller) composeShowQueueText(queue model.Queue, userId string) (
 			return "", fmt.Errorf("can't composeShowQueueText: %s", err)
 		}
 		highlight := ""
-		if u.UserId == userId {
+		if u.UserId == authorUserId {
 			highlight = ":point_left::skin-tone-2:"
 		}
 		txt += fmt.Sprintf("`%dº` %s (%s) %s\n", i+1, user.FullName, user.DisplayName, highlight)
@@ -117,23 +121,19 @@ func (cont *Controller) showHelp(userId string) string {
 	return txt
 }
 
-func (cont *Controller) clean(userId string) (string, error) {
+func (cont *Controller) clean() (string, error) {
 	err := cont.queueService.DeleteAll()
 	if err != nil {
 		return "", err
 	}
-	//todo removed all to msg
-	//ignore err on showQueue
-	return cont.showQueue(userId)
+	return i18n.P.MustGetString("cleaned_successfully"), nil
 }
 
-func (cont *Controller) pop(userId string) (string, error) {
+func (cont *Controller) pop() (string, error) {
 	if err := cont.queueService.Pop(); err != nil {
 		return "", err
 	}
-	//todo removed all to msg
-	//ignore err on showQueue
-	return cont.showQueue(userId)
+	return i18n.P.MustGetString("popped_successfully"), nil
 }
 
 func (cont *Controller) title(userId string) string {
