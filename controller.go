@@ -36,6 +36,16 @@ func (cont *Controller) execute(command usecase.Command) (string, error) {
 	switch command.Data.(type) {
 	case usecase.AddCommand:
 		return cont.addUser(command.AuthorUserId)
+	case usecase.DelCommand:
+		return cont.deleteUser(command.AuthorUserId)
+	case usecase.ShowCommand:
+		return cont.showQueue(command.AuthorUserId)
+	case usecase.CleanCommand:
+		return cont.clean(command.AuthorUserId)
+	case usecase.PopCommand:
+		return cont.pop(command.AuthorUserId)
+	case usecase.HelpCommand:
+		return cont.showHelp(command.AuthorUserId), nil
 	}
 	return "help msg", nil
 }
