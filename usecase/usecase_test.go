@@ -25,13 +25,6 @@ func TestService_Add_DifferentUsers(t *testing.T) {
 	equals(queue, []string{"123", "ABC", "ABCD"})
 }
 
-func mockService() *service {
-	return &service{
-		queuemock.NewQueueRepositoryMock(),
-		&eventmock.QueueChangedEventBus{Inbox: []interface{}{}},
-	}
-}
-
 func TestService_Pop(t *testing.T) {
 	service := mockService()
 	_, err := service.Pop()
@@ -128,4 +121,10 @@ func equals(queue model.Queue, userIds []string) bool {
 	}
 
 	return true
+}
+func mockService() *service {
+	return &service{
+		queuemock.NewQueueRepositoryMock(),
+		&eventmock.QueueChangedEventBus{Inbox: []interface{}{}},
+	}
 }
