@@ -30,10 +30,11 @@ func newController(slackApi *slack.Client, userRepository user.Repository, queue
 	}
 }
 
+//return text to answer or error
 func (cont *Controller) execute(command usecase.Command) (string, error) {
 	switch command.Data.(type) {
 	case usecase.AddCommand:
-
+		return cont.addUser2(command.AuthorUserId)
 	}
 	return "help msg", nil
 }
@@ -75,6 +76,21 @@ func (cont *Controller) addUser(ev *slack.MessageEvent) {
 		return
 	}
 	cont.showQueue(ev)
+}
+func (cont *Controller) addUser2(userId string) (string, error) {
+	err := cont.queueService.Add(model.QueueEntity{UserId: userId})
+	if err == usecase.AlreadyExistErr {
+		txt := i18n.P.MustGetString("you_are_already_in_the_queue")
+		queueTxt, err := cont.showQueue2(userId)
+		if err != nil {
+			return txt, nil
+		}
+		return txt + "\n" + queueTxt, nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return cont.showQueue2(userId)
 }
 
 func (cont *Controller) reportError(ev *slack.MessageEvent) {
@@ -156,6 +172,20 @@ func (cont *Controller) showQueue(ev *slack.MessageEvent) {
 		return
 	}
 	cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(text, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
+}
+func (cont *Controller) showQueue2(userId string) (string, error) {
+	q, err := cont.queueService.Show()
+	if err != nil {
+		return "", err
+	}
+	if len(q.Entities) == 0 {
+		return i18n.P.MustGetString("queue_is_empty"), nil
+	}
+	text, err := cont.composeShowQueueText(q, userId)
+	if err != nil {
+		return "", err
+	}
+	return text, nil
 }
 
 func (cont *Controller) composeShowQueueText(queue model.Queue, userId string) (string, error) {
