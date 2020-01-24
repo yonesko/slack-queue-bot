@@ -10,7 +10,7 @@ import (
 type QueueService interface {
 	Add(model.QueueEntity) error
 	DeleteById(userId string) error
-	Pop() error
+	Pop() (string, error)
 	DeleteAll() error
 	Show() (model.Queue, error)
 }
@@ -32,15 +32,19 @@ func NewQueueService(repository queue.Repository) QueueService {
 	return &service{repository}
 }
 
-func (s *service) Pop() error {
+func (s *service) Pop() (string, error) {
 	queue, err := s.Repository.Read()
 	if err != nil {
-		return err
+		return "", err
 	}
 	if len(queue.Entities) == 0 {
-		return QueueIsEmpty
+		return "", QueueIsEmpty
 	}
-	return s.DeleteById(queue.Entities[0].UserId)
+	err = s.DeleteById(queue.Entities[0].UserId)
+	if err != nil {
+		return "", err
+	}
+	return queue.Entities[0].UserId, nil
 }
 
 func (s *service) Add(entity model.QueueEntity) error {

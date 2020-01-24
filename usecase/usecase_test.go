@@ -9,7 +9,7 @@ import (
 )
 
 func TestService_Add_DifferentUsers(t *testing.T) {
-	service := &service{mock.NewQueueRepositoryMock(), sync.Mutex{}}
+	service := &service{mock.NewQueueRepositoryMock()}
 	err := service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
@@ -25,8 +25,8 @@ func TestService_Add_DifferentUsers(t *testing.T) {
 }
 
 func TestService_Pop(t *testing.T) {
-	service := &service{mock.NewQueueRepositoryMock(), sync.Mutex{}}
-	err := service.Pop()
+	service := &service{mock.NewQueueRepositoryMock()}
+	_, err := service.Pop()
 	if err != nil {
 		t.Error(err)
 	}
@@ -34,7 +34,7 @@ func TestService_Pop(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = service.Pop()
+	_, err = service.Pop()
 	if err != nil {
 		t.Error(err)
 	}
@@ -46,7 +46,7 @@ func TestService_Pop(t *testing.T) {
 }
 
 func TestService_DeleteAll(t *testing.T) {
-	service := &service{mock.NewQueueRepositoryMock(), sync.Mutex{}}
+	service := &service{mock.NewQueueRepositoryMock()}
 	err := service.DeleteAll()
 	if err != nil {
 		t.Error(err)
@@ -63,7 +63,7 @@ func TestService_DeleteAll(t *testing.T) {
 }
 
 func TestService_Add_Idempotent(t *testing.T) {
-	service := &service{mock.NewQueueRepositoryMock(), sync.Mutex{}}
+	service := &service{mock.NewQueueRepositoryMock()}
 	err := service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
@@ -75,7 +75,7 @@ func TestService_Add_Idempotent(t *testing.T) {
 }
 
 func TestNoRaceConditionsInService(t *testing.T) {
-	service := &service{mock.NewQueueRepositoryMock(), sync.Mutex{}}
+	service := &service{mock.NewQueueRepositoryMock()}
 	group := &sync.WaitGroup{}
 	chunks, workers := 100, 100
 	for i := 0; i < workers; i++ {

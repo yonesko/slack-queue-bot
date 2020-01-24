@@ -135,14 +135,15 @@ func (cont *Controller) clean(authorUserId string) (string, error) {
 }
 
 func (cont *Controller) pop(authorUserId string) (string, error) {
-	err := cont.queueService.Pop()
+	deletedUserId, err := cont.queueService.Pop()
 	if err == usecase.QueueIsEmpty {
 		return cont.showQueue(authorUserId)
 	}
 	if err != nil {
 		return "", err
 	}
-	return cont.appendQueue(i18n.P.MustGetString("popped_successfully"), authorUserId), nil
+	txt := fmt.Sprintf(i18n.P.MustGetString("popped_successfully"), deletedUserId)
+	return cont.appendQueue(txt, authorUserId), nil
 }
 
 func (cont *Controller) title(userId string) string {
