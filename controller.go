@@ -14,7 +14,6 @@ import (
 
 type Controller struct {
 	rtm            *slack.RTM
-	api            *slack.Client
 	queueService   usecase.QueueService
 	logger         *log.Logger
 	userRepository user.Repository
@@ -25,7 +24,6 @@ func newController(slackApi *slack.Client, userRepository user.Repository, queue
 	go rtm.ManageConnection()
 	return &Controller{
 		rtm:            rtm,
-		api:            slackApi,
 		queueService:   usecase.NewQueueService(queueRepository),
 		logger:         log.New(lumberWriter, "controller: ", log.Lshortfile|log.LstdFlags),
 		userRepository: userRepository,
