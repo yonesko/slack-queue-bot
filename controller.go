@@ -71,6 +71,9 @@ func (cont *Controller) deleteUser(authorUserId string) (string, error) {
 	if err == usecase.NoSuchUserErr {
 		return i18n.P.MustGetString("you_are_not_in_the_queue"), nil
 	}
+	if err == usecase.QueueIsEmpty {
+		return "", nil
+	}
 	if err != nil {
 		return "", err
 	}
@@ -123,6 +126,9 @@ func (cont *Controller) showHelp(authorUserId string) string {
 
 func (cont *Controller) clean() (string, error) {
 	err := cont.queueService.DeleteAll()
+	if err == usecase.QueueIsEmpty {
+		return "", nil
+	}
 	if err != nil {
 		return "", err
 	}

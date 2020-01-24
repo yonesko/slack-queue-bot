@@ -24,6 +24,7 @@ type service struct {
 var (
 	AlreadyExistErr = errors.New("already exist")
 	NoSuchUserErr   = errors.New("no such user")
+	QueueIsEmpty    = errors.New("queue is empty")
 )
 
 func NewQueueService(repository queue.Repository) QueueService {
@@ -41,7 +42,7 @@ func (s *service) Pop() error {
 		return err
 	}
 	if len(queue.Entities) == 0 {
-		return nil
+		return QueueIsEmpty
 	}
 	queue.Entities = queue.Entities[1:]
 	err = s.Repository.Save(queue)
@@ -79,7 +80,7 @@ func (s *service) DeleteById(userId string) error {
 		return err
 	}
 	if len(queue.Entities) == 0 {
-		return nil
+		return QueueIsEmpty
 	}
 	i := queue.IndexOf(userId)
 	if i == -1 {
@@ -96,7 +97,14 @@ func (s *service) DeleteById(userId string) error {
 func (s *service) DeleteAll() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	err := s.Repository.Save(model.Queue{})
+	q, err := s.Repository.Read()
+	if err != nil {
+		return err
+	}
+	if len(q.Entities) == 0 {
+		return QueueIsEmpty
+	}
+	err = s.Repository.Save(model.Queue{})
 	if err != nil {
 		return err
 	}
