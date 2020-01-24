@@ -41,9 +41,9 @@ func (cont *Controller) execute(command usecase.Command) string {
 	case usecase.ShowCommand:
 		txt, err = cont.showQueue(command.AuthorUserId)
 	case usecase.CleanCommand:
-		txt, err = cont.clean()
+		txt, err = cont.clean(command.AuthorUserId)
 	case usecase.PopCommand:
-		txt, err = cont.pop()
+		txt, err = cont.pop(command.AuthorUserId)
 	default:
 		cont.logger.Printf("undefined command : %v", command)
 		return cont.showHelp(command.AuthorUserId)
@@ -52,7 +52,7 @@ func (cont *Controller) execute(command usecase.Command) string {
 		cont.logger.Println(err)
 		return i18n.P.MustGetString("error_occurred")
 	}
-	return cont.appendQueue(txt, command.AuthorUserId)
+	return txt
 }
 
 func (cont *Controller) addUser(authorUserId string) (string, error) {
@@ -63,7 +63,7 @@ func (cont *Controller) addUser(authorUserId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return i18n.P.MustGetString("added_successfully"), nil
+	return cont.appendQueue(i18n.P.MustGetString("added_successfully"), authorUserId), nil
 }
 
 func (cont *Controller) deleteUser(authorUserId string) (string, error) {
@@ -77,7 +77,7 @@ func (cont *Controller) deleteUser(authorUserId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return i18n.P.MustGetString("deleted_successfully"), nil
+	return cont.appendQueue(i18n.P.MustGetString("deleted_successfully"), authorUserId), nil
 }
 
 func (cont *Controller) appendQueue(txt string, authorUserId string) string {
@@ -120,11 +120,10 @@ func (cont *Controller) composeShowQueueText(queue model.Queue, authorUserId str
 }
 
 func (cont *Controller) showHelp(authorUserId string) string {
-	txt := fmt.Sprintf(i18n.P.MustGetString("help_text"), cont.title(authorUserId))
-	return txt
+	return fmt.Sprintf(i18n.P.MustGetString("help_text"), cont.title(authorUserId))
 }
 
-func (cont *Controller) clean() (string, error) {
+func (cont *Controller) clean(authorUserId string) (string, error) {
 	err := cont.queueService.DeleteAll()
 	if err == usecase.QueueIsEmpty {
 		return "", nil
@@ -132,10 +131,10 @@ func (cont *Controller) clean() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return i18n.P.MustGetString("cleaned_successfully"), nil
+	return cont.appendQueue(i18n.P.MustGetString("cleaned_successfully"), authorUserId), nil
 }
 
-func (cont *Controller) pop() (string, error) {
+func (cont *Controller) pop(authorUserId string) (string, error) {
 	err := cont.queueService.Pop()
 	if err == usecase.QueueIsEmpty {
 		return "", nil
@@ -143,7 +142,7 @@ func (cont *Controller) pop() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return i18n.P.MustGetString("popped_successfully"), nil
+	return cont.appendQueue(i18n.P.MustGetString("popped_successfully"), authorUserId), nil
 }
 
 func (cont *Controller) title(userId string) string {
