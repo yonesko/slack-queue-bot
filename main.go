@@ -17,7 +17,7 @@ import (
 	"github.com/nlopes/slack"
 )
 
-const thisBotUserId = "<@USMRFHHPE>"
+const thisBotUserId = "<@USMRFHHPE>" //test bot user USG0TPHGA
 
 var lumberWriter = &lumberjack.Logger{
 	Filename: "slack-queue-bot.log",
