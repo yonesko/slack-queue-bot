@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
-	"github.com/yonesko/slack-queue-bot/queue"
 	"github.com/yonesko/slack-queue-bot/usecase"
 	"github.com/yonesko/slack-queue-bot/user"
 	"log"
@@ -17,9 +16,9 @@ type Controller struct {
 	userRepository user.Repository
 }
 
-func newController(userRepository user.Repository, queueRepository queue.Repository) *Controller {
+func newController(userRepository user.Repository, queueService usecase.QueueService) *Controller {
 	return &Controller{
-		queueService:   usecase.NewQueueService(queueRepository),
+		queueService:   queueService,
 		logger:         log.New(lumberWriter, "controller: ", log.Lshortfile|log.LstdFlags),
 		userRepository: userRepository,
 	}

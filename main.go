@@ -33,9 +33,7 @@ func main() {
 	)
 	rtm := slackApi.NewRTM()
 	go rtm.ManageConnection()
-	userRepository := user.NewRepository(slackApi)
-	queueRepository := queue.NewRepository()
-	controller := newController(userRepository, queueRepository)
+	controller := newController(user.NewRepository(slackApi), usecase.NewQueueService(queue.NewRepository()))
 	logger := log.New(lumberWriter, "queue-bot: ", log.Lshortfile|log.LstdFlags)
 	logger.Println("Service is started")
 	for msg := range rtm.IncomingEvents {
