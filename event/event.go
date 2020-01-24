@@ -41,9 +41,6 @@ func (q *queueChangedEventBus) Send(event interface{}) {
 }
 
 func (q *queueChangedEventBus) notifyNewHolder(userId string) {
-	if userId != "UNC1HR2V7" {
-		return
-	}
 	_, _, err := q.slackApi.PostMessage(userId,
 		slack.MsgOptionText(i18n.P.MustGetString("your_turn_came"), true),
 		slack.MsgOptionAsUser(true),
