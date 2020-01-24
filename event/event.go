@@ -1,8 +1,9 @@
 package event
 
-type QueueChangedEvent interface {
+type NewHolderEvent struct {
+	CurrentHolderUserId string
 }
 
 type QueueChangedEventBus interface {
-	Send(queueChangedEvent QueueChangedEvent)
+	Send(event interface{})
 }

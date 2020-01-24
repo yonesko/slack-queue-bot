@@ -84,6 +84,11 @@ func (s *service) DeleteById(userId string) error {
 	if err != nil {
 		return err
 	}
+	if i == 0 && len(queue.Entities) > 0 {
+		s.queueChangedEventBus.Send(event.NewHolderEvent{
+			CurrentHolderUserId: queue.Entities[0].UserId,
+		})
+	}
 	return nil
 }
 
