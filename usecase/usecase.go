@@ -44,12 +44,7 @@ func (s *service) Pop() error {
 	if len(queue.Entities) == 0 {
 		return QueueIsEmpty
 	}
-	queue.Entities = queue.Entities[1:]
-	err = s.Repository.Save(queue)
-	if err != nil {
-		return err
-	}
-	return nil
+	return s.DeleteById(queue.Entities[0].UserId)
 }
 
 func (s *service) Add(entity model.QueueEntity) error {
