@@ -44,9 +44,11 @@ func (q *queueChangedEventBus) notifyNewHolder(userId string) {
 	if userId != "UNC1HR2V7" {
 		return
 	}
-	message, s, err := q.slackApi.PostMessage(userId,
+	_, _, err := q.slackApi.PostMessage(userId,
 		slack.MsgOptionText(i18n.P.MustGetString("your_turn_came"), true),
 		slack.MsgOptionAsUser(true),
 	)
-	q.logger.Println(message, s, err)
+	if err != nil {
+		log.Printf("can't notify %s", err)
+	}
 }
