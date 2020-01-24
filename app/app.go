@@ -55,6 +55,23 @@ func NewApp() *App {
 	}
 }
 
+func (app *App) Run() {
+	app.printOnHello()
+	for msg := range app.rtm.IncomingEvents {
+		switch ev := msg.Data.(type) {
+		case *slack.MessageEvent:
+			if !needProcess(ev) {
+				break
+			}
+			responseText := app.controller.execute(extractCommand(ev))
+			app.rtm.SendMessage(app.rtm.NewOutgoingMessage(responseText, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
+		case *slack.OutgoingErrorEvent:
+			app.logger.Printf("Can't send msg: %s\n", ev.Error())
+
+		}
+	}
+}
+
 func connectToRTM(slackApi *slack.Client) *slack.RTM {
 	rtm := slackApi.NewRTM()
 	go rtm.ManageConnection()
@@ -70,23 +87,6 @@ func connectToRTM(slackApi *slack.Client) *slack.RTM {
 			case *slack.HelloEvent:
 				return rtm
 			}
-		}
-	}
-}
-
-func (app *App) Run() {
-	app.printOnHello()
-	for msg := range app.rtm.IncomingEvents {
-		switch ev := msg.Data.(type) {
-		case *slack.MessageEvent:
-			if !needProcess(ev) {
-				break
-			}
-			responseText := app.controller.execute(extractCommand(ev))
-			app.rtm.SendMessage(app.rtm.NewOutgoingMessage(responseText, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
-		case *slack.OutgoingErrorEvent:
-			app.logger.Printf("Can't send msg: %s\n", ev.Error())
-
 		}
 	}
 }
