@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"github.com/nlopes/slack"
+	"github.com/yonesko/slack-queue-bot/event"
 	"github.com/yonesko/slack-queue-bot/queue"
 	"github.com/yonesko/slack-queue-bot/usecase"
 	"github.com/yonesko/slack-queue-bot/user"
@@ -37,14 +38,20 @@ func NewApp() *App {
 		slack.OptionDebug(true),
 		slack.OptionLog(log.New(lumberWriter, "slack_api: ", log.Lshortfile|log.LstdFlags)),
 	)
-	logger := log.New(lumberWriter, "queue-bot: ", log.Lshortfile|log.LstdFlags)
 	userRepository := user.NewRepository(slackApi)
 	return &App{
 		userRepository: userRepository,
 		lumberWriter:   lumberjack.Logger{},
 		rtm:            connectToRTM(slackApi),
-		logger:         logger,
-		controller:     newController(userRepository, usecase.NewQueueService(queue.NewRepository())),
+		logger:         log.New(lumberWriter, "app: ", log.Lshortfile|log.LstdFlags),
+		controller: newController(
+			lumberWriter,
+			userRepository,
+			usecase.NewQueueService(
+				queue.NewRepository(),
+				event.NewQueueChangedEventBus(slackApi, userRepository, lumberWriter),
+			),
+		),
 	}
 }
 
