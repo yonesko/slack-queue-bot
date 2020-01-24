@@ -13,7 +13,10 @@ import (
 	"os"
 )
 
-const thisBotUserId = "<@USMRFHHPE>" //test bot user USG0TPHGA
+const (
+	thisBotUserId = "<@USMRFHHPE>" //test bot user USG0TPHGA
+	version       = "1.0.0"
+)
 
 type App struct {
 	userRepository user.Repository
@@ -65,7 +68,6 @@ func (app *App) Run() {
 			app.rtm.SendMessage(app.rtm.NewOutgoingMessage(responseText, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 		case *slack.OutgoingErrorEvent:
 			app.logger.Printf("Can't send msg: %s\n", ev.Error())
-
 		}
 	}
 }
@@ -77,6 +79,7 @@ func (app *App) printOnHello() {
 		return
 	}
 	app.logger.Println(string(bytes))
+	app.logger.Printf("version %s", version)
 }
 
 func mustGetEnv(key string) string {
