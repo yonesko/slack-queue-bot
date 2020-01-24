@@ -55,8 +55,8 @@ func (cont *Controller) execute(command usecase.Command) (string, error) {
 	return cont.appendQueue(txt, command.AuthorUserId), nil
 }
 
-func (cont *Controller) addUser(userId string) (string, error) {
-	err := cont.queueService.Add(model.QueueEntity{UserId: userId})
+func (cont *Controller) addUser(authorUserId string) (string, error) {
+	err := cont.queueService.Add(model.QueueEntity{UserId: authorUserId})
 	if err == usecase.AlreadyExistErr {
 		return i18n.P.MustGetString("you_are_already_in_the_queue"), nil
 	}
@@ -66,8 +66,8 @@ func (cont *Controller) addUser(userId string) (string, error) {
 	return i18n.P.MustGetString("added_successfully"), nil
 }
 
-func (cont *Controller) deleteUser(userId string) (string, error) {
-	err := cont.queueService.DeleteById(userId)
+func (cont *Controller) deleteUser(authorUserId string) (string, error) {
+	err := cont.queueService.DeleteById(authorUserId)
 	if err == usecase.NoSuchUserErr {
 		return i18n.P.MustGetString("you_are_not_in_the_queue"), nil
 	}
@@ -116,8 +116,8 @@ func (cont *Controller) composeShowQueueText(queue model.Queue, authorUserId str
 	return txt, nil
 }
 
-func (cont *Controller) showHelp(userId string) string {
-	txt := fmt.Sprintf(i18n.P.MustGetString("help_text"), cont.title(userId))
+func (cont *Controller) showHelp(authorUserId string) string {
+	txt := fmt.Sprintf(i18n.P.MustGetString("help_text"), cont.title(authorUserId))
 	return txt
 }
 
