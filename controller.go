@@ -142,8 +142,15 @@ func (cont *Controller) pop(authorUserId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	txt := fmt.Sprintf(i18n.P.MustGetString("popped_successfully"), deletedUserId)
+	txt := fmt.Sprintf(i18n.P.MustGetString("popped_successfully"), cont.deletedUserTxt(deletedUserId))
 	return cont.appendQueue(txt, authorUserId), nil
+}
+
+func (cont *Controller) deletedUserTxt(deletedUserId string) string {
+	if user, err := cont.userRepository.FindById(deletedUserId); err == nil {
+		return user.FullName
+	}
+	return ""
 }
 
 func (cont *Controller) title(userId string) string {
