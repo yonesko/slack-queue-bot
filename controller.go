@@ -58,7 +58,7 @@ func (cont *Controller) execute(command usecase.Command) string {
 func (cont *Controller) addUser(authorUserId string) (string, error) {
 	err := cont.queueService.Add(model.QueueEntity{UserId: authorUserId})
 	if err == usecase.AlreadyExistErr {
-		return i18n.P.MustGetString("you_are_already_in_the_queue"), nil
+		return cont.appendQueue(i18n.P.MustGetString("you_are_already_in_the_queue"), authorUserId), nil
 	}
 	if err != nil {
 		return "", err
@@ -69,10 +69,10 @@ func (cont *Controller) addUser(authorUserId string) (string, error) {
 func (cont *Controller) deleteUser(authorUserId string) (string, error) {
 	err := cont.queueService.DeleteById(authorUserId)
 	if err == usecase.NoSuchUserErr {
-		return i18n.P.MustGetString("you_are_not_in_the_queue"), nil
+		return cont.appendQueue(i18n.P.MustGetString("you_are_not_in_the_queue"), authorUserId), nil
 	}
 	if err == usecase.QueueIsEmpty {
-		return "", nil
+		return cont.showQueue(authorUserId)
 	}
 	if err != nil {
 		return "", err
@@ -126,7 +126,7 @@ func (cont *Controller) showHelp(authorUserId string) string {
 func (cont *Controller) clean(authorUserId string) (string, error) {
 	err := cont.queueService.DeleteAll()
 	if err == usecase.QueueIsEmpty {
-		return "", nil
+		return cont.showQueue(authorUserId)
 	}
 	if err != nil {
 		return "", err
@@ -137,7 +137,7 @@ func (cont *Controller) clean(authorUserId string) (string, error) {
 func (cont *Controller) pop(authorUserId string) (string, error) {
 	err := cont.queueService.Pop()
 	if err == usecase.QueueIsEmpty {
-		return "", nil
+		return cont.showQueue(authorUserId)
 	}
 	if err != nil {
 		return "", err
