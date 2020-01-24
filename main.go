@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	_ "github.com/motemen/go-loghttp/global" //log HTTP req and resp
+	"github.com/yonesko/slack-queue-bot/event"
+	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/queue"
 	"github.com/yonesko/slack-queue-bot/usecase"
 	"github.com/yonesko/slack-queue-bot/user"
@@ -15,7 +17,7 @@ import (
 	"github.com/nlopes/slack"
 )
 
-const thisBotUserId = "<@USMRFHHPE>"
+const thisBotUserId = "<@USMRFHHPE>" //test bot user USG0TPHGA
 
 var lumberWriter = &lumberjack.Logger{
 	Filename: "slack-queue-bot.log",
@@ -24,6 +26,7 @@ var lumberWriter = &lumberjack.Logger{
 }
 
 func main() {
+	i18n.Init()
 	log.SetOutput(lumberWriter)
 	slackApi := slack.New(
 		mustGetEnv("BOT_USER_OAUTH_ACCESS_TOKEN"),
@@ -32,7 +35,9 @@ func main() {
 	)
 	rtm := slackApi.NewRTM()
 	go rtm.ManageConnection()
-	controller := newController(user.NewRepository(slackApi), usecase.NewQueueService(queue.NewRepository()))
+	userRepository := user.NewRepository(slackApi)
+	queueChangedEventBus := event.NewQueueChangedEventBus(slackApi, userRepository, lumberWriter)
+	controller := newController(userRepository, usecase.NewQueueService(queue.NewRepository(), queueChangedEventBus))
 	logger := log.New(lumberWriter, "queue-bot: ", log.Lshortfile|log.LstdFlags)
 	logger.Println("Service is started")
 	for msg := range rtm.IncomingEvents {

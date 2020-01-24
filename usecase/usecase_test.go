@@ -2,14 +2,15 @@ package usecase
 
 import (
 	"fmt"
+	eventmock "github.com/yonesko/slack-queue-bot/event/mock"
 	"github.com/yonesko/slack-queue-bot/model"
-	"github.com/yonesko/slack-queue-bot/queue/mock"
+	queuemock "github.com/yonesko/slack-queue-bot/queue/mock"
 	"sync"
 	"testing"
 )
 
 func TestService_Add_DifferentUsers(t *testing.T) {
-	service := &service{mock.NewQueueRepositoryMock()}
+	service := mockService()
 	err := service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
@@ -25,7 +26,7 @@ func TestService_Add_DifferentUsers(t *testing.T) {
 }
 
 func TestService_Pop(t *testing.T) {
-	service := &service{mock.NewQueueRepositoryMock()}
+	service := mockService()
 	_, err := service.Pop()
 	if err != QueueIsEmpty {
 		t.Error(err)
@@ -49,7 +50,7 @@ func TestService_Pop(t *testing.T) {
 }
 
 func TestService_DeleteAll(t *testing.T) {
-	service := &service{mock.NewQueueRepositoryMock()}
+	service := mockService()
 	err := service.DeleteAll()
 	if err != QueueIsEmpty {
 		t.Error(err)
@@ -66,7 +67,7 @@ func TestService_DeleteAll(t *testing.T) {
 }
 
 func TestService_Add_Idempotent(t *testing.T) {
-	service := &service{mock.NewQueueRepositoryMock()}
+	service := mockService()
 	err := service.Add(model.QueueEntity{UserId: "123"})
 	if err != nil {
 		t.Error(err)
@@ -79,7 +80,7 @@ func TestService_Add_Idempotent(t *testing.T) {
 
 func TestNoRaceConditionsInService(t *testing.T) {
 	t.Skip("code run in 1 routine now")
-	service := &service{mock.NewQueueRepositoryMock()}
+	service := mockService()
 	group := &sync.WaitGroup{}
 	chunks, workers := 100, 100
 	for i := 0; i < workers; i++ {
@@ -120,4 +121,11 @@ func equals(queue model.Queue, userIds []string) bool {
 	}
 
 	return true
+}
+
+func mockService() *service {
+	return &service{
+		queuemock.NewQueueRepositoryMock(),
+		&eventmock.QueueChangedEventBus{Inbox: []interface{}{}},
+	}
 }

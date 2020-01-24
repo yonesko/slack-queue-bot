@@ -7,6 +7,7 @@ import (
 	"github.com/yonesko/slack-queue-bot/usecase"
 	"github.com/yonesko/slack-queue-bot/user"
 	"log"
+	"runtime/debug"
 	"strings"
 )
 
@@ -28,6 +29,7 @@ func (cont *Controller) execute(command usecase.Command) string {
 	defer func() {
 		if r := recover(); r != nil {
 			cont.logger.Printf("catch panic: %#v", r)
+			debug.PrintStack()
 		}
 	}()
 

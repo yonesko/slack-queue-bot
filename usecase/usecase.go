@@ -3,6 +3,7 @@ package usecase
 import (
 	"errors"
 	"fmt"
+	"github.com/yonesko/slack-queue-bot/event"
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue"
 )
@@ -16,7 +17,8 @@ type QueueService interface {
 }
 
 type service struct {
-	queue.Repository
+	queueRepository      queue.Repository
+	queueChangedEventBus event.QueueChangedEventBus
 }
 
 var (
@@ -25,15 +27,15 @@ var (
 	QueueIsEmpty    = errors.New("queue is empty")
 )
 
-func NewQueueService(repository queue.Repository) QueueService {
+func NewQueueService(repository queue.Repository, queueChangedEventBus event.QueueChangedEventBus) QueueService {
 	if _, err := repository.Read(); err != nil {
 		panic(fmt.Sprintf("can't crete QueueService: %s", err))
 	}
-	return &service{repository}
+	return &service{repository, queueChangedEventBus}
 }
 
 func (s *service) Pop() (string, error) {
-	queue, err := s.Repository.Read()
+	queue, err := s.queueRepository.Read()
 	if err != nil {
 		return "", err
 	}
@@ -48,7 +50,7 @@ func (s *service) Pop() (string, error) {
 }
 
 func (s *service) Add(entity model.QueueEntity) error {
-	queue, err := s.Repository.Read()
+	queue, err := s.queueRepository.Read()
 	if err != nil {
 		return err
 	}
@@ -58,7 +60,7 @@ func (s *service) Add(entity model.QueueEntity) error {
 		return AlreadyExistErr
 	}
 	queue.Entities = append(queue.Entities, entity)
-	err = s.Repository.Save(queue)
+	err = s.queueRepository.Save(queue)
 	if err != nil {
 		return err
 	}
@@ -66,7 +68,7 @@ func (s *service) Add(entity model.QueueEntity) error {
 }
 
 func (s *service) DeleteById(userId string) error {
-	queue, err := s.Repository.Read()
+	queue, err := s.queueRepository.Read()
 	if err != nil {
 		return err
 	}
@@ -78,22 +80,27 @@ func (s *service) DeleteById(userId string) error {
 		return NoSuchUserErr
 	}
 	queue.Entities = append(queue.Entities[:i], queue.Entities[i+1:]...)
-	err = s.Repository.Save(queue)
+	err = s.queueRepository.Save(queue)
 	if err != nil {
 		return err
+	}
+	if i == 0 && len(queue.Entities) > 0 {
+		s.queueChangedEventBus.Send(event.NewHolderEvent{
+			CurrentHolderUserId: queue.Entities[0].UserId,
+		})
 	}
 	return nil
 }
 
 func (s *service) DeleteAll() error {
-	q, err := s.Repository.Read()
+	q, err := s.queueRepository.Read()
 	if err != nil {
 		return err
 	}
 	if len(q.Entities) == 0 {
 		return QueueIsEmpty
 	}
-	err = s.Repository.Save(model.Queue{})
+	err = s.queueRepository.Save(model.Queue{})
 	if err != nil {
 		return err
 	}
@@ -101,5 +108,5 @@ func (s *service) DeleteAll() error {
 }
 
 func (s *service) Show() (model.Queue, error) {
-	return s.Read()
+	return s.queueRepository.Read()
 }
