@@ -19,11 +19,9 @@ type Controller struct {
 	userRepository user.Repository
 }
 
-func newController(slackApi *slack.Client, userRepository user.Repository, queueRepository queue.Repository) *Controller {
-	rtm := slackApi.NewRTM()
-	go rtm.ManageConnection()
+func newController(userRepository user.Repository, queueRepository queue.Repository) *Controller {
 	return &Controller{
-		rtm:            rtm,
+		rtm:            nil,
 		queueService:   usecase.NewQueueService(queueRepository),
 		logger:         log.New(lumberWriter, "controller: ", log.Lshortfile|log.LstdFlags),
 		userRepository: userRepository,

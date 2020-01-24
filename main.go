@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	_ "github.com/motemen/go-loghttp/global" //log HTTP req and resp
+	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/queue"
+	"github.com/yonesko/slack-queue-bot/usecase"
 	"github.com/yonesko/slack-queue-bot/user"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"io/ioutil"
@@ -29,9 +31,11 @@ func main() {
 		slack.OptionDebug(true),
 		slack.OptionLog(log.New(lumberWriter, "slack_api: ", log.Lshortfile|log.LstdFlags)),
 	)
+	rtm := slackApi.NewRTM()
+	go rtm.ManageConnection()
 	userRepository := user.NewRepository(slackApi)
 	queueRepository := queue.NewRepository()
-	controller := newController(slackApi, userRepository, queueRepository)
+	controller := newController(userRepository, queueRepository)
 	logger := log.New(lumberWriter, "queue-bot: ", log.Lshortfile|log.LstdFlags)
 	logger.Println("Service is started")
 	for msg := range controller.rtm.IncomingEvents {
@@ -40,7 +44,11 @@ func main() {
 			if !needProcess(ev) {
 				break
 			}
-			controller.handleMessageEvent(ev)
+			responseText, err := controller.execute(extractCommand2(ev))
+			if err != nil {
+				responseText = i18n.P.MustGetString("error_occurred")
+			}
+			rtm.SendMessage(rtm.NewOutgoingMessage(responseText, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 		case *slack.OutgoingErrorEvent:
 			logger.Printf("Can't send msg: %s\n", ev.Error())
 		case *slack.InvalidAuthEvent, *slack.ConnectionErrorEvent:
@@ -72,6 +80,30 @@ func extractCommand(text string) string {
 	txt := strings.Replace(text, thisBotUserId, "", 1)
 	txt = strings.ToLower(txt)
 	return strings.TrimSpace(txt)
+}
+
+func extractCommand2(ev *slack.MessageEvent) usecase.Command {
+	return usecase.Command{
+		AuthorUserId: ev.User,
+		Data:         extractData(ev),
+	}
+}
+
+func extractData(ev *slack.MessageEvent) interface{} {
+	switch extractCommand(ev.Text) {
+	case "add":
+		return usecase.AddCommand{ToAddUserId: ev.User}
+	case "del":
+		return usecase.DelCommand{ToDelUserId: ev.User}
+	case "show":
+		return usecase.ShowCommand{}
+	case "clean":
+		return usecase.CleanCommand{}
+	case "pop":
+		return usecase.PopCommand{}
+	default:
+		return usecase.HelpCommand{}
+	}
 }
 
 func mustGetEnv(key string) string {
