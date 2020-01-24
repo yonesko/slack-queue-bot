@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestAllLabelsAreSet(t *testing.T) {
+func TestAllLabelsAreUsedAndDefined(t *testing.T) {
 	usedLabels := collectUsedLabels()
 	if len(usedLabels) == 0 {
 		t.Error("no labels are used, use some or skip this test")
@@ -24,7 +24,7 @@ func TestAllLabelsAreSet(t *testing.T) {
 	}
 	for _, l := range i18n.P.Keys() {
 		if _, ok := usedLabels[l]; !ok {
-			fmt.Printf("label %s is unused\n", l)
+			t.Errorf("label %s is unused\n", l)
 		}
 	}
 }

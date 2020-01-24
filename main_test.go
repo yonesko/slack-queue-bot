@@ -17,8 +17,8 @@ func Test_extractCommand(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.text, func(t *testing.T) {
-			if got := extractCommand(tt.text); got != tt.want {
-				t.Errorf("extractCommand() = %v, want %v", got, tt.want)
+			if got := extractCommandTxt(tt.text); got != tt.want {
+				t.Errorf("extractCommandTxt() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/nlopes/slack"
 	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
-	"github.com/yonesko/slack-queue-bot/queue"
 	"github.com/yonesko/slack-queue-bot/usecase"
 	"github.com/yonesko/slack-queue-bot/user"
 	"log"
@@ -13,144 +11,99 @@ import (
 )
 
 type Controller struct {
-	rtm            *slack.RTM
 	queueService   usecase.QueueService
 	logger         *log.Logger
 	userRepository user.Repository
 }
 
-func newController(slackApi *slack.Client, userRepository user.Repository, queueRepository queue.Repository) *Controller {
-	rtm := slackApi.NewRTM()
-	go rtm.ManageConnection()
+func newController(userRepository user.Repository, queueService usecase.QueueService) *Controller {
 	return &Controller{
-		rtm:            rtm,
-		queueService:   usecase.NewQueueService(queueRepository),
+		queueService:   queueService,
 		logger:         log.New(lumberWriter, "controller: ", log.Lshortfile|log.LstdFlags),
 		userRepository: userRepository,
 	}
 }
 
-func (cont *Controller) handleMessageEvent(ev *slack.MessageEvent) {
+func (cont *Controller) execute(command usecase.Command) string {
 	defer func() {
 		if r := recover(); r != nil {
 			cont.logger.Printf("catch panic: %#v", r)
 		}
 	}()
-	cont.logger.Printf("process event: %#v", ev)
-	switch extractCommand(ev.Text) {
-	case "add":
-		cont.addUser(ev)
-	case "del":
-		cont.deleteUser(ev)
-	case "show":
-		cont.showQueue(ev)
-	case "clean":
-		cont.clean(ev)
-	case "pop":
-		cont.pop(ev)
+
+	var txt string
+	var err error
+	switch command.Data.(type) {
+	case usecase.AddCommand:
+		txt, err = cont.addUser(command.AuthorUserId)
+	case usecase.DelCommand:
+		txt, err = cont.deleteUser(command.AuthorUserId)
+	case usecase.ShowCommand:
+		txt, err = cont.showQueue(command.AuthorUserId)
+	case usecase.CleanCommand:
+		txt, err = cont.clean(command.AuthorUserId)
+	case usecase.PopCommand:
+		txt, err = cont.pop(command.AuthorUserId)
 	default:
-		cont.showHelp(ev)
+		cont.logger.Printf("undefined command : %v", command)
+		return cont.showHelp(command.AuthorUserId)
 	}
+	if err != nil {
+		cont.logger.Println(err)
+		return i18n.P.MustGetString("error_occurred")
+	}
+	return txt
 }
 
-func (cont *Controller) addUser(ev *slack.MessageEvent) {
-	err := cont.queueService.Add(model.QueueEntity{UserId: ev.User})
+func (cont *Controller) addUser(authorUserId string) (string, error) {
+	err := cont.queueService.Add(model.QueueEntity{UserId: authorUserId})
 	if err == usecase.AlreadyExistErr {
-		txt := i18n.P.MustGetString("you_are_already_in_the_queue")
-		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
-		cont.showQueue(ev)
-		return
+		return cont.appendQueue(i18n.P.MustGetString("you_are_already_in_the_queue"), authorUserId), nil
 	}
 	if err != nil {
-		cont.reportError(ev)
-		cont.logger.Print(err)
-		return
+		return "", err
 	}
-	cont.showQueue(ev)
+	return cont.appendQueue(i18n.P.MustGetString("added_successfully"), authorUserId), nil
 }
 
-func (cont *Controller) reportError(ev *slack.MessageEvent) {
-	txt := i18n.P.MustGetString("error_occurred")
-	cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
+func (cont *Controller) deleteUser(authorUserId string) (string, error) {
+	err := cont.queueService.DeleteById(authorUserId)
+	if err == usecase.NoSuchUserErr {
+		return cont.appendQueue(i18n.P.MustGetString("you_are_not_in_the_queue"), authorUserId), nil
+	}
+	if err == usecase.QueueIsEmpty {
+		return cont.showQueue(authorUserId)
+	}
+	if err != nil {
+		return "", err
+	}
+	return cont.appendQueue(i18n.P.MustGetString("deleted_successfully"), authorUserId), nil
 }
 
-func (cont *Controller) findHolder() (*model.QueueEntity, error) {
+func (cont *Controller) appendQueue(txt string, authorUserId string) string {
+	queueTxt, err := cont.showQueue(authorUserId)
+	if err != nil {
+		return txt
+	}
+	return txt + "\n" + queueTxt
+}
+
+func (cont *Controller) showQueue(authorUserId string) (string, error) {
 	q, err := cont.queueService.Show()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	if len(q.Entities) == 0 {
-		return nil, nil
+	text, err := cont.composeShowQueueText(q, authorUserId)
+	if err != nil {
+		return "", err
 	}
-	return &q.Entities[0], nil
+	return text, nil
 }
 
-func (cont *Controller) deleteUser(ev *slack.MessageEvent) {
-	holder, err := cont.findHolder()
-	if err != nil {
-		cont.reportError(ev)
-		cont.logger.Print(err)
-		return
+func (cont *Controller) composeShowQueueText(queue model.Queue, authorUserId string) (string, error) {
+	if len(queue.Entities) == 0 {
+		return i18n.P.MustGetString("queue_is_empty"), nil
 	}
-	deletedEntity := model.QueueEntity{UserId: ev.User}
-	switch cont.queueService.DeleteById(deletedEntity.UserId) {
-	case usecase.NoSuchUserErr:
-		txt := i18n.P.MustGetString("you_are_not_in_the_queue")
-		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
-		cont.showQueue(ev)
-	case nil:
-		if holder != nil && deletedEntity == *holder {
-			cont.notifyNewHolder(ev)
-		}
-		cont.showQueue(ev)
-	default:
-		cont.reportError(ev)
-		cont.logger.Print(err)
-	}
-}
-
-func (cont *Controller) notifyNewHolder(ev *slack.MessageEvent) {
-	q, err := cont.queueService.Show()
-	if err != nil {
-		cont.reportError(ev)
-		cont.logger.Print(err)
-		return
-	}
-	if len(q.Entities) > 0 {
-		firstUser := q.Entities[0]
-		user, err := cont.userRepository.FindById(firstUser.UserId)
-		if err != nil {
-			cont.reportError(ev)
-			cont.logger.Print(err)
-			return
-		}
-		txt := fmt.Sprintf(i18n.P.MustGetString("your_turn_came"), user.DisplayName)
-		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
-	}
-}
-
-func (cont *Controller) showQueue(ev *slack.MessageEvent) {
-	q, err := cont.queueService.Show()
-	if err != nil {
-		cont.reportError(ev)
-		cont.logger.Print(err)
-		return
-	}
-	if len(q.Entities) == 0 {
-		txt := i18n.P.MustGetString("queue_is_empty")
-		cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
-		return
-	}
-	text, err := cont.composeShowQueueText(q, ev.User)
-	if err != nil {
-		cont.reportError(ev)
-		cont.logger.Print(err)
-		return
-	}
-	cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(text, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
-}
-
-func (cont *Controller) composeShowQueueText(queue model.Queue, userId string) (string, error) {
 	txt := ""
 	for i, u := range queue.Entities {
 		user, err := cont.userRepository.FindById(u.UserId)
@@ -158,7 +111,7 @@ func (cont *Controller) composeShowQueueText(queue model.Queue, userId string) (
 			return "", fmt.Errorf("can't composeShowQueueText: %s", err)
 		}
 		highlight := ""
-		if u.UserId == userId {
+		if u.UserId == authorUserId {
 			highlight = ":point_left::skin-tone-2:"
 		}
 		txt += fmt.Sprintf("`%dº` %s (%s) %s\n", i+1, user.FullName, user.DisplayName, highlight)
@@ -166,34 +119,42 @@ func (cont *Controller) composeShowQueueText(queue model.Queue, userId string) (
 	return txt, nil
 }
 
-func (cont *Controller) showHelp(ev *slack.MessageEvent) {
-	txt := fmt.Sprintf(i18n.P.MustGetString("help_text"), cont.title(ev))
-	cont.rtm.SendMessage(cont.rtm.NewOutgoingMessage(txt, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
+func (cont *Controller) showHelp(authorUserId string) string {
+	return fmt.Sprintf(i18n.P.MustGetString("help_text"), cont.title(authorUserId))
 }
 
-func (cont *Controller) clean(ev *slack.MessageEvent) {
+func (cont *Controller) clean(authorUserId string) (string, error) {
 	err := cont.queueService.DeleteAll()
-	if err != nil {
-		cont.reportError(ev)
-		cont.logger.Print(err)
-		return
+	if err == usecase.QueueIsEmpty {
+		return cont.showQueue(authorUserId)
 	}
-	cont.showQueue(ev)
+	if err != nil {
+		return "", err
+	}
+	return cont.appendQueue(i18n.P.MustGetString("cleaned_successfully"), authorUserId), nil
 }
 
-func (cont *Controller) pop(ev *slack.MessageEvent) {
-	err := cont.queueService.Pop()
-	if err != nil {
-		cont.reportError(ev)
-		cont.logger.Print(err)
-		return
+func (cont *Controller) pop(authorUserId string) (string, error) {
+	deletedUserId, err := cont.queueService.Pop()
+	if err == usecase.QueueIsEmpty {
+		return cont.showQueue(authorUserId)
 	}
-	cont.notifyNewHolder(ev)
-	cont.showQueue(ev)
+	if err != nil {
+		return "", err
+	}
+	txt := fmt.Sprintf(i18n.P.MustGetString("popped_successfully"), cont.deletedUserTxt(deletedUserId))
+	return cont.appendQueue(txt, authorUserId), nil
 }
 
-func (cont *Controller) title(ev *slack.MessageEvent) string {
-	if user, err := cont.userRepository.FindById(ev.User); err == nil {
+func (cont *Controller) deletedUserTxt(deletedUserId string) string {
+	if user, err := cont.userRepository.FindById(deletedUserId); err == nil {
+		return user.FullName
+	}
+	return ""
+}
+
+func (cont *Controller) title(userId string) string {
+	if user, err := cont.userRepository.FindById(userId); err == nil {
 		return strings.TrimSpace(user.FullName)
 	}
 	return "human"

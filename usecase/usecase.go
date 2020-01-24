@@ -5,55 +5,49 @@ import (
 	"fmt"
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue"
-	"sync"
 )
 
 type QueueService interface {
 	Add(model.QueueEntity) error
 	DeleteById(userId string) error
-	Pop() error
+	Pop() (string, error)
 	DeleteAll() error
 	Show() (model.Queue, error)
 }
 
 type service struct {
 	queue.Repository
-	mu sync.Mutex
 }
 
 var (
 	AlreadyExistErr = errors.New("already exist")
 	NoSuchUserErr   = errors.New("no such user")
+	QueueIsEmpty    = errors.New("queue is empty")
 )
 
 func NewQueueService(repository queue.Repository) QueueService {
 	if _, err := repository.Read(); err != nil {
 		panic(fmt.Sprintf("can't crete QueueService: %s", err))
 	}
-	return &service{repository, sync.Mutex{}}
+	return &service{repository}
 }
 
-func (s *service) Pop() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (s *service) Pop() (string, error) {
 	queue, err := s.Repository.Read()
 	if err != nil {
-		return err
+		return "", err
 	}
 	if len(queue.Entities) == 0 {
-		return nil
+		return "", QueueIsEmpty
 	}
-	queue.Entities = queue.Entities[1:]
-	err = s.Repository.Save(queue)
+	err = s.DeleteById(queue.Entities[0].UserId)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return queue.Entities[0].UserId, nil
 }
 
 func (s *service) Add(entity model.QueueEntity) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
 	if err != nil {
 		return err
@@ -72,14 +66,12 @@ func (s *service) Add(entity model.QueueEntity) error {
 }
 
 func (s *service) DeleteById(userId string) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	queue, err := s.Repository.Read()
 	if err != nil {
 		return err
 	}
 	if len(queue.Entities) == 0 {
-		return nil
+		return QueueIsEmpty
 	}
 	i := queue.IndexOf(userId)
 	if i == -1 {
@@ -94,9 +86,14 @@ func (s *service) DeleteById(userId string) error {
 }
 
 func (s *service) DeleteAll() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	err := s.Repository.Save(model.Queue{})
+	q, err := s.Repository.Read()
+	if err != nil {
+		return err
+	}
+	if len(q.Entities) == 0 {
+		return QueueIsEmpty
+	}
+	err = s.Repository.Save(model.Queue{})
 	if err != nil {
 		return err
 	}
@@ -104,7 +101,5 @@ func (s *service) DeleteAll() error {
 }
 
 func (s *service) Show() (model.Queue, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	return s.Read()
 }
