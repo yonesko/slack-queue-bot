@@ -32,6 +32,14 @@ func newController(slackApi *slack.Client, userRepository user.Repository, queue
 	}
 }
 
+func (cont *Controller) execute(command usecase.Command) (string, error) {
+	switch command.Data.(type) {
+	case usecase.AddCommand:
+
+	}
+	return "help msg", nil
+}
+
 func (cont *Controller) handleMessageEvent(ev *slack.MessageEvent) {
 	defer func() {
 		if r := recover(); r != nil {
