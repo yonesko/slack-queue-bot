@@ -44,7 +44,7 @@ func main() {
 			if !needProcess(ev) {
 				break
 			}
-			responseText, err := controller.execute(extractCommand2(ev))
+			responseText, err := controller.execute(extractCommand(ev))
 			if err != nil {
 				responseText = i18n.P.MustGetString("error_occurred")
 				logger.Println(err)
@@ -83,7 +83,7 @@ func extractCommandTxt(text string) string {
 	return strings.TrimSpace(txt)
 }
 
-func extractCommand2(ev *slack.MessageEvent) usecase.Command {
+func extractCommand(ev *slack.MessageEvent) usecase.Command {
 	return usecase.Command{AuthorUserId: ev.User, Data: extractData(ev)}
 }
 
