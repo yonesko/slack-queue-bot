@@ -3,6 +3,7 @@ package event
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/yonesko/slack-queue-bot/estimate"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -28,7 +29,7 @@ func TestHoldTimeEstimateListener1(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, duration, time.Second*100)
+	assert.Equal(t, estimate.Estimate{time.Second * 100, 1}, duration)
 }
 
 func TestHoldTimeEstimateListener2(t *testing.T) {
@@ -52,8 +53,9 @@ func TestHoldTimeEstimateListener2(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, duration, time.Second*100)
+	assert.Equal(t, estimate.Estimate{time.Second * 100, 1}, duration)
 }
+
 func TestHoldTimeEstimateListener3(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
 	listener := NewHoldTimeEstimateListener(rep)
@@ -75,5 +77,25 @@ func TestHoldTimeEstimateListener3(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, duration, time.Second*0)
+	assert.Equal(t, estimate.Estimate{time.Second * 0, 0}, duration)
+}
+
+func TestHoldTimeEstimateListener4(t *testing.T) {
+	rep := &estimate.RepositoryMock{}
+	listener := NewHoldTimeEstimateListener(rep)
+
+	for i := 1; i <= 100; i++ {
+		listener.Fire(NewHolderEvent{
+			CurrentHolderUserId: strconv.Itoa(i),
+			PrevHolderUserId:    strconv.Itoa(i - 1),
+			AuthorUserId:        strconv.Itoa(i - 1),
+			ts:                  time.Unix(int64(i)*77, 0),
+		})
+	}
+
+	duration, err := rep.Get()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, estimate.Estimate{time.Second * 77, 99}, duration)
 }

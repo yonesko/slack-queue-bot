@@ -1,18 +1,14 @@
 package estimate
 
-import (
-	"time"
-)
-
 type RepositoryMock struct {
-	estimate time.Duration
+	estimate Estimate
 }
 
-func (r *RepositoryMock) Get() (time.Duration, error) {
+func (r *RepositoryMock) Get() (Estimate, error) {
 	return r.estimate, nil
 }
 
-func (r *RepositoryMock) Save(estimate time.Duration) error {
+func (r *RepositoryMock) Save(estimate Estimate) error {
 	r.estimate = estimate
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/user"
 	"log"
+	"time"
 )
 
 type NewHolderEventListener interface {
@@ -41,12 +42,22 @@ func NewHoldTimeEstimateListener(estimateRepository estimate.Repository) *HoldTi
 }
 
 func (l *HoldTimeEstimateListener) Fire(ev NewHolderEvent) {
-	if l.prevEv != nil && ev.AuthorUserId == l.prevEv.CurrentHolderUserId {
-		log.Printf("calculating estimate prev=%v, curr=%v", l.prevEv, ev)
-		err := l.estimateRepository.Save(ev.ts.Sub(l.prevEv.ts))
-		if err != nil {
-			log.Printf("can't save estimate: %s", err)
-		}
+	if l.prevEv != nil && ev.AuthorUserId == ev.PrevHolderUserId {
+		log.Printf("calculating estimate prev=%#v, curr=%#v", l.prevEv, ev)
+		l.calcEstimate(ev.ts.Sub(l.prevEv.ts))
 	}
 	l.prevEv = &ev
+}
+
+func (l *HoldTimeEstimateListener) calcEstimate(duration time.Duration) {
+	estimate, err := l.estimateRepository.Get()
+	if err != nil {
+		log.Printf("can't calc estimate: %s", err)
+		return
+	}
+	err = l.estimateRepository.Save(estimate.AddOne(duration))
+	if err != nil {
+		log.Printf("can't calc estimate: %s", err)
+		return
+	}
 }
