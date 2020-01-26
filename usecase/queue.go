@@ -120,3 +120,20 @@ func (s *service) DeleteAll() error {
 func (s *service) Show() (model.Queue, error) {
 	return s.queueRepository.Read()
 }
+
+func (s *service) emitEvent(authorUserId string, before model.Queue, after model.Queue) {
+	holderBefore, holderAfter := "", ""
+	if len(before.Entities) > 0 {
+		holderBefore = before.Entities[0].UserId
+	}
+	if len(after.Entities) > 0 {
+		holderAfter = after.Entities[0].UserId
+	}
+	if holderBefore != holderAfter {
+		s.queueChangedEventBus.Send(event.NewHolderEvent{
+			CurrentHolderUserId: holderAfter,
+			PrevHolderUserId:    holderBefore,
+			AuthorUserId:        authorUserId,
+		})
+	}
+}
