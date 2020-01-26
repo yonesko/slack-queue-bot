@@ -1,9 +1,6 @@
 package event
 
 import (
-	"github.com/nlopes/slack"
-	"github.com/yonesko/slack-queue-bot/i18n"
-	"github.com/yonesko/slack-queue-bot/user"
 	"io"
 	"log"
 )
@@ -12,36 +9,26 @@ type QueueChangedEventBus interface {
 	Send(event interface{})
 }
 
-func NewQueueChangedEventBus(slackApi *slack.Client, userRepository user.Repository, lumberWriter io.Writer) QueueChangedEventBus {
+func NewQueueChangedEventBus(lumberWriter io.Writer, newHolderEventListeners []NewHolderEventListener) QueueChangedEventBus {
 	return &queueChangedEventBus{
-		slackApi:       slackApi,
-		userRepository: userRepository,
-		logger:         log.New(lumberWriter, "event-bus: ", log.Lshortfile|log.LstdFlags),
+		logger:                  log.New(lumberWriter, "event-bus: ", log.Lshortfile|log.LstdFlags),
+		newHolderEventListeners: newHolderEventListeners,
 	}
 }
 
 type queueChangedEventBus struct {
-	slackApi       *slack.Client
-	userRepository user.Repository
-	logger         *log.Logger
+	logger                  *log.Logger
+	newHolderEventListeners []NewHolderEventListener
 }
 
 func (q *queueChangedEventBus) Send(event interface{}) {
+	q.logger.Printf("received event %#v", event)
 	switch event := event.(type) {
 	case NewHolderEvent:
-		q.logger.Printf("received event %#v", event)
-		q.notifyNewHolder(event.CurrentHolderUserId)
+		for _, l := range q.newHolderEventListeners {
+			go l.Fire(event)
+		}
 	default:
 		q.logger.Printf("unknown event %v", event)
-	}
-}
-
-func (q *queueChangedEventBus) notifyNewHolder(userId string) {
-	_, _, err := q.slackApi.PostMessage(userId,
-		slack.MsgOptionText(i18n.P.MustGetString("your_turn_came"), true),
-		slack.MsgOptionAsUser(true),
-	)
-	if err != nil {
-		log.Printf("can't notify %s", err)
 	}
 }
