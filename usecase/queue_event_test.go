@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func TestNewHolderEventToEmptyQueue(t *testing.T) {
+func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{}}
 	service := &service{&queueRepository, &bus}
