@@ -10,8 +10,8 @@ import (
 
 type QueueService interface {
 	Add(model.QueueEntity) error
-	DeleteById(userId string) error
-	Pop() (string, error)
+	DeleteById(toDelUserId string, authorUserId string) error
+	Pop(authorUserId string) (string, error)
 	DeleteAll() error
 	Show() (model.Queue, error)
 }
@@ -34,7 +34,7 @@ func NewQueueService(repository queue.Repository, queueChangedEventBus event.Que
 	return &service{repository, queueChangedEventBus}
 }
 
-func (s *service) Pop() (string, error) {
+func (s *service) Pop(authorUserId string) (string, error) {
 	queue, err := s.queueRepository.Read()
 	if err != nil {
 		return "", err
@@ -42,7 +42,7 @@ func (s *service) Pop() (string, error) {
 	if len(queue.Entities) == 0 {
 		return "", QueueIsEmpty
 	}
-	err = s.DeleteById(queue.Entities[0].UserId)
+	err = s.DeleteById(queue.Entities[0].UserId, authorUserId)
 	if err != nil {
 		return "", err
 	}
@@ -67,7 +67,7 @@ func (s *service) Add(entity model.QueueEntity) error {
 	return nil
 }
 
-func (s *service) DeleteById(userId string) error {
+func (s *service) DeleteById(toDelUserId string, authorUserId string) error {
 	queue, err := s.queueRepository.Read()
 	if err != nil {
 		return err
@@ -75,9 +75,13 @@ func (s *service) DeleteById(userId string) error {
 	if len(queue.Entities) == 0 {
 		return QueueIsEmpty
 	}
-	i := queue.IndexOf(userId)
+	i := queue.IndexOf(toDelUserId)
 	if i == -1 {
 		return NoSuchUserErr
+	}
+	prevHolderUserId := ""
+	if i == 0 {
+		prevHolderUserId = toDelUserId
 	}
 	queue.Entities = append(queue.Entities[:i], queue.Entities[i+1:]...)
 	err = s.queueRepository.Save(queue)
@@ -87,6 +91,8 @@ func (s *service) DeleteById(userId string) error {
 	if i == 0 && len(queue.Entities) > 0 {
 		go s.queueChangedEventBus.Send(event.NewHolderEvent{
 			CurrentHolderUserId: queue.Entities[0].UserId,
+			PrevHolderUserId:    prevHolderUserId,
+			AuthorUserId:        authorUserId,
 		})
 	}
 	return nil
