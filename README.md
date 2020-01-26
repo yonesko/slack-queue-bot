@@ -18,6 +18,7 @@ This bot supports next commands:
 * estimate on show
 * require reason to add in the queue
 * pass queue command
+* local commands
 #### tech
 * add logger with levels to grep errors
 * rename slack-queue-bot.db.json
