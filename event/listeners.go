@@ -20,7 +20,7 @@ func NewNotifyNewHolderEventListener(slackApi *slack.Client, userRepository user
 	return &NotifyNewHolderEventListener{slackApi: slackApi, userRepository: userRepository}
 }
 
-func (n NotifyNewHolderEventListener) Fire(newHolderEvent NewHolderEvent) {
+func (n *NotifyNewHolderEventListener) Fire(newHolderEvent NewHolderEvent) {
 	_, _, err := n.slackApi.PostMessage(newHolderEvent.CurrentHolderUserId,
 		slack.MsgOptionText(i18n.P.MustGetString("your_turn_came"), true),
 		slack.MsgOptionAsUser(true),
