@@ -28,7 +28,7 @@ func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
 		bus.Inbox,
 	)
 }
-func TestNewHolderEventNotEmpty(t *testing.T) {
+func TestNewHolderEventDeleteHolder(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{[]model.QueueEntity{{"123"}, {"abc"}}}}
 	service := &service{&queueRepository, &bus}
