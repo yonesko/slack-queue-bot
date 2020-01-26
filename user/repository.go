@@ -22,5 +22,23 @@ func (r repository) FindById(id string) (model.User, error) {
 }
 
 func NewRepository(slackApi *slack.Client) Repository {
-	return repository{slackApi: slackApi}
+	return &cachingRepository{repository: repository{slackApi: slackApi}, data: map[string]model.User{}}
+}
+
+type cachingRepository struct {
+	repository
+	data map[string]model.User
+}
+
+func (r *cachingRepository) FindById(id string) (model.User, error) {
+	user, ok := r.data[id]
+	if ok {
+		return user, nil
+	}
+	user, err := r.repository.FindById(id)
+	if err != nil {
+		return model.User{}, err
+	}
+	r.data[id] = user
+	return user, nil
 }
