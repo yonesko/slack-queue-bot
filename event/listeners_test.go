@@ -16,14 +16,14 @@ func TestHoldTimeEstimateListener1(t *testing.T) {
 		CurrentHolderUserId: "123",
 		PrevHolderUserId:    "",
 		AuthorUserId:        "123",
-		ts:                  time.Unix(0, 0),
+		Ts:                  time.Unix(0, 0),
 	})
 
 	listener.Fire(NewHolderEvent{
 		CurrentHolderUserId: "abc",
 		PrevHolderUserId:    "123",
 		AuthorUserId:        "123",
-		ts:                  time.Unix(100, 0),
+		Ts:                  time.Unix(100, 0),
 	})
 	duration, err := rep.Get()
 	if err != nil {
@@ -40,14 +40,14 @@ func TestHoldTimeEstimateListener2(t *testing.T) {
 		CurrentHolderUserId: "1",
 		PrevHolderUserId:    "2",
 		AuthorUserId:        "1",
-		ts:                  time.Unix(0, 0),
+		Ts:                  time.Unix(0, 0),
 	})
 
 	listener.Fire(NewHolderEvent{
 		CurrentHolderUserId: "3",
 		PrevHolderUserId:    "1",
 		AuthorUserId:        "1",
-		ts:                  time.Unix(100, 0),
+		Ts:                  time.Unix(100, 0),
 	})
 	duration, err := rep.Get()
 	if err != nil {
@@ -64,14 +64,14 @@ func TestHoldTimeEstimateListener3(t *testing.T) {
 		CurrentHolderUserId: "1",
 		PrevHolderUserId:    "2",
 		AuthorUserId:        "1",
-		ts:                  time.Unix(0, 0),
+		Ts:                  time.Unix(0, 0),
 	})
 
 	listener.Fire(NewHolderEvent{
 		CurrentHolderUserId: "3",
 		PrevHolderUserId:    "1",
 		AuthorUserId:        "4",
-		ts:                  time.Unix(100, 0),
+		Ts:                  time.Unix(100, 0),
 	})
 	duration, err := rep.Get()
 	if err != nil {
@@ -89,7 +89,7 @@ func TestHoldTimeEstimateListener4(t *testing.T) {
 			CurrentHolderUserId: strconv.Itoa(i),
 			PrevHolderUserId:    strconv.Itoa(i - 1),
 			AuthorUserId:        strconv.Itoa(i - 1),
-			ts:                  time.Unix(int64(i)*77, 0),
+			Ts:                  time.Unix(int64(i)*77, 0),
 		})
 	}
 

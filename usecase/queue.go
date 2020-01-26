@@ -6,6 +6,7 @@ import (
 	"github.com/yonesko/slack-queue-bot/event"
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue"
+	"time"
 )
 
 type QueueService interface {
@@ -129,6 +130,7 @@ func (s *service) emitEvent(authorUserId string, before model.Queue, after model
 			CurrentHolderUserId: holderAfter,
 			PrevHolderUserId:    holderBefore,
 			AuthorUserId:        authorUserId,
+			Ts:                  time.Now(),
 		})
 	}
 }

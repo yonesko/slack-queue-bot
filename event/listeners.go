@@ -47,7 +47,7 @@ func NewHoldTimeEstimateListener(estimateRepository estimate.Repository) *HoldTi
 func (l *HoldTimeEstimateListener) Fire(ev NewHolderEvent) {
 	if l.prevEv != nil && ev.AuthorUserId == ev.PrevHolderUserId {
 		log.Printf("calculating estimate prev=%#v, curr=%#v", l.prevEv, ev)
-		l.calcEstimate(ev.ts.Sub(l.prevEv.ts))
+		l.calcEstimate(ev.Ts.Sub(l.prevEv.Ts))
 	}
 	l.prevEv = &ev
 }
