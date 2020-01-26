@@ -10,50 +10,44 @@ import (
 	"time"
 )
 
-func TestNewHolderEvent(t *testing.T) {
+func TestNewHolderEventToEmptyQueue(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
-	queueRepository := queuemock.QueueRepository{model.Queue{[]model.QueueEntity{{"123"}, {"abc"}}}}
+	queueRepository := queuemock.QueueRepository{model.Queue{}}
 	service := &service{&queueRepository, &bus}
 
-	err := service.DeleteById("123", "123")
+	err := service.Add(model.QueueEntity{UserId: "123"})
 	time.Sleep(time.Millisecond * 5) //wait async sending
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 
 	assert.Equal(t,
 		[]interface{}{event.NewHolderEvent{
-			CurrentHolderUserId: "abc",
-			PrevHolderUserId:    "123",
+			CurrentHolderUserId: "123",
+			PrevHolderUserId:    "",
 			AuthorUserId:        "123",
 		}},
 		bus.Inbox,
 	)
 }
-func TestNewHolderEvent2(t *testing.T) {
+func TestNewHolderEventNotEmpty(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{[]model.QueueEntity{{"123"}, {"abc"}}}}
 	service := &service{&queueRepository, &bus}
 
-	err := service.DeleteById("abc", "")
+	err := service.DeleteById("abc", "abc")
 	time.Sleep(time.Millisecond * 5) //wait async sending
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 
 	assert.Empty(t, bus.Inbox)
 }
 
-func TestNewHolderEvent3(t *testing.T) {
+func TestNewHolderEventPopAnotherUser(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{[]model.QueueEntity{{"123"}, {"abc"}}}}
 	service := &service{&queueRepository, &bus}
 
 	_, err := service.Pop("abc")
 	time.Sleep(time.Millisecond * 5) //wait async sending
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 
 	assert.Equal(t,
 		[]interface{}{event.NewHolderEvent{
@@ -64,17 +58,14 @@ func TestNewHolderEvent3(t *testing.T) {
 		bus.Inbox,
 	)
 }
-func TestNewHolderEvent4(t *testing.T) {
+func TestNewHolderEventPopYourself(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{[]model.QueueEntity{{"123"}}}}
 	service := &service{&queueRepository, &bus}
 
 	_, err := service.Pop("123")
 	time.Sleep(time.Millisecond * 5) //wait async sending
-	if err != nil {
-		t.Error(err)
-	}
-
+	assert.Nil(t, err)
 	assert.Equal(t,
 		[]interface{}{event.NewHolderEvent{
 			CurrentHolderUserId: "",
@@ -83,4 +74,15 @@ func TestNewHolderEvent4(t *testing.T) {
 		}},
 		bus.Inbox,
 	)
+}
+
+func TestNewHolderEventPopOnEmpty(t *testing.T) {
+	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
+	queueRepository := queuemock.QueueRepository{model.Queue{}}
+	service := &service{&queueRepository, &bus}
+
+	_, err := service.Pop("123")
+	time.Sleep(time.Millisecond * 5) //wait async sending
+	assert.Equal(t, QueueIsEmpty, err)
+	assert.Empty(t, bus.Inbox)
 }

@@ -51,6 +51,11 @@ func (s *service) Pop(authorUserId string) (string, error) {
 
 func (s *service) Add(entity model.QueueEntity) error {
 	queue, err := s.queueRepository.Read()
+	defer func(queueBefore model.Queue) {
+		if err == nil {
+			go s.emitEvent(entity.UserId, queueBefore, queue)
+		}
+	}(queue.Copy())
 	if err != nil {
 		return err
 	}
@@ -69,6 +74,11 @@ func (s *service) Add(entity model.QueueEntity) error {
 
 func (s *service) DeleteById(toDelUserId string, authorUserId string) error {
 	queue, err := s.queueRepository.Read()
+	defer func(queueBefore model.Queue) {
+		if err == nil {
+			go s.emitEvent(authorUserId, queueBefore, queue)
+		}
+	}(queue.Copy())
 	if err != nil {
 		return err
 	}
@@ -79,25 +89,10 @@ func (s *service) DeleteById(toDelUserId string, authorUserId string) error {
 	if i == -1 {
 		return NoSuchUserErr
 	}
-	prevHolderUserId := ""
-	if i == 0 {
-		prevHolderUserId = toDelUserId
-	}
 	queue.Entities = append(queue.Entities[:i], queue.Entities[i+1:]...)
 	err = s.queueRepository.Save(queue)
 	if err != nil {
 		return err
-	}
-	if i == 0 {
-		curr := ""
-		if len(queue.Entities) > 0 {
-			curr = queue.Entities[0].UserId
-		}
-		go s.queueChangedEventBus.Send(event.NewHolderEvent{
-			CurrentHolderUserId: curr,
-			PrevHolderUserId:    prevHolderUserId,
-			AuthorUserId:        authorUserId,
-		})
 	}
 	return nil
 }
