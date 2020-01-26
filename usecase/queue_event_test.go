@@ -28,6 +28,7 @@ func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
 		bus.Inbox,
 	)
 }
+
 func TestNewHolderEventDeleteHolder(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{[]model.QueueEntity{{"123"}, {"abc"}}}}
@@ -36,7 +37,17 @@ func TestNewHolderEventDeleteHolder(t *testing.T) {
 	err := service.DeleteById("abc", "abc")
 	time.Sleep(time.Millisecond * 5) //wait async sending
 	assert.Nil(t, err)
+	assert.Empty(t, bus.Inbox)
+}
 
+func TestNewHolderEventDeleteNotHolder(t *testing.T) {
+	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
+	queueRepository := queuemock.QueueRepository{model.Queue{[]model.QueueEntity{{"123"}, {"abc"}}}}
+	service := &service{&queueRepository, &bus}
+
+	err := service.DeleteById("abc", "jjfftg")
+	time.Sleep(time.Millisecond * 5) //wait async sending
+	assert.Nil(t, err)
 	assert.Empty(t, bus.Inbox)
 }
 
