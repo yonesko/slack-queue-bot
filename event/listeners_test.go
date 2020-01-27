@@ -49,7 +49,7 @@ func TestHoldTimeEstimateListener_TooLongTime(t *testing.T) {
 	})
 	duration, err := rep.Get()
 	assert.Nil(t, err)
-	assert.Equal(t, estimate.Estimate{time.Second * 100, 1}, duration)
+	assert.Equal(t, estimate.Estimate{0, 0}, duration)
 }
 
 func TestHoldTimeEstimateListener_InMiddleOfQueue(t *testing.T) {
