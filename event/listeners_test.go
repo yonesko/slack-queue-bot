@@ -74,7 +74,7 @@ func TestHoldTimeEstimateListener_ForceDel(t *testing.T) {
 	assert.Equal(t, estimate.Estimate{time.Second * 0, 0}, duration)
 }
 
-func TestHoldTimeEstimateListener4(t *testing.T) {
+func TestHoldTimeEstimateListener_MultiplyEvents(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
 	listener := NewHoldTimeEstimateListener(rep)
 
