@@ -23,11 +23,11 @@ func TestHoldTimeEstimateListener_FirstInQueue(t *testing.T) {
 		CurrentHolderUserId: "abc",
 		PrevHolderUserId:    "123",
 		AuthorUserId:        "123",
-		Ts:                  time.Unix(100, 0),
+		Ts:                  time.Unix(int64((time.Minute * 35).Seconds()), 0),
 	})
 	duration, err := rep.Get()
 	assert.Nil(t, err)
-	assert.Equal(t, estimate.Estimate{time.Second * 100, 1}, duration)
+	assert.Equal(t, estimate.Estimate{time.Minute * 35, 1}, duration)
 }
 
 func TestHoldTimeEstimateListener_TooLongTime(t *testing.T) {
@@ -45,7 +45,7 @@ func TestHoldTimeEstimateListener_TooLongTime(t *testing.T) {
 		CurrentHolderUserId: "abc",
 		PrevHolderUserId:    "123",
 		AuthorUserId:        "123",
-		Ts:                  time.Unix(int64((time.Hour * 2).Seconds()), 0),
+		Ts:                  time.Unix(int64((time.Hour*2).Seconds())+1, 0),
 	})
 	duration, err := rep.Get()
 	assert.Nil(t, err)
@@ -67,11 +67,11 @@ func TestHoldTimeEstimateListener_InMiddleOfQueue(t *testing.T) {
 		CurrentHolderUserId: "3",
 		PrevHolderUserId:    "1",
 		AuthorUserId:        "1",
-		Ts:                  time.Unix(100, 0),
+		Ts:                  time.Unix(int64((time.Minute * 35).Seconds()), 0),
 	})
 	duration, err := rep.Get()
 	assert.Nil(t, err)
-	assert.Equal(t, estimate.Estimate{time.Second * 100, 1}, duration)
+	assert.Equal(t, estimate.Estimate{time.Minute * 35, 1}, duration)
 }
 
 func TestHoldTimeEstimateListener_ForceDel(t *testing.T) {
@@ -89,7 +89,7 @@ func TestHoldTimeEstimateListener_ForceDel(t *testing.T) {
 		CurrentHolderUserId: "3",
 		PrevHolderUserId:    "1",
 		AuthorUserId:        "4",
-		Ts:                  time.Unix(100, 0),
+		Ts:                  time.Unix(int64((time.Minute * 35).Seconds()), 0),
 	})
 	duration, err := rep.Get()
 	assert.Nil(t, err)
@@ -105,11 +105,11 @@ func TestHoldTimeEstimateListener_MultiplyEvents(t *testing.T) {
 			CurrentHolderUserId: strconv.Itoa(i),
 			PrevHolderUserId:    strconv.Itoa(i - 1),
 			AuthorUserId:        strconv.Itoa(i - 1),
-			Ts:                  time.Unix(int64(i)*77, 0),
+			Ts:                  time.Unix(int64(i)*int64((time.Minute*35).Seconds()), 0),
 		})
 	}
 
 	duration, err := rep.Get()
 	assert.Nil(t, err)
-	assert.Equal(t, estimate.Estimate{time.Second * 77, 99}, duration)
+	assert.Equal(t, estimate.Estimate{time.Minute * 35, 99}, duration)
 }

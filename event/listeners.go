@@ -47,10 +47,16 @@ func NewHoldTimeEstimateListener(estimateRepository estimate.Repository) *HoldTi
 func (l *HoldTimeEstimateListener) Fire(ev NewHolderEvent) {
 	if l.prevEv != nil && ev.AuthorUserId == ev.PrevHolderUserId {
 		duration := ev.Ts.Sub(l.prevEv.Ts)
-		log.Printf("calculating estimate seconds=%s, prev=%#v, curr=%#v", duration.String(), l.prevEv, ev)
-		l.calcEstimate(duration)
+		if isTimeSeemsLegit(duration) {
+			log.Printf("hold time was %s", duration.String())
+			l.calcEstimate(duration)
+		}
 	}
 	l.prevEv = &ev
+}
+
+func isTimeSeemsLegit(duration time.Duration) bool {
+	return duration.Minutes() >= 30 && duration.Hours() <= 2
 }
 
 func (l *HoldTimeEstimateListener) calcEstimate(duration time.Duration) {
