@@ -17,3 +17,9 @@ func (q Queue) IndexOf(userId string) int {
 
 	return -1
 }
+
+func (q Queue) Copy() Queue {
+	queue := Queue{Entities: make([]QueueEntity, len(q.Entities))}
+	copy(queue.Entities, q.Entities)
+	return queue
+}

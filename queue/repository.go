@@ -14,7 +14,6 @@ type Repository interface {
 
 type fileRepository struct {
 	filename string
-	queue    model.Queue
 }
 
 func NewRepository() *fileRepository {

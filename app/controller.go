@@ -70,7 +70,7 @@ func (cont *Controller) addUser(authorUserId string) (string, error) {
 }
 
 func (cont *Controller) deleteUser(authorUserId string) (string, error) {
-	err := cont.queueService.DeleteById(authorUserId)
+	err := cont.queueService.DeleteById(authorUserId, authorUserId)
 	if err == usecase.NoSuchUserErr {
 		return cont.appendQueue(i18n.P.MustGetString("you_are_not_in_the_queue"), authorUserId), nil
 	}
@@ -138,7 +138,7 @@ func (cont *Controller) clean(authorUserId string) (string, error) {
 }
 
 func (cont *Controller) pop(authorUserId string) (string, error) {
-	deletedUserId, err := cont.queueService.Pop()
+	deletedUserId, err := cont.queueService.Pop(authorUserId)
 	if err == usecase.QueueIsEmpty {
 		return cont.showQueue(authorUserId)
 	}

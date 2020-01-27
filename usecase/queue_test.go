@@ -27,7 +27,7 @@ func TestService_Add_DifferentUsers(t *testing.T) {
 
 func TestService_Pop(t *testing.T) {
 	service := mockService()
-	_, err := service.Pop()
+	_, err := service.Pop("123")
 	if err != QueueIsEmpty {
 		t.Error(err)
 	}
@@ -35,7 +35,7 @@ func TestService_Pop(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	deletedUserId, err := service.Pop()
+	deletedUserId, err := service.Pop("123")
 	if err != nil {
 		t.Error(err)
 	}

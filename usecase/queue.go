@@ -6,12 +6,13 @@ import (
 	"github.com/yonesko/slack-queue-bot/event"
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue"
+	"time"
 )
 
 type QueueService interface {
 	Add(model.QueueEntity) error
-	DeleteById(userId string) error
-	Pop() (string, error)
+	DeleteById(toDelUserId string, authorUserId string) error
+	Pop(authorUserId string) (string, error)
 	DeleteAll() error
 	Show() (model.Queue, error)
 }
@@ -34,7 +35,7 @@ func NewQueueService(repository queue.Repository, queueChangedEventBus event.Que
 	return &service{repository, queueChangedEventBus}
 }
 
-func (s *service) Pop() (string, error) {
+func (s *service) Pop(authorUserId string) (string, error) {
 	queue, err := s.queueRepository.Read()
 	if err != nil {
 		return "", err
@@ -42,7 +43,7 @@ func (s *service) Pop() (string, error) {
 	if len(queue.Entities) == 0 {
 		return "", QueueIsEmpty
 	}
-	err = s.DeleteById(queue.Entities[0].UserId)
+	err = s.DeleteById(queue.Entities[0].UserId, authorUserId)
 	if err != nil {
 		return "", err
 	}
@@ -51,6 +52,11 @@ func (s *service) Pop() (string, error) {
 
 func (s *service) Add(entity model.QueueEntity) error {
 	queue, err := s.queueRepository.Read()
+	defer func(queueBefore model.Queue) {
+		if err == nil {
+			go s.emitEvent(entity.UserId, queueBefore, queue)
+		}
+	}(queue.Copy())
 	if err != nil {
 		return err
 	}
@@ -67,15 +73,20 @@ func (s *service) Add(entity model.QueueEntity) error {
 	return nil
 }
 
-func (s *service) DeleteById(userId string) error {
+func (s *service) DeleteById(toDelUserId string, authorUserId string) error {
 	queue, err := s.queueRepository.Read()
+	defer func(queueBefore model.Queue) {
+		if err == nil {
+			go s.emitEvent(authorUserId, queueBefore, queue)
+		}
+	}(queue.Copy())
 	if err != nil {
 		return err
 	}
 	if len(queue.Entities) == 0 {
 		return QueueIsEmpty
 	}
-	i := queue.IndexOf(userId)
+	i := queue.IndexOf(toDelUserId)
 	if i == -1 {
 		return NoSuchUserErr
 	}
@@ -83,11 +94,6 @@ func (s *service) DeleteById(userId string) error {
 	err = s.queueRepository.Save(queue)
 	if err != nil {
 		return err
-	}
-	if i == 0 && len(queue.Entities) > 0 {
-		go s.queueChangedEventBus.Send(event.NewHolderEvent{
-			CurrentHolderUserId: queue.Entities[0].UserId,
-		})
 	}
 	return nil
 }
@@ -109,4 +115,22 @@ func (s *service) DeleteAll() error {
 
 func (s *service) Show() (model.Queue, error) {
 	return s.queueRepository.Read()
+}
+
+func (s *service) emitEvent(authorUserId string, before model.Queue, after model.Queue) {
+	holderBefore, holderAfter := "", ""
+	if len(before.Entities) > 0 {
+		holderBefore = before.Entities[0].UserId
+	}
+	if len(after.Entities) > 0 {
+		holderAfter = after.Entities[0].UserId
+	}
+	if holderBefore != holderAfter {
+		s.queueChangedEventBus.Send(event.NewHolderEvent{
+			CurrentHolderUserId: holderAfter,
+			PrevHolderUserId:    holderBefore,
+			AuthorUserId:        authorUserId,
+			Ts:                  time.Now(),
+		})
+	}
 }
