@@ -18,15 +18,10 @@ func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
 	err := service.Add(model.QueueEntity{UserId: "123"})
 	time.Sleep(time.Millisecond * 5) //wait async sending
 	assert.Nil(t, err)
-
-	assert.Equal(t,
-		[]interface{}{event.NewHolderEvent{
-			CurrentHolderUserId: "123",
-			PrevHolderUserId:    "",
-			AuthorUserId:        "123",
-		}},
-		bus.Inbox,
-	)
+	assert.Len(t, bus.Inbox, 1)
+	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId, "123")
+	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId, "")
+	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).AuthorUserId, "123")
 }
 
 func TestNewHolderEventDeleteHolder(t *testing.T) {
@@ -59,15 +54,10 @@ func TestNewHolderEventPopAnotherUser(t *testing.T) {
 	_, err := service.Pop("abc")
 	time.Sleep(time.Millisecond * 5) //wait async sending
 	assert.Nil(t, err)
-
-	assert.Equal(t,
-		[]interface{}{event.NewHolderEvent{
-			CurrentHolderUserId: "abc",
-			PrevHolderUserId:    "123",
-			AuthorUserId:        "abc",
-		}},
-		bus.Inbox,
-	)
+	assert.Len(t, bus.Inbox, 1)
+	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId, "abc")
+	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId, "123")
+	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).AuthorUserId, "abc")
 }
 func TestNewHolderEventPopYourself(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
@@ -77,14 +67,10 @@ func TestNewHolderEventPopYourself(t *testing.T) {
 	_, err := service.Pop("123")
 	time.Sleep(time.Millisecond * 5) //wait async sending
 	assert.Nil(t, err)
-	assert.Equal(t,
-		[]interface{}{event.NewHolderEvent{
-			CurrentHolderUserId: "",
-			PrevHolderUserId:    "123",
-			AuthorUserId:        "123",
-		}},
-		bus.Inbox,
-	)
+	assert.Len(t, bus.Inbox, 1)
+	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId, "")
+	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId, "123")
+	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).AuthorUserId, "123")
 }
 
 func TestNewHolderEventPopOnEmpty(t *testing.T) {
