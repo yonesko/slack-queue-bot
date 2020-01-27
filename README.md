@@ -18,7 +18,7 @@ This bot supports next commands:
 * estimate on show
 * require reason to add in the queue
 * pass queue command
-* local commands
+* local command names
 #### tech
 * add logger with levels to grep errors
 * add general fileRepository
