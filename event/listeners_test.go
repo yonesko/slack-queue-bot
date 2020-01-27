@@ -30,6 +30,28 @@ func TestHoldTimeEstimateListener_FirstInQueue(t *testing.T) {
 	assert.Equal(t, estimate.Estimate{time.Second * 100, 1}, duration)
 }
 
+func TestHoldTimeEstimateListener_TooLongTime(t *testing.T) {
+	rep := &estimate.RepositoryMock{}
+	listener := NewHoldTimeEstimateListener(rep)
+
+	listener.Fire(NewHolderEvent{
+		CurrentHolderUserId: "123",
+		PrevHolderUserId:    "",
+		AuthorUserId:        "123",
+		Ts:                  time.Unix(0, 0),
+	})
+
+	listener.Fire(NewHolderEvent{
+		CurrentHolderUserId: "abc",
+		PrevHolderUserId:    "123",
+		AuthorUserId:        "123",
+		Ts:                  time.Unix(int64((time.Hour * 2).Seconds()), 0),
+	})
+	duration, err := rep.Get()
+	assert.Nil(t, err)
+	assert.Equal(t, estimate.Estimate{time.Second * 100, 1}, duration)
+}
+
 func TestHoldTimeEstimateListener_InMiddleOfQueue(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
 	listener := NewHoldTimeEstimateListener(rep)
