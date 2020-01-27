@@ -26,9 +26,7 @@ func TestHoldTimeEstimateListener1(t *testing.T) {
 		Ts:                  time.Unix(100, 0),
 	})
 	duration, err := rep.Get()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	assert.Equal(t, estimate.Estimate{time.Second * 100, 1}, duration)
 }
 
@@ -50,9 +48,7 @@ func TestHoldTimeEstimateListener2(t *testing.T) {
 		Ts:                  time.Unix(100, 0),
 	})
 	duration, err := rep.Get()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	assert.Equal(t, estimate.Estimate{time.Second * 100, 1}, duration)
 }
 
@@ -74,9 +70,7 @@ func TestHoldTimeEstimateListener3(t *testing.T) {
 		Ts:                  time.Unix(100, 0),
 	})
 	duration, err := rep.Get()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	assert.Equal(t, estimate.Estimate{time.Second * 0, 0}, duration)
 }
 
@@ -94,8 +88,6 @@ func TestHoldTimeEstimateListener4(t *testing.T) {
 	}
 
 	duration, err := rep.Get()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	assert.Equal(t, estimate.Estimate{time.Second * 77, 99}, duration)
 }
