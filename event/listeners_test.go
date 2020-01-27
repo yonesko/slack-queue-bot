@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func TestHoldTimeEstimateListener1(t *testing.T) {
+func TestHoldTimeEstimateListener_FirstInQueue(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
 	listener := NewHoldTimeEstimateListener(rep)
 
@@ -30,7 +30,7 @@ func TestHoldTimeEstimateListener1(t *testing.T) {
 	assert.Equal(t, estimate.Estimate{time.Second * 100, 1}, duration)
 }
 
-func TestHoldTimeEstimateListener2(t *testing.T) {
+func TestHoldTimeEstimateListener_InMiddleOfQueue(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
 	listener := NewHoldTimeEstimateListener(rep)
 
