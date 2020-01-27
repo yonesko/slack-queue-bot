@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="run Test Bot" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="slack-queue-bot" />
+    <working_directory value="$PROJECT_DIR$/" />
+    <envs>
+      <env name="BOT_USER_OAUTH_ACCESS_TOKEN" value="xoxb-370931235025-900027799554-ba0ugeCAk0cuH0U4W3pN5v06" />
+    </envs>
+    <kind value="PACKAGE" />
+    <package value="github.com/yonesko/slack-queue-bot" />
+    <directory value="$PROJECT_DIR$/" />
+    <method v="2" />
+  </configuration>
+</component>
