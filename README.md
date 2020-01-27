@@ -24,6 +24,7 @@ This bot supports next commands:
 * add general fileRepository
 * rename slack-queue-bot.db.json
 * defensive limit msg per user
+* log HTTP Response body
 
 
 ## Docs
