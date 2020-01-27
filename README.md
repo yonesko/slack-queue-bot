@@ -23,7 +23,6 @@ This bot supports next commands:
 * add logger with levels to grep errors
 * add general fileRepository
 * rename slack-queue-bot.db.json
-* persistent userInfoCache. Avoid N API calls on restart
 * defensive limit msg per user
 
 
