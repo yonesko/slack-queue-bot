@@ -50,13 +50,15 @@ func (l *HoldTimeEstimateListener) Fire(ev NewHolderEvent) {
 		if isTimeSeemsLegit(duration) {
 			log.Printf("hold time was %s", duration.String())
 			l.calcEstimate(duration)
+		} else {
+			log.Printf("hold time discarded %s", duration.String())
 		}
 	}
 	l.prevEv = &ev
 }
 
 func isTimeSeemsLegit(duration time.Duration) bool {
-	return duration.Minutes() >= 30 && duration.Hours() <= 2
+	return duration.Minutes() >= 15 && duration.Hours() <= 2
 }
 
 func (l *HoldTimeEstimateListener) calcEstimate(duration time.Duration) {
