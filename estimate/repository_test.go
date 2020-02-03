@@ -42,7 +42,8 @@ func TestEstimate_TimeToWait(t *testing.T) {
 		{args{before: 10, holdStart: now}, e.Average * 10},
 	}
 	for _, tt := range tests {
-		t.Run(fmt.Sprint(fmt.Sprintf("before %d %s", tt.args.before, now.Sub(tt.args.holdStart))), func(t *testing.T) {
+		name := fmt.Sprint(fmt.Sprintf("before %d %s", tt.args.before, now.Sub(tt.args.holdStart)))
+		t.Run(name, func(t *testing.T) {
 			if got := e.TimeToWait(tt.args.before, tt.args.holdStart); got != tt.want {
 				t.Errorf("TimeToWait() = %v, want %v", got, tt.want)
 			}
