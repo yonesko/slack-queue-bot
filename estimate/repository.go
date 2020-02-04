@@ -20,6 +20,21 @@ func (e Estimate) AddOne(duration time.Duration) Estimate {
 	}
 }
 
+func (e Estimate) TimeToWait(before uint, holdStart time.Time) time.Duration {
+	if before <= 0 {
+		return 0
+	}
+	return time.Duration(int64(before-1)*e.Average.Nanoseconds()) + e.avgRestOfHolding(holdStart)
+}
+
+func (e Estimate) avgRestOfHolding(holdStart time.Time) time.Duration {
+	holdRest := e.Average - time.Now().Sub(holdStart)
+	if holdRest.Nanoseconds() < 0 {
+		return 0
+	}
+	return holdRest
+}
+
 type Repository interface {
 	Get() (Estimate, error)
 	Save(estimate Estimate) error
