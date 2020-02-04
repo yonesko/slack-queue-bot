@@ -41,9 +41,10 @@ func NewApp() *App {
 		slack.OptionLog(log.New(lumberWriter, "slack_api: ", log.Lshortfile|log.LstdFlags)),
 	)
 	userRepository := user.NewRepository(slackApi)
+	estimateRepository := estimate.NewRepository()
 	newHolderEventListeners := []event.NewHolderEventListener{
 		event.NewNotifyNewHolderEventListener(slackApi, userRepository),
-		event.NewHoldTimeEstimateListener(estimate.NewRepository()),
+		event.NewHoldTimeEstimateListener(estimateRepository),
 	}
 	return &App{
 		userRepository: userRepository,
@@ -57,6 +58,7 @@ func NewApp() *App {
 				queue.NewRepository(),
 				event.NewQueueChangedEventBus(lumberWriter, newHolderEventListeners),
 			),
+			estimateRepository,
 		),
 	}
 }
