@@ -26,7 +26,7 @@ func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
 
 func TestNewHolderEventDeleteHolder(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
-	queueRepository := queuemock.QueueRepository{model.Queue{[]model.QueueEntity{{"123"}, {"abc"}}}}
+	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}}}
 	service := &service{&queueRepository, &bus}
 
 	err := service.DeleteById("abc", "abc")
@@ -37,7 +37,7 @@ func TestNewHolderEventDeleteHolder(t *testing.T) {
 
 func TestNewHolderEventDeleteNotHolder(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
-	queueRepository := queuemock.QueueRepository{model.Queue{[]model.QueueEntity{{"123"}, {"abc"}}}}
+	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}}}
 	service := &service{&queueRepository, &bus}
 
 	err := service.DeleteById("abc", "jjfftg")
@@ -48,7 +48,7 @@ func TestNewHolderEventDeleteNotHolder(t *testing.T) {
 
 func TestNewHolderEventPopAnotherUser(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
-	queueRepository := queuemock.QueueRepository{model.Queue{[]model.QueueEntity{{"123"}, {"abc"}}}}
+	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}}}
 	service := &service{&queueRepository, &bus}
 
 	_, err := service.Pop("abc")
@@ -61,7 +61,7 @@ func TestNewHolderEventPopAnotherUser(t *testing.T) {
 }
 func TestNewHolderEventPopYourself(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
-	queueRepository := queuemock.QueueRepository{model.Queue{[]model.QueueEntity{{"123"}}}}
+	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}}}}
 	service := &service{&queueRepository, &bus}
 
 	_, err := service.Pop("123")
