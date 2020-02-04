@@ -30,9 +30,7 @@ func TestService_Pop(t *testing.T) {
 	assert.Nil(t, err)
 	deletedUserId, err := service.Pop("123")
 	assert.Nil(t, err)
-	if deletedUserId != "123" {
-		t.Errorf("wrong deletedUserId: %s", deletedUserId)
-	}
+	assert.Equal(t, "123", deletedUserId, "wrong deletedUserId: %s", deletedUserId)
 	queue, err := service.Show()
 	assert.Nil(t, err)
 	equals(queue, []string{})
