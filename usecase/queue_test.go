@@ -1,51 +1,60 @@
 package usecase
 
 import (
+	"bou.ke/monkey"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	eventmock "github.com/yonesko/slack-queue-bot/event/mock"
 	"github.com/yonesko/slack-queue-bot/model"
 	queuemock "github.com/yonesko/slack-queue-bot/queue/mock"
 	"sync"
 	"testing"
+	"time"
 )
 
 func TestService_Add_DifferentUsers(t *testing.T) {
 	service := mockService()
 	err := service.Add(model.QueueEntity{UserId: "123"})
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	queue, err := service.Show()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	equals(queue, []string{"123"})
 	_ = service.Add(model.QueueEntity{UserId: "ABC"})
 	_ = service.Add(model.QueueEntity{UserId: "ABCD"})
 	equals(queue, []string{"123", "ABC", "ABCD"})
 }
 
+//noinspection GoUnhandledErrorResult
+func TestService_HoldTs(t *testing.T) {
+	now := time.Now()
+	patch := monkey.Patch(time.Now, func() time.Time { return now })
+	defer patch.Unpatch()
+	service := mockService()
+	service.Add(model.QueueEntity{UserId: "123"})
+	queue, _ := service.Show()
+	assert.Equal(t, now, queue.HoldTs)
+	service.Add(model.QueueEntity{UserId: "2"})
+	service.Add(model.QueueEntity{UserId: "3"})
+	assert.Equal(t, now, queue.HoldTs)
+	service.DeleteById("2", "2")
+	assert.Equal(t, now, queue.HoldTs)
+	now = time.Now().Add(time.Hour)
+	service.DeleteById("123", "123")
+	queue, _ = service.Show()
+	assert.Equal(t, now.String(), queue.HoldTs.String())
+}
+
 func TestService_Pop(t *testing.T) {
 	service := mockService()
 	_, err := service.Pop("123")
-	if err != QueueIsEmpty {
-		t.Error(err)
-	}
+	assert.Equal(t, QueueIsEmpty, err)
 	err = service.Add(model.QueueEntity{UserId: "123"})
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	deletedUserId, err := service.Pop("123")
-	if err != nil {
-		t.Error(err)
-	}
-	if deletedUserId != "123" {
-		t.Errorf("wrong deletedUserId: %s", deletedUserId)
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, "123", deletedUserId, "wrong deletedUserId: %s", deletedUserId)
 	queue, err := service.Show()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	equals(queue, []string{})
 }
 
@@ -56,22 +65,16 @@ func TestService_DeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 	err = service.Add(model.QueueEntity{UserId: "123"})
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	queue, err := service.Show()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	equals(queue, []string{"123"})
 }
 
 func TestService_Add_Idempotent(t *testing.T) {
 	service := mockService()
 	err := service.Add(model.QueueEntity{UserId: "123"})
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	err = service.Add(model.QueueEntity{UserId: "123"})
 	if err == nil || err.Error() != "already exist" {
 		t.Error("must be already exist")
@@ -90,9 +93,7 @@ func TestNoRaceConditionsInService(t *testing.T) {
 	group.Wait()
 
 	queue, err := service.Show()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	if len(queue.Entities) != chunks*workers {
 		t.Errorf("must be %d, got %d", chunks*workers, len(queue.Entities))
 	}

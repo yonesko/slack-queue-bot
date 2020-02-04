@@ -16,7 +16,7 @@ import (
 
 const (
 	thisBotUserId = "<@USMRFHHPE>" //test bot user USG0TPHGA
-	version       = "1.2.2"
+	version       = "1.3.2"
 )
 
 type App struct {

@@ -6,6 +6,7 @@ import (
 	"github.com/yonesko/slack-queue-bot/event"
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue"
+	"log"
 	"time"
 )
 
@@ -54,7 +55,7 @@ func (s *service) Add(entity model.QueueEntity) error {
 	queue, err := s.queueRepository.Read()
 	defer func(queueBefore model.Queue) {
 		if err == nil {
-			go s.emitEvent(entity.UserId, queueBefore, queue)
+			s.emitEvent(entity.UserId, queueBefore, queue)
 		}
 	}(queue.Copy())
 	if err != nil {
@@ -77,7 +78,7 @@ func (s *service) DeleteById(toDelUserId string, authorUserId string) error {
 	queue, err := s.queueRepository.Read()
 	defer func(queueBefore model.Queue) {
 		if err == nil {
-			go s.emitEvent(authorUserId, queueBefore, queue)
+			s.emitEvent(authorUserId, queueBefore, queue)
 		}
 	}(queue.Copy())
 	if err != nil {
@@ -117,6 +118,20 @@ func (s *service) Show() (model.Queue, error) {
 	return s.queueRepository.Read()
 }
 
+func (s *service) updateHoldTs() {
+	q, err := s.queueRepository.Read()
+	holdTs := time.Now()
+	if err != nil {
+		log.Printf("updateHoldTs %s", err)
+		holdTs = time.Time{}
+	}
+	q.HoldTs = holdTs
+	err = s.queueRepository.Save(q)
+	if err != nil {
+		log.Printf("updateHoldTs %s", err)
+	}
+}
+
 func (s *service) emitEvent(authorUserId string, before model.Queue, after model.Queue) {
 	holderBefore, holderAfter := "", ""
 	if len(before.Entities) > 0 {
@@ -132,5 +147,6 @@ func (s *service) emitEvent(authorUserId string, before model.Queue, after model
 			AuthorUserId:        authorUserId,
 			Ts:                  time.Now(),
 		})
+		s.updateHoldTs()
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"log"
 	"runtime/debug"
 	"strings"
+	"time"
 )
 
 type Controller struct {
@@ -113,11 +114,14 @@ func (cont *Controller) composeShowQueueText(queue model.Queue, authorUserId str
 		if err != nil {
 			return "", fmt.Errorf("can't composeShowQueueText: %s", err)
 		}
-		highlight := ""
+		highlight, holdTime := "", ""
 		if u.UserId == authorUserId {
 			highlight = ":point_left::skin-tone-2:"
 		}
-		txt += fmt.Sprintf("`%dº` %s (%s) %s\n", i+1, user.FullName, user.DisplayName, highlight)
+		if i == 0 && queue.HoldTs.Unix() > 0 {
+			holdTime = time.Now().Sub(queue.HoldTs).Round(time.Minute).String()
+		}
+		txt += fmt.Sprintf("`%dº` %s (%s) %s %s\n", i+1, user.FullName, user.DisplayName, highlight, holdTime)
 	}
 	return txt, nil
 }
