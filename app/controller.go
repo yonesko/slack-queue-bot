@@ -122,7 +122,7 @@ func (cont *Controller) composeShowQueueText(queue model.Queue, authorUserId str
 			highlight = ":point_left::skin-tone-2:" + cont.estimateTxt(i, queue)
 		}
 		if i == 0 && queue.HoldTs.Unix() > 0 {
-			holdTime = time.Now().Sub(queue.HoldTs).Round(time.Minute).String()
+			holdTime = ":lock: " + time.Now().Sub(queue.HoldTs).Round(time.Minute).String()
 		}
 		txt += fmt.Sprintf("`%dº` %s (%s) %s %s\n", i+1, user.FullName, user.DisplayName, highlight, holdTime)
 	}
@@ -135,7 +135,8 @@ func (cont *Controller) estimateTxt(i int, queue model.Queue) string {
 		cont.logger.Printf("composeShowQueueText can't get estimate %s", err)
 		return ""
 	}
-	return " ~" + estimate.TimeToWait(uint(i), queue.HoldTs).Round(time.Minute).String()
+	duration := estimate.TimeToWait(uint(i), queue.HoldTs).Round(time.Minute)
+	return fmt.Sprintf("~%s (%s)", duration, time.Now().Add(duration).Format("Mon Jan 2 15:04:05"))
 }
 
 func (cont *Controller) showHelp(authorUserId string) string {
