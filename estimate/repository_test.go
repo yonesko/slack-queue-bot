@@ -37,6 +37,7 @@ func TestEstimate_TimeToWait(t *testing.T) {
 	}{
 		{args{before: 0, holdStart: now.Add(-time.Minute * 15)}, time.Duration(0)},
 		{args{before: 1, holdStart: now.Add(-time.Minute * 15)}, time.Minute * 30},
+		{args{before: 1, holdStart: now.Add(-time.Hour * 2)}, 0},
 		{args{before: 2, holdStart: now.Add(-time.Minute * 15)}, time.Minute*30 + e.Average},
 		{args{before: 2, holdStart: now.Add(-e.Average)}, e.Average},
 		{args{before: 10, holdStart: now}, e.Average * 10},

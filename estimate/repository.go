@@ -22,9 +22,12 @@ func (e Estimate) AddOne(duration time.Duration) Estimate {
 
 func (e Estimate) TimeToWait(before uint, holdStart time.Time) time.Duration {
 	if before == 0 {
-		return time.Duration(0)
+		return 0
 	}
 	holdRest := e.Average - time.Now().Sub(holdStart)
+	if holdRest.Nanoseconds() < 0 {
+		holdRest = 0
+	}
 	return time.Duration(int64(before-1)*e.Average.Nanoseconds()) + holdRest
 }
 
