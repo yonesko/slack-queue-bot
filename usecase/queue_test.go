@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	eventmock "github.com/yonesko/slack-queue-bot/event/mock"
 	"github.com/yonesko/slack-queue-bot/model"
 	queuemock "github.com/yonesko/slack-queue-bot/queue/mock"
@@ -12,13 +13,9 @@ import (
 func TestService_Add_DifferentUsers(t *testing.T) {
 	service := mockService()
 	err := service.Add(model.QueueEntity{UserId: "123"})
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	queue, err := service.Show()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	equals(queue, []string{"123"})
 	_ = service.Add(model.QueueEntity{UserId: "ABC"})
 	_ = service.Add(model.QueueEntity{UserId: "ABCD"})
@@ -32,20 +29,14 @@ func TestService_Pop(t *testing.T) {
 		t.Error(err)
 	}
 	err = service.Add(model.QueueEntity{UserId: "123"})
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	deletedUserId, err := service.Pop("123")
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	if deletedUserId != "123" {
 		t.Errorf("wrong deletedUserId: %s", deletedUserId)
 	}
 	queue, err := service.Show()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	equals(queue, []string{})
 }
 
@@ -56,22 +47,16 @@ func TestService_DeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 	err = service.Add(model.QueueEntity{UserId: "123"})
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	queue, err := service.Show()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	equals(queue, []string{"123"})
 }
 
 func TestService_Add_Idempotent(t *testing.T) {
 	service := mockService()
 	err := service.Add(model.QueueEntity{UserId: "123"})
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	err = service.Add(model.QueueEntity{UserId: "123"})
 	if err == nil || err.Error() != "already exist" {
 		t.Error("must be already exist")
@@ -90,9 +75,7 @@ func TestNoRaceConditionsInService(t *testing.T) {
 	group.Wait()
 
 	queue, err := service.Show()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 	if len(queue.Entities) != chunks*workers {
 		t.Errorf("must be %d, got %d", chunks*workers, len(queue.Entities))
 	}
