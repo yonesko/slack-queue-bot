@@ -25,9 +25,7 @@ func TestService_Add_DifferentUsers(t *testing.T) {
 func TestService_Pop(t *testing.T) {
 	service := mockService()
 	_, err := service.Pop("123")
-	if err != QueueIsEmpty {
-		t.Error(err)
-	}
+	assert.Equal(t, QueueIsEmpty, err)
 	err = service.Add(model.QueueEntity{UserId: "123"})
 	assert.Nil(t, err)
 	deletedUserId, err := service.Pop("123")
