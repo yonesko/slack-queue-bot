@@ -1,8 +1,10 @@
 package model
 
+import "time"
+
 type Queue struct {
 	Entities []QueueEntity `json:"entities"`
-	//HoldTs   time.Time     `json:"hold_ts"`
+	HoldTs   time.Time     `json:"hold_ts"`
 }
 
 type QueueEntity struct {

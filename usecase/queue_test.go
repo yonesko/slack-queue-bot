@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"bou.ke/monkey"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	eventmock "github.com/yonesko/slack-queue-bot/event/mock"
@@ -8,6 +9,7 @@ import (
 	queuemock "github.com/yonesko/slack-queue-bot/queue/mock"
 	"sync"
 	"testing"
+	"time"
 )
 
 func TestService_Add_DifferentUsers(t *testing.T) {
@@ -20,6 +22,26 @@ func TestService_Add_DifferentUsers(t *testing.T) {
 	_ = service.Add(model.QueueEntity{UserId: "ABC"})
 	_ = service.Add(model.QueueEntity{UserId: "ABCD"})
 	equals(queue, []string{"123", "ABC", "ABCD"})
+}
+
+//noinspection GoUnhandledErrorResult
+func TestService_HoldTs(t *testing.T) {
+	now := time.Now()
+	patch := monkey.Patch(time.Now, func() time.Time { return now })
+	defer patch.Unpatch()
+	service := mockService()
+	service.Add(model.QueueEntity{UserId: "123"})
+	queue, _ := service.Show()
+	assert.Equal(t, now, queue.HoldTs)
+	service.Add(model.QueueEntity{UserId: "2"})
+	service.Add(model.QueueEntity{UserId: "3"})
+	assert.Equal(t, now, queue.HoldTs)
+	service.DeleteById("2", "2")
+	assert.Equal(t, now, queue.HoldTs)
+	now = time.Now().Add(time.Hour)
+	service.DeleteById("123", "123")
+	queue, _ = service.Show()
+	assert.Equal(t, now.String(), queue.HoldTs.String())
 }
 
 func TestService_Pop(t *testing.T) {
