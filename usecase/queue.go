@@ -27,9 +27,11 @@ type service struct {
 }
 
 var (
-	AlreadyExistErr = errors.New("already exist")
-	NoSuchUserErr   = errors.New("no such user")
-	QueueIsEmpty    = errors.New("queue is empty")
+	AlreadyExistErr     = errors.New("already exist")
+	NoSuchUserErr       = errors.New("no such user")
+	QueueIsEmpty        = errors.New("queue is empty")
+	HolderIsNotSleeping = errors.New("holder is not sleeping")
+	YouAreNotHolder     = errors.New("you are not holder")
 )
 
 func NewQueueService(repository queue.Repository, queueChangedEventBus event.QueueChangedEventBus) QueueService {
@@ -141,12 +143,16 @@ func (s *service) Ack(authorUserId string) error {
 	if err != nil {
 		return err
 	}
-	if q.HolderIsSleeping && len(q.Entities) > 0 && q.Entities[0].UserId == authorUserId {
-		q.HolderIsSleeping = false
-		err := s.queueRepository.Save(q)
-		if err != nil {
-			return err
-		}
+	if !q.HolderIsSleeping {
+		return HolderIsNotSleeping
+	}
+	if len(q.Entities) == 0 || q.Entities[0].UserId != authorUserId {
+		return YouAreNotHolder
+	}
+	q.HolderIsSleeping = false
+	err = s.queueRepository.Save(q)
+	if err != nil {
+		return err
 	}
 	return nil
 }

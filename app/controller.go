@@ -151,7 +151,7 @@ func holdTimeTs(i int, queue model.Queue) string {
 }
 func isSleepingTxt(i int, queue model.Queue) string {
 	if queue.HolderIsSleeping && i == 0 {
-		return ":sleeping:"
+		return " :sleeping:"
 	}
 	return ""
 }
