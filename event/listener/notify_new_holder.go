@@ -5,6 +5,7 @@ import (
 	"github.com/nlopes/slack"
 	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
+	"github.com/yonesko/slack-queue-bot/usecase"
 	"log"
 	"time"
 )
@@ -14,7 +15,8 @@ type NewHolderEventListener interface {
 }
 
 type NotifyNewHolderEventListener struct {
-	slackApi *slack.Client
+	slackApi     *slack.Client
+	queueService usecase.QueueService
 }
 
 const waitAckDur = time.Minute * 7
@@ -24,17 +26,27 @@ func NewNotifyNewHolderEventListener(slackApi *slack.Client) *NotifyNewHolderEve
 }
 
 func (n *NotifyNewHolderEventListener) Fire(newHolderEvent model.NewHolderEvent) {
-	if newHolderEvent.CurrentHolderUserId == "" {
+	n.sendMsg(newHolderEvent.CurrentHolderUserId, fmt.Sprintf(i18n.P.MustGetString("your_turn_came"), waitAckDur))
+}
+
+func (n *NotifyNewHolderEventListener) passSleepingHolder(holderUserId string) {
+	err := n.queueService.Pass(holderUserId)
+	if err != nil {
+		log.Printf("can't passSleepingHolder %s", err)
 		return
 	}
-	txt := fmt.Sprintf(i18n.P.MustGetString("your_turn_came"), waitAckDur)
-	_, _, err := n.slackApi.PostMessage(newHolderEvent.CurrentHolderUserId,
+	n.sendMsg(holderUserId, "тебя выкинули пока ты спал, hasta la vista")
+}
+
+func (n *NotifyNewHolderEventListener) sendMsg(holderUserId, txt string) {
+	if holderUserId == "" {
+		return
+	}
+	_, _, err := n.slackApi.PostMessage(holderUserId,
 		slack.MsgOptionText(txt, true),
 		slack.MsgOptionAsUser(true),
 	)
 	if err != nil {
-		log.Printf("can't notify %s", err)
-		return
+		log.Printf("can't sendMsg %s", err)
 	}
-
 }
