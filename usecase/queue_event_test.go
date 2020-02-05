@@ -17,9 +17,9 @@ func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
 	err := service.Add(model.QueueEntity{UserId: "123"})
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId, "123")
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId, "")
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).AuthorUserId, "123")
+	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId)
+	assert.Equal(t, "", bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).AuthorUserId)
 }
 
 func TestNewHolderEventCheckTheSecond(t *testing.T) {
@@ -40,9 +40,9 @@ func TestNewHolderEventSelfDeleteHolder(t *testing.T) {
 	err := service.DeleteById("123", "123")
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId, "abc")
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId, "123")
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).AuthorUserId, "123")
+	assert.Equal(t, "abc", bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).AuthorUserId)
 }
 
 func TestNewHolderEventForceDeleteHolder(t *testing.T) {
@@ -53,9 +53,9 @@ func TestNewHolderEventForceDeleteHolder(t *testing.T) {
 	err := service.DeleteById("123", "jhgfdvxc")
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId, "abc")
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId, "123")
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).AuthorUserId, "jhgfdvxc")
+	assert.Equal(t, "abc", bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId)
+	assert.Equal(t, "jhgfdvxc", bus.Inbox[0].(event.NewHolderEvent).AuthorUserId)
 }
 
 func TestNewHolderEventSelfDeleteNotHolder(t *testing.T) {
@@ -86,9 +86,9 @@ func TestNewHolderEventPopAnotherUser(t *testing.T) {
 	_, err := service.Pop("abc")
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId, "abc")
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId, "123")
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).AuthorUserId, "abc")
+	assert.Equal(t, "abc", bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId)
+	assert.Equal(t, "abc", bus.Inbox[0].(event.NewHolderEvent).AuthorUserId)
 }
 func TestNewHolderEventPopYourself(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
@@ -98,9 +98,9 @@ func TestNewHolderEventPopYourself(t *testing.T) {
 	_, err := service.Pop("123")
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId, "")
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId, "123")
-	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).AuthorUserId, "123")
+	assert.Equal(t, "", bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).AuthorUserId)
 }
 
 func TestNewHolderEventPopOnEmpty(t *testing.T) {
