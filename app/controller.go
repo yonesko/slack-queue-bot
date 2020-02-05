@@ -126,9 +126,16 @@ func (c *Controller) composeShowQueueText(queue model.Queue, authorUserId string
 		if i == 0 && queue.HoldTs.Unix() > 0 {
 			holdTime = ":lock: " + time.Now().Sub(queue.HoldTs).Round(time.Minute).String()
 		}
-		txt += fmt.Sprintf("`%dº` %s (%s) %s %s\n", i+1, user.FullName, user.DisplayName, highlight, holdTime)
+		txt += fmt.Sprintf("`%dº` %s (%s) %s %s %s\n",
+			i+1, user.FullName, user.DisplayName, highlight, holdTime, isSleepingTxt(i, queue))
 	}
 	return txt, nil
+}
+func isSleepingTxt(i int, queue model.Queue) string {
+	if queue.HolderIsSleeping && i == 0 {
+		return ":sleeping:"
+	}
+	return ""
 }
 
 func (c *Controller) estimateTxt(i int, queue model.Queue) string {
