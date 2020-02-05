@@ -154,7 +154,7 @@ func (s *service) Pass(authorUserId string) error {
 		}
 	}(queue.Copy())
 	i := queue.IndexOf(authorUserId)
-	if i == -1 {
+	if i != 0 {
 		return YouAreNotHolder
 	}
 	if len(queue.Entities) < 2 {
