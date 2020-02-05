@@ -82,7 +82,6 @@ func TestService_Add_Idempotent(t *testing.T) {
 }
 
 func TestNoRaceConditionsInService(t *testing.T) {
-	t.Skip("code run in 1 routine now")
 	service := mockService()
 	group := &sync.WaitGroup{}
 	chunks, workers := 100, 100
@@ -128,5 +127,6 @@ func mockService() *service {
 	return &service{
 		queuemock.NewQueueRepositoryMock(),
 		&eventmock.QueueChangedEventBus{Inbox: []interface{}{}},
+		sync.Mutex{},
 	}
 }

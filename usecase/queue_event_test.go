@@ -5,13 +5,14 @@ import (
 	eventmock "github.com/yonesko/slack-queue-bot/event/mock"
 	"github.com/yonesko/slack-queue-bot/model"
 	queuemock "github.com/yonesko/slack-queue-bot/queue/mock"
+	"sync"
 	"testing"
 )
 
 func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{}}
-	service := &service{&queueRepository, &bus}
+	service := &service{&queueRepository, &bus, sync.Mutex{}}
 
 	err := service.Add(model.QueueEntity{UserId: "123"})
 	assert.Nil(t, err)
@@ -24,7 +25,7 @@ func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
 func TestNewHolderEventCheckTheSecond(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}, {"z"}}}}
-	service := &service{&queueRepository, &bus}
+	service := &service{&queueRepository, &bus, sync.Mutex{}}
 
 	err := service.DeleteById("123", "123")
 	assert.Nil(t, err)
@@ -34,7 +35,7 @@ func TestNewHolderEventCheckTheSecond(t *testing.T) {
 func TestNewHolderEventSelfDeleteHolder(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}}}
-	service := &service{&queueRepository, &bus}
+	service := &service{&queueRepository, &bus, sync.Mutex{}}
 
 	err := service.DeleteById("123", "123")
 	assert.Nil(t, err)
@@ -47,7 +48,7 @@ func TestNewHolderEventSelfDeleteHolder(t *testing.T) {
 func TestNewHolderEventForceDeleteHolder(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}}}
-	service := &service{&queueRepository, &bus}
+	service := &service{&queueRepository, &bus, sync.Mutex{}}
 
 	err := service.DeleteById("123", "jhgfdvxc")
 	assert.Nil(t, err)
@@ -60,7 +61,7 @@ func TestNewHolderEventForceDeleteHolder(t *testing.T) {
 func TestNewHolderEventSelfDeleteNotHolder(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}}}
-	service := &service{&queueRepository, &bus}
+	service := &service{&queueRepository, &bus, sync.Mutex{}}
 
 	err := service.DeleteById("abc", "abc")
 	assert.Nil(t, err)
@@ -70,7 +71,7 @@ func TestNewHolderEventSelfDeleteNotHolder(t *testing.T) {
 func TestNewHolderEventForceDeleteNotHolder(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}}}
-	service := &service{&queueRepository, &bus}
+	service := &service{&queueRepository, &bus, sync.Mutex{}}
 
 	err := service.DeleteById("abc", "jjfftg")
 	assert.Nil(t, err)
@@ -80,7 +81,7 @@ func TestNewHolderEventForceDeleteNotHolder(t *testing.T) {
 func TestNewHolderEventPopAnotherUser(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}}}
-	service := &service{&queueRepository, &bus}
+	service := &service{&queueRepository, &bus, sync.Mutex{}}
 
 	_, err := service.Pop("abc")
 	assert.Nil(t, err)
@@ -92,7 +93,7 @@ func TestNewHolderEventPopAnotherUser(t *testing.T) {
 func TestNewHolderEventPopYourself(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}}}}
-	service := &service{&queueRepository, &bus}
+	service := &service{&queueRepository, &bus, sync.Mutex{}}
 
 	_, err := service.Pop("123")
 	assert.Nil(t, err)
@@ -106,7 +107,7 @@ func TestNewHolderEventPopYourself(t *testing.T) {
 func TestNewHolderEventPopOnEmpty(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{}}
-	service := &service{&queueRepository, &bus}
+	service := &service{&queueRepository, &bus, sync.Mutex{}}
 
 	_, err := service.Pop("123")
 	assert.Equal(t, QueueIsEmpty, err)

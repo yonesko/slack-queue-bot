@@ -7,6 +7,7 @@ import (
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -21,6 +22,7 @@ type QueueService interface {
 type service struct {
 	queueRepository      queue.Repository
 	queueChangedEventBus event.QueueChangedEventBus
+	mu                   sync.Mutex
 }
 
 var (
@@ -33,10 +35,12 @@ func NewQueueService(repository queue.Repository, queueChangedEventBus event.Que
 	if _, err := repository.Read(); err != nil {
 		panic(fmt.Sprintf("can't crete QueueService: %s", err))
 	}
-	return &service{repository, queueChangedEventBus}
+	return &service{repository, queueChangedEventBus, sync.Mutex{}}
 }
 
 func (s *service) Pop(authorUserId string) (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	queue, err := s.queueRepository.Read()
 	if err != nil {
 		return "", err
@@ -44,7 +48,7 @@ func (s *service) Pop(authorUserId string) (string, error) {
 	if len(queue.Entities) == 0 {
 		return "", QueueIsEmpty
 	}
-	err = s.DeleteById(queue.Entities[0].UserId, authorUserId)
+	err = s.deleteById(queue.Entities[0].UserId, authorUserId)
 	if err != nil {
 		return "", err
 	}
@@ -52,6 +56,8 @@ func (s *service) Pop(authorUserId string) (string, error) {
 }
 
 func (s *service) Add(entity model.QueueEntity) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	queue, err := s.queueRepository.Read()
 	defer func(queueBefore model.Queue) {
 		if err == nil {
@@ -75,6 +81,14 @@ func (s *service) Add(entity model.QueueEntity) error {
 }
 
 func (s *service) DeleteById(toDelUserId string, authorUserId string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.deleteById(toDelUserId, authorUserId)
+
+}
+
+//lock must acquired in caller method
+func (s *service) deleteById(toDelUserId string, authorUserId string) error {
 	queue, err := s.queueRepository.Read()
 	defer func(queueBefore model.Queue) {
 		if err == nil {
@@ -100,6 +114,8 @@ func (s *service) DeleteById(toDelUserId string, authorUserId string) error {
 }
 
 func (s *service) DeleteAll() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	q, err := s.queueRepository.Read()
 	if err != nil {
 		return err
@@ -115,9 +131,12 @@ func (s *service) DeleteAll() error {
 }
 
 func (s *service) Show() (model.Queue, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.queueRepository.Read()
 }
 
+//lock must acquired in caller method
 func (s *service) updateHoldTs() {
 	q, err := s.queueRepository.Read()
 	holdTs := time.Now()
