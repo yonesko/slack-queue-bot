@@ -47,11 +47,11 @@ func extractCommand(ev *slack.MessageEvent) usecase.Command {
 
 func extractData(ev *slack.MessageEvent) interface{} {
 	switch extractCommandTxt(ev.Text) {
-	case "add":
+	case "add", "эд":
 		return usecase.AddCommand{ToAddUserId: ev.User}
-	case "del":
+	case "del", "дел":
 		return usecase.DelCommand{ToDelUserId: ev.User}
-	case "show":
+	case "show", "покаж":
 		return usecase.ShowCommand{}
 	case "clean":
 		return usecase.CleanCommand{}
