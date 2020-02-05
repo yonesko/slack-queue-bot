@@ -4,7 +4,6 @@ import (
 	"github.com/nlopes/slack"
 	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
-	"github.com/yonesko/slack-queue-bot/user"
 	"log"
 )
 
@@ -13,12 +12,11 @@ type NewHolderEventListener interface {
 }
 
 type NotifyNewHolderEventListener struct {
-	slackApi       *slack.Client
-	userRepository user.Repository
+	slackApi *slack.Client
 }
 
-func NewNotifyNewHolderEventListener(slackApi *slack.Client, userRepository user.Repository) *NotifyNewHolderEventListener {
-	return &NotifyNewHolderEventListener{slackApi: slackApi, userRepository: userRepository}
+func NewNotifyNewHolderEventListener(slackApi *slack.Client) *NotifyNewHolderEventListener {
+	return &NotifyNewHolderEventListener{slackApi: slackApi}
 }
 
 func (n *NotifyNewHolderEventListener) Fire(newHolderEvent model.NewHolderEvent) {

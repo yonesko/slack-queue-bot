@@ -4,17 +4,15 @@ import (
 	"github.com/nlopes/slack"
 	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
-	"github.com/yonesko/slack-queue-bot/user"
 	"log"
 )
 
 type NotifySecondEventListener struct {
-	slackApi       *slack.Client
-	userRepository user.Repository
+	slackApi *slack.Client
 }
 
-func NewNotifySecondEventListener(slackApi *slack.Client, userRepository user.Repository) *NotifySecondEventListener {
-	return &NotifySecondEventListener{slackApi: slackApi, userRepository: userRepository}
+func NewNotifySecondEventListener(slackApi *slack.Client) *NotifySecondEventListener {
+	return &NotifySecondEventListener{slackApi: slackApi}
 }
 
 func (n *NotifySecondEventListener) Fire(newHolderEvent model.NewHolderEvent) {

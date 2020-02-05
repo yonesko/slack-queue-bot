@@ -44,8 +44,9 @@ func NewApp() *App {
 	userRepository := user.NewRepository(slackApi)
 	estimateRepository := estimate.NewRepository()
 	newHolderEventListeners := []listener.NewHolderEventListener{
-		listener.NewNotifyNewHolderEventListener(slackApi, userRepository),
+		listener.NewNotifyNewHolderEventListener(slackApi),
 		listener.NewHoldTimeEstimateListener(estimateRepository),
+		listener.NewNotifySecondEventListener(slackApi),
 	}
 	return &App{
 		userRepository: userRepository,
