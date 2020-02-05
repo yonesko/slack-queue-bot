@@ -29,8 +29,7 @@ func Test_NewHolderEvent_TheSecond_HolderRemoved(t *testing.T) {
 
 	err := service.DeleteById("123", "123")
 	assert.Nil(t, err)
-	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, "z", bus.Inbox[0].(model.NewSecondEvent).CurrentSecondUserId)
+	assert.Contains(t, bus.Inbox, model.NewSecondEvent{CurrentSecondUserId: "z"})
 }
 func Test_NewHolderEvent_TheSecond_SecondRemoved(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}

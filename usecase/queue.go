@@ -175,10 +175,10 @@ func (s *service) emitEvents(authorUserId string, before model.Queue, after mode
 func (s *service) emitNewSecondEvent(before model.Queue, after model.Queue) {
 	secondBefore, secondAfter := "", ""
 	if len(before.Entities) > 1 {
-		secondBefore = before.Entities[0].UserId
+		secondBefore = before.Entities[1].UserId
 	}
 	if len(after.Entities) > 1 {
-		secondAfter = after.Entities[0].UserId
+		secondAfter = after.Entities[1].UserId
 	}
 	if secondBefore != secondAfter {
 		s.queueChangedEventBus.Send(model.NewSecondEvent{CurrentSecondUserId: secondAfter})
