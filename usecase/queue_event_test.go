@@ -134,12 +134,25 @@ func Test_NewHolderEvent_OnPass(t *testing.T) {
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "6"}))
 	assert.Nil(t, service.Pass("4"))
 	//6 4
+	containsNewHolderEvent(bus.Inbox, "6", "4", "4")
 	assert.Contains(t, bus.Inbox, model.NewSecondEvent{CurrentSecondUserId: "4"})
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "1"}))
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "17"}))
 	//6 4 1 17
 	assert.Equal(t, YouAreNotHolder, service.Pass("4"))
-	//4 6 1 17
 	assert.Nil(t, service.Pass("6"))
+	//4 6 1 17
+	containsNewHolderEvent(bus.Inbox, "4", "6", "6")
 	assert.Contains(t, bus.Inbox, model.NewSecondEvent{CurrentSecondUserId: "6"})
+}
+
+func containsNewHolderEvent(inbox []interface{}, cur, au, prev string) bool {
+	for _, e := range inbox {
+		if event, ok := e.(model.NewHolderEvent); ok {
+			if event.CurrentHolderUserId == cur && event.AuthorUserId == au && event.PrevHolderUserId != prev {
+				return true
+			}
+		}
+	}
+	return false
 }
