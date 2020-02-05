@@ -21,6 +21,21 @@ func TestEstimate_addOne(t *testing.T) {
 	assert.Equal(t, holdTime, estimate.Average)
 }
 
+func TestEstimate_YourHoldTsDontDependsOnNow(t *testing.T) {
+	now := time.Now()
+	patch := monkey.Patch(time.Now, func() time.Time { return now })
+	defer patch.Unpatch()
+
+	e := Estimate{Average: time.Minute * 45}
+	holdTs := now
+	yourHoldTs := now.Add(e.Average * 5)
+	assert.Equal(t, yourHoldTs, now.Add(e.TimeToWait(5, holdTs)))
+	now = now.Add(time.Minute)
+	assert.Equal(t, yourHoldTs, now.Add(e.TimeToWait(5, holdTs)))
+	now = now.Add(time.Minute * 30)
+	assert.Equal(t, yourHoldTs, now.Add(e.TimeToWait(5, holdTs)))
+}
+
 func TestEstimate_TimeToWait(t *testing.T) {
 	now := time.Now()
 	patch := monkey.Patch(time.Now, func() time.Time { return now })
