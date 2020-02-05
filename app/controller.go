@@ -194,7 +194,7 @@ func (c *Controller) ack(authorUserId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return i18n.P.MustGetString("ack_is_ok"), nil
+	return c.appendQueue(i18n.P.MustGetString("ack_is_ok"), authorUserId), nil
 
 }
 func (c *Controller) pop(authorUserId string) (string, error) {
