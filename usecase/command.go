@@ -24,3 +24,5 @@ type PopCommand struct {
 
 type HelpCommand struct {
 }
+type AckCommand struct {
+}
