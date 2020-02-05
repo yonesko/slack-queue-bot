@@ -3,9 +3,9 @@ package model
 import "time"
 
 type Queue struct {
-	Entities      []QueueEntity `json:"entities"`
-	HoldTs        time.Time     `json:"hold_ts"`
-	WaitingForAck bool          `json:"waiting_for_ack"`
+	Entities         []QueueEntity `json:"entities"`
+	HoldTs           time.Time     `json:"hold_ts"`
+	HolderIsSleeping bool          `json:"holder_is_sleeping"`
 }
 
 type QueueEntity struct {
