@@ -100,6 +100,7 @@ func TestNewHolderEventPopYourself(t *testing.T) {
 	assert.Equal(t, "", bus.Inbox[0].(model.NewHolderEvent).CurrentHolderUserId)
 	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).PrevHolderUserId)
 	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).AuthorUserId)
+	assert.Equal(t, "", bus.Inbox[0].(model.NewHolderEvent).SecondUserId)
 }
 
 func TestNewHolderEventPopOnEmpty(t *testing.T) {
