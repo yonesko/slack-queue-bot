@@ -46,7 +46,9 @@ func NewApp() *App {
 	newHolderEventListeners := []listener.NewHolderEventListener{
 		listener.NewNotifyNewHolderEventListener(slackApi),
 		listener.NewHoldTimeEstimateListener(estimateRepository),
-		listener.NewNotifySecondEventListener(slackApi),
+	}
+	newSecondEventListeners := []listener.NewSecondEventListener{
+		listener.NewNotifyNewSecondEventListener(slackApi),
 	}
 	return &App{
 		userRepository: userRepository,
@@ -58,7 +60,7 @@ func NewApp() *App {
 			userRepository,
 			usecase.NewQueueService(
 				queue.NewRepository(),
-				event.NewQueueChangedEventBus(lumberWriter, newHolderEventListeners),
+				event.NewQueueChangedEventBus(lumberWriter, newHolderEventListeners, newSecondEventListeners),
 			),
 			estimateRepository,
 		),

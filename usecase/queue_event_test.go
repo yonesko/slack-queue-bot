@@ -21,7 +21,7 @@ func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
 	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).AuthorUserId)
 }
 
-func TestNewHolderEventCheckTheSecond(t *testing.T) {
+func Test_NewHolderEvent_TheSecond_HolderRemoved(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}, {"z"}}}}
 	service := &service{&queueRepository, &bus}
@@ -29,7 +29,17 @@ func TestNewHolderEventCheckTheSecond(t *testing.T) {
 	err := service.DeleteById("123", "123")
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, "z", bus.Inbox[0].(model.NewHolderEvent).SecondUserId)
+	assert.Equal(t, "z", bus.Inbox[0].(model.NewSecondEvent).CurrentSecondUserId)
+}
+func Test_NewHolderEvent_TheSecond_SecondRemoved(t *testing.T) {
+	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
+	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}, {"z"}}}}
+	service := &service{&queueRepository, &bus}
+
+	err := service.DeleteById("abc", "123")
+	assert.Nil(t, err)
+	assert.Len(t, bus.Inbox, 1)
+	assert.Equal(t, "z", bus.Inbox[0].(model.NewSecondEvent).CurrentSecondUserId)
 }
 func TestNewHolderEventSelfDeleteHolder(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
@@ -100,7 +110,6 @@ func TestNewHolderEventPopYourself(t *testing.T) {
 	assert.Equal(t, "", bus.Inbox[0].(model.NewHolderEvent).CurrentHolderUserId)
 	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).PrevHolderUserId)
 	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).AuthorUserId)
-	assert.Equal(t, "", bus.Inbox[0].(model.NewHolderEvent).SecondUserId)
 }
 
 func TestNewHolderEventPopOnEmpty(t *testing.T) {
