@@ -143,11 +143,11 @@ func (s *service) Ack(authorUserId string) error {
 	if err != nil {
 		return err
 	}
-	if !q.HolderIsSleeping {
-		return HolderIsNotSleeping
-	}
 	if len(q.Entities) == 0 || q.Entities[0].UserId != authorUserId {
 		return YouAreNotHolder
+	}
+	if !q.HolderIsSleeping {
+		return HolderIsNotSleeping
 	}
 	q.HolderIsSleeping = false
 	err = s.queueRepository.Save(q)
