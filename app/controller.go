@@ -119,8 +119,15 @@ func (c *Controller) composeShowQueueText(queue model.Queue, authorUserId string
 		if err != nil {
 			return "", fmt.Errorf("can't composeShowQueueText: %s", err)
 		}
-		txt += fmt.Sprintf("`%dº` %s (%s) %s%s%s\n",
-			i+1, user.FullName, user.DisplayName, c.highlightTxt(u, authorUserId, i, queue), holdTimeTs(i, queue), isSleepingTxt(i, queue))
+		txt += fmt.Sprintf(
+			"`%dº` %s (%s) %s%s%s\n",
+			i+1,
+			user.FullName,
+			user.DisplayName,
+			c.highlightTxt(u, authorUserId, i, queue),
+			holdTimeTs(i, queue),
+			isSleepingTxt(i, queue),
+		)
 	}
 	return txt, nil
 }
