@@ -98,6 +98,19 @@ func TestNoRaceConditionsInService(t *testing.T) {
 	}
 }
 
+//noinspection GoUnhandledErrorResult
+func TestAck(t *testing.T) {
+	service := mockService()
+	service.Add(model.QueueEntity{UserId: "1"})
+	queue, _ := service.Show()
+	assert.True(t, queue.HolderIsSleeping)
+	assert.Nil(t, service.Ack("5"))
+	assert.True(t, queue.HolderIsSleeping)
+	assert.Nil(t, service.Ack("1"))
+	queue, _ = service.Show()
+	assert.False(t, queue.HolderIsSleeping)
+}
+
 func addUsers(service QueueService, t *testing.T, start, end int, group *sync.WaitGroup) {
 	defer group.Done()
 

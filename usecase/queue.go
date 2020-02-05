@@ -15,6 +15,7 @@ type QueueService interface {
 	Add(model.QueueEntity) error
 	DeleteById(toDelUserId string, authorUserId string) error
 	Pop(authorUserId string) (string, error)
+	Ack(authorUserId string) error
 	DeleteAll() error
 	Show() (model.Queue, error)
 }
@@ -135,6 +136,20 @@ func (s *service) Show() (model.Queue, error) {
 	defer s.mu.Unlock()
 	return s.queueRepository.Read()
 }
+func (s *service) Ack(authorUserId string) error {
+	q, err := s.queueRepository.Read()
+	if err != nil {
+		return err
+	}
+	if q.HolderIsSleeping && len(q.Entities) > 0 && q.Entities[0].UserId == authorUserId {
+		q.HolderIsSleeping = false
+		err := s.queueRepository.Save(q)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 //lock must acquired in caller method
 func (s *service) updateHoldTs() {
@@ -145,6 +160,7 @@ func (s *service) updateHoldTs() {
 		holdTs = time.Time{}
 	}
 	q.HoldTs = holdTs
+	q.HolderIsSleeping = true
 	err = s.queueRepository.Save(q)
 	if err != nil {
 		log.Printf("updateHoldTs %s", err)

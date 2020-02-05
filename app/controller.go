@@ -51,6 +51,8 @@ func (c *Controller) execute(command usecase.Command) string {
 		txt, err = c.clean(command.AuthorUserId)
 	case usecase.PopCommand:
 		txt, err = c.pop(command.AuthorUserId)
+	case usecase.AckCommand:
+		txt, err = c.ack(command.AuthorUserId)
 	default:
 		c.logger.Printf("undefined command : %v", command)
 		return c.showHelp(command.AuthorUserId)
@@ -156,7 +158,14 @@ func (c *Controller) clean(authorUserId string) (string, error) {
 	}
 	return c.appendQueue(i18n.P.MustGetString("cleaned_successfully"), authorUserId), nil
 }
+func (c *Controller) ack(authorUserId string) (string, error) {
+	err := c.queueService.Ack(authorUserId)
+	if err != nil {
+		return "", err
+	}
+	return i18n.P.MustGetString("ack_is_ok"), nil
 
+}
 func (c *Controller) pop(authorUserId string) (string, error) {
 	deletedUserId, err := c.queueService.Pop(authorUserId)
 	if err == usecase.QueueIsEmpty {
