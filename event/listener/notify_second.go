@@ -7,19 +7,23 @@ import (
 	"log"
 )
 
-type NotifySecondEventListener struct {
+type NewSecondEventListener interface {
+	Fire(newHolderEvent model.NewSecondEvent)
+}
+
+type NotifyNewSecondEventListener struct {
 	slackApi *slack.Client
 }
 
-func NewNotifySecondEventListener(slackApi *slack.Client) *NotifySecondEventListener {
-	return &NotifySecondEventListener{slackApi: slackApi}
+func NewNotifyNewSecondEventListener(slackApi *slack.Client) *NotifyNewSecondEventListener {
+	return &NotifyNewSecondEventListener{slackApi: slackApi}
 }
 
-func (n *NotifySecondEventListener) Fire(newHolderEvent model.NewHolderEvent) {
-	if newHolderEvent.SecondUserId == "" {
+func (n *NotifyNewSecondEventListener) Fire(ev model.NewSecondEvent) {
+	if ev.CurrentSecondUserId == "" {
 		return
 	}
-	_, _, err := n.slackApi.PostMessage(newHolderEvent.SecondUserId,
+	_, _, err := n.slackApi.PostMessage(ev.CurrentSecondUserId,
 		slack.MsgOptionText(i18n.P.MustGetString("you_are_the_second"), true),
 		slack.MsgOptionAsUser(true),
 	)

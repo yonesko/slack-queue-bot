@@ -61,7 +61,7 @@ func (s *service) Add(entity model.QueueEntity) error {
 	queue, err := s.queueRepository.Read()
 	defer func(queueBefore model.Queue) {
 		if err == nil {
-			s.emitEvent(entity.UserId, queueBefore, queue)
+			s.emitEvents(entity.UserId, queueBefore, queue)
 		}
 	}(queue.Copy())
 	if err != nil {
@@ -92,7 +92,7 @@ func (s *service) deleteById(toDelUserId string, authorUserId string) error {
 	queue, err := s.queueRepository.Read()
 	defer func(queueBefore model.Queue) {
 		if err == nil {
-			s.emitEvent(authorUserId, queueBefore, queue)
+			s.emitEvents(authorUserId, queueBefore, queue)
 		}
 	}(queue.Copy())
 	if err != nil {
@@ -151,25 +151,39 @@ func (s *service) updateHoldTs() {
 	}
 }
 
-func (s *service) emitEvent(authorUserId string, before model.Queue, after model.Queue) {
-	holderBefore, holderAfter, secondUserId := "", "", ""
+func (s *service) emitEvents(authorUserId string, before model.Queue, after model.Queue) {
+	s.emitNewHolderEvent(before, after, authorUserId)
+	s.emitNewSecondEvent(before, after)
+}
+
+func (s *service) emitNewSecondEvent(before model.Queue, after model.Queue) {
+	secondBefore, secondAfter := "", ""
+	if len(before.Entities) > 1 {
+		secondBefore = before.Entities[0].UserId
+	}
+	if len(after.Entities) > 1 {
+		secondAfter = after.Entities[0].UserId
+	}
+	if secondBefore != secondAfter {
+		s.queueChangedEventBus.Send(model.NewSecondEvent{CurrentSecondUserId: secondAfter})
+	}
+}
+func (s *service) emitNewHolderEvent(before model.Queue, after model.Queue, authorUserId string) {
+	holderBefore, holderAfter := "", ""
 	if len(before.Entities) > 0 {
 		holderBefore = before.Entities[0].UserId
 	}
 	if len(after.Entities) > 0 {
 		holderAfter = after.Entities[0].UserId
-	}
-	if len(after.Entities) > 1 {
-		secondUserId = after.Entities[1].UserId
-	}
-	if holderBefore != holderAfter {
-		s.queueChangedEventBus.Send(model.NewHolderEvent{
-			CurrentHolderUserId: holderAfter,
-			PrevHolderUserId:    holderBefore,
-			AuthorUserId:        authorUserId,
-			SecondUserId:        secondUserId,
-			Ts:                  time.Now(),
-		})
-		s.updateHoldTs()
+
+		if holderBefore != holderAfter {
+			s.queueChangedEventBus.Send(model.NewHolderEvent{
+				CurrentHolderUserId: holderAfter,
+				PrevHolderUserId:    holderBefore,
+				AuthorUserId:        authorUserId,
+				Ts:                  time.Now(),
+			})
+			s.updateHoldTs()
+		}
 	}
 }
