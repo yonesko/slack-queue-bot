@@ -105,6 +105,7 @@ func TestAck(t *testing.T) {
 	queue, _ := service.Show()
 	assert.True(t, queue.HolderIsSleeping)
 	assert.Nil(t, service.Ack("5"))
+	queue, _ = service.Show()
 	assert.True(t, queue.HolderIsSleeping)
 	assert.Nil(t, service.Ack("1"))
 	queue, _ = service.Show()
