@@ -35,7 +35,7 @@ func Test_NewHolderEvent_TheSecond_HolderRemoved(t *testing.T) {
 func Test_NewHolderEvent_TheSecond_SecondRemoved(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}, {"z"}}}}
-	service := &service{&queueRepository, &bus}
+	service := &service{&queueRepository, &bus, sync.Mutex{}}
 
 	err := service.DeleteById("abc", "123")
 	assert.Nil(t, err)
