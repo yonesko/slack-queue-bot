@@ -2,6 +2,10 @@ package app
 
 import "testing"
 
+/*
+UCPHETPTJ
+UPJ9Y95BM
+*/
 func Test_extractCommand(t *testing.T) {
 	tests := []struct {
 		text string

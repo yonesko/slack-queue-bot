@@ -133,18 +133,22 @@ func (s *service) updateHoldTs() {
 }
 
 func (s *service) emitEvent(authorUserId string, before model.Queue, after model.Queue) {
-	holderBefore, holderAfter := "", ""
+	holderBefore, holderAfter, secondUserId := "", "", ""
 	if len(before.Entities) > 0 {
 		holderBefore = before.Entities[0].UserId
 	}
 	if len(after.Entities) > 0 {
 		holderAfter = after.Entities[0].UserId
 	}
+	if len(after.Entities) > 1 {
+		secondUserId = after.Entities[1].UserId
+	}
 	if holderBefore != holderAfter {
-		s.queueChangedEventBus.Send(event.NewHolderEvent{
+		s.queueChangedEventBus.Send(model.NewHolderEvent{
 			CurrentHolderUserId: holderAfter,
 			PrevHolderUserId:    holderBefore,
 			AuthorUserId:        authorUserId,
+			SecondUserId:        secondUserId,
 			Ts:                  time.Now(),
 		})
 		s.updateHoldTs()

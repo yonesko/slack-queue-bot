@@ -5,6 +5,7 @@ import (
 	"github.com/nlopes/slack"
 	"github.com/yonesko/slack-queue-bot/estimate"
 	"github.com/yonesko/slack-queue-bot/event"
+	"github.com/yonesko/slack-queue-bot/event/listener"
 	"github.com/yonesko/slack-queue-bot/queue"
 	"github.com/yonesko/slack-queue-bot/usecase"
 	"github.com/yonesko/slack-queue-bot/user"
@@ -42,9 +43,10 @@ func NewApp() *App {
 	)
 	userRepository := user.NewRepository(slackApi)
 	estimateRepository := estimate.NewRepository()
-	newHolderEventListeners := []event.NewHolderEventListener{
-		event.NewNotifyNewHolderEventListener(slackApi, userRepository),
-		event.NewHoldTimeEstimateListener(estimateRepository),
+	newHolderEventListeners := []listener.NewHolderEventListener{
+		listener.NewNotifyNewHolderEventListener(slackApi),
+		listener.NewHoldTimeEstimateListener(estimateRepository),
+		listener.NewNotifySecondEventListener(slackApi),
 	}
 	return &App{
 		userRepository: userRepository,

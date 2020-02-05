@@ -3,6 +3,8 @@ package event
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/yonesko/slack-queue-bot/estimate"
+	"github.com/yonesko/slack-queue-bot/event/listener"
+	"github.com/yonesko/slack-queue-bot/model"
 	"strconv"
 	"testing"
 	"time"
@@ -10,16 +12,16 @@ import (
 
 func TestHoldTimeEstimateListener_FirstInQueue(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := NewHoldTimeEstimateListener(rep)
+	listener := listener.NewHoldTimeEstimateListener(rep)
 
-	listener.Fire(NewHolderEvent{
+	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "123",
 		PrevHolderUserId:    "",
 		AuthorUserId:        "123",
 		Ts:                  time.Unix(0, 0),
 	})
 
-	listener.Fire(NewHolderEvent{
+	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "abc",
 		PrevHolderUserId:    "123",
 		AuthorUserId:        "123",
@@ -32,16 +34,16 @@ func TestHoldTimeEstimateListener_FirstInQueue(t *testing.T) {
 
 func TestHoldTimeEstimateListener_TooLongTime(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := NewHoldTimeEstimateListener(rep)
+	listener := listener.NewHoldTimeEstimateListener(rep)
 
-	listener.Fire(NewHolderEvent{
+	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "123",
 		PrevHolderUserId:    "",
 		AuthorUserId:        "123",
 		Ts:                  time.Unix(0, 0),
 	})
 
-	listener.Fire(NewHolderEvent{
+	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "abc",
 		PrevHolderUserId:    "123",
 		AuthorUserId:        "123",
@@ -54,16 +56,16 @@ func TestHoldTimeEstimateListener_TooLongTime(t *testing.T) {
 
 func TestHoldTimeEstimateListener_InMiddleOfQueue(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := NewHoldTimeEstimateListener(rep)
+	listener := listener.NewHoldTimeEstimateListener(rep)
 
-	listener.Fire(NewHolderEvent{
+	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "1",
 		PrevHolderUserId:    "2",
 		AuthorUserId:        "1",
 		Ts:                  time.Unix(0, 0),
 	})
 
-	listener.Fire(NewHolderEvent{
+	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "3",
 		PrevHolderUserId:    "1",
 		AuthorUserId:        "1",
@@ -76,16 +78,16 @@ func TestHoldTimeEstimateListener_InMiddleOfQueue(t *testing.T) {
 
 func TestHoldTimeEstimateListener_ForceDel(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := NewHoldTimeEstimateListener(rep)
+	listener := listener.NewHoldTimeEstimateListener(rep)
 
-	listener.Fire(NewHolderEvent{
+	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "1",
 		PrevHolderUserId:    "2",
 		AuthorUserId:        "1",
 		Ts:                  time.Unix(0, 0),
 	})
 
-	listener.Fire(NewHolderEvent{
+	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "3",
 		PrevHolderUserId:    "1",
 		AuthorUserId:        "4",
@@ -98,10 +100,10 @@ func TestHoldTimeEstimateListener_ForceDel(t *testing.T) {
 
 func TestHoldTimeEstimateListener_MultiplyEvents(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := NewHoldTimeEstimateListener(rep)
+	listener := listener.NewHoldTimeEstimateListener(rep)
 
 	for i := 1; i <= 100; i++ {
-		listener.Fire(NewHolderEvent{
+		listener.Fire(model.NewHolderEvent{
 			CurrentHolderUserId: strconv.Itoa(i),
 			PrevHolderUserId:    strconv.Itoa(i - 1),
 			AuthorUserId:        strconv.Itoa(i - 1),
