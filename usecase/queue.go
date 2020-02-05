@@ -144,7 +144,7 @@ func (s *service) emitEvent(authorUserId string, before model.Queue, after model
 		secondUserId = after.Entities[1].UserId
 	}
 	if holderBefore != holderAfter {
-		s.queueChangedEventBus.Send(event.NewHolderEvent{
+		s.queueChangedEventBus.Send(model.NewHolderEvent{
 			CurrentHolderUserId: holderAfter,
 			PrevHolderUserId:    holderBefore,
 			AuthorUserId:        authorUserId,

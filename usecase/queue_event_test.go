@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/yonesko/slack-queue-bot/event"
 	eventmock "github.com/yonesko/slack-queue-bot/event/mock"
 	"github.com/yonesko/slack-queue-bot/model"
 	queuemock "github.com/yonesko/slack-queue-bot/queue/mock"
@@ -17,9 +16,9 @@ func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
 	err := service.Add(model.QueueEntity{UserId: "123"})
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId)
-	assert.Equal(t, "", bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId)
-	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).AuthorUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).CurrentHolderUserId)
+	assert.Equal(t, "", bus.Inbox[0].(model.NewHolderEvent).PrevHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).AuthorUserId)
 }
 
 func TestNewHolderEventCheckTheSecond(t *testing.T) {
@@ -30,7 +29,7 @@ func TestNewHolderEventCheckTheSecond(t *testing.T) {
 	err := service.DeleteById("123", "123")
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, "z", bus.Inbox[0].(event.NewHolderEvent).SecondUserId)
+	assert.Equal(t, "z", bus.Inbox[0].(model.NewHolderEvent).SecondUserId)
 }
 func TestNewHolderEventSelfDeleteHolder(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
@@ -40,9 +39,9 @@ func TestNewHolderEventSelfDeleteHolder(t *testing.T) {
 	err := service.DeleteById("123", "123")
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, "abc", bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId)
-	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId)
-	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).AuthorUserId)
+	assert.Equal(t, "abc", bus.Inbox[0].(model.NewHolderEvent).CurrentHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).PrevHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).AuthorUserId)
 }
 
 func TestNewHolderEventForceDeleteHolder(t *testing.T) {
@@ -53,9 +52,9 @@ func TestNewHolderEventForceDeleteHolder(t *testing.T) {
 	err := service.DeleteById("123", "jhgfdvxc")
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, "abc", bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId)
-	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId)
-	assert.Equal(t, "jhgfdvxc", bus.Inbox[0].(event.NewHolderEvent).AuthorUserId)
+	assert.Equal(t, "abc", bus.Inbox[0].(model.NewHolderEvent).CurrentHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).PrevHolderUserId)
+	assert.Equal(t, "jhgfdvxc", bus.Inbox[0].(model.NewHolderEvent).AuthorUserId)
 }
 
 func TestNewHolderEventSelfDeleteNotHolder(t *testing.T) {
@@ -86,9 +85,9 @@ func TestNewHolderEventPopAnotherUser(t *testing.T) {
 	_, err := service.Pop("abc")
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, "abc", bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId)
-	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId)
-	assert.Equal(t, "abc", bus.Inbox[0].(event.NewHolderEvent).AuthorUserId)
+	assert.Equal(t, "abc", bus.Inbox[0].(model.NewHolderEvent).CurrentHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).PrevHolderUserId)
+	assert.Equal(t, "abc", bus.Inbox[0].(model.NewHolderEvent).AuthorUserId)
 }
 func TestNewHolderEventPopYourself(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
@@ -98,9 +97,9 @@ func TestNewHolderEventPopYourself(t *testing.T) {
 	_, err := service.Pop("123")
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, "", bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId)
-	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).PrevHolderUserId)
-	assert.Equal(t, "123", bus.Inbox[0].(event.NewHolderEvent).AuthorUserId)
+	assert.Equal(t, "", bus.Inbox[0].(model.NewHolderEvent).CurrentHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).PrevHolderUserId)
+	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).AuthorUserId)
 }
 
 func TestNewHolderEventPopOnEmpty(t *testing.T) {
