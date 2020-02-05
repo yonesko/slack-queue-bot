@@ -110,6 +110,10 @@ func TestAck(t *testing.T) {
 	assert.Nil(t, service.Ack("1"))
 	queue, _ = service.Show()
 	assert.False(t, queue.HolderIsSleeping)
+	service.Add(model.QueueEntity{UserId: "6"})
+	queue, _ = service.Show()
+	assert.False(t, queue.HolderIsSleeping)
+	service.Add(model.QueueEntity{UserId: "6"})
 }
 
 func addUsers(service QueueService, t *testing.T, start, end int, group *sync.WaitGroup) {
