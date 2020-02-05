@@ -7,7 +7,6 @@ import (
 	"github.com/yonesko/slack-queue-bot/model"
 	queuemock "github.com/yonesko/slack-queue-bot/queue/mock"
 	"testing"
-	"time"
 )
 
 func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
@@ -16,7 +15,6 @@ func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
 	service := &service{&queueRepository, &bus}
 
 	err := service.Add(model.QueueEntity{UserId: "123"})
-	time.Sleep(time.Millisecond * 5) //wait async sending
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
 	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId, "123")
@@ -24,13 +22,22 @@ func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
 	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).AuthorUserId, "123")
 }
 
+func TestNewHolderEventCheckTheSecond(t *testing.T) {
+	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
+	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}, {"z"}}}}
+	service := &service{&queueRepository, &bus}
+
+	err := service.DeleteById("123", "123")
+	assert.Nil(t, err)
+	assert.Len(t, bus.Inbox, 1)
+	assert.Equal(t, "z", bus.Inbox[0].(event.NewHolderEvent).SecondUserId)
+}
 func TestNewHolderEventSelfDeleteHolder(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}}}
 	service := &service{&queueRepository, &bus}
 
 	err := service.DeleteById("123", "123")
-	time.Sleep(time.Millisecond * 5) //wait async sending
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
 	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId, "abc")
@@ -44,7 +51,6 @@ func TestNewHolderEventForceDeleteHolder(t *testing.T) {
 	service := &service{&queueRepository, &bus}
 
 	err := service.DeleteById("123", "jhgfdvxc")
-	time.Sleep(time.Millisecond * 5) //wait async sending
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
 	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId, "abc")
@@ -58,7 +64,6 @@ func TestNewHolderEventSelfDeleteNotHolder(t *testing.T) {
 	service := &service{&queueRepository, &bus}
 
 	err := service.DeleteById("abc", "abc")
-	time.Sleep(time.Millisecond * 5) //wait async sending
 	assert.Nil(t, err)
 	assert.Empty(t, bus.Inbox)
 }
@@ -69,7 +74,6 @@ func TestNewHolderEventForceDeleteNotHolder(t *testing.T) {
 	service := &service{&queueRepository, &bus}
 
 	err := service.DeleteById("abc", "jjfftg")
-	time.Sleep(time.Millisecond * 5) //wait async sending
 	assert.Nil(t, err)
 	assert.Empty(t, bus.Inbox)
 }
@@ -80,7 +84,6 @@ func TestNewHolderEventPopAnotherUser(t *testing.T) {
 	service := &service{&queueRepository, &bus}
 
 	_, err := service.Pop("abc")
-	time.Sleep(time.Millisecond * 5) //wait async sending
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
 	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId, "abc")
@@ -93,7 +96,6 @@ func TestNewHolderEventPopYourself(t *testing.T) {
 	service := &service{&queueRepository, &bus}
 
 	_, err := service.Pop("123")
-	time.Sleep(time.Millisecond * 5) //wait async sending
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
 	assert.Equal(t, bus.Inbox[0].(event.NewHolderEvent).CurrentHolderUserId, "")
@@ -107,7 +109,6 @@ func TestNewHolderEventPopOnEmpty(t *testing.T) {
 	service := &service{&queueRepository, &bus}
 
 	_, err := service.Pop("123")
-	time.Sleep(time.Millisecond * 5) //wait async sending
 	assert.Equal(t, QueueIsEmpty, err)
 	assert.Empty(t, bus.Inbox)
 }
