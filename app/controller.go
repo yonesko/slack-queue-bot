@@ -119,17 +119,21 @@ func (c *Controller) composeShowQueueText(queue model.Queue, authorUserId string
 		if err != nil {
 			return "", fmt.Errorf("can't composeShowQueueText: %s", err)
 		}
-		highlight, holdTime := "", ""
+		highlight, holdTime := "", c.holdTimeTs(i, queue)
 		if u.UserId == authorUserId {
 			highlight = ":point_left::skin-tone-2:" + c.estimateTxt(i, queue)
 		}
-		if i == 0 && queue.HoldTs.Unix() > 0 {
-			holdTime = ":lock: " + time.Now().Sub(queue.HoldTs).Round(time.Minute).String()
-		}
-		txt += fmt.Sprintf("`%dº` %s (%s) %s %s %s\n",
+		txt += fmt.Sprintf("`%dº` %s (%s) %s%s%s\n",
 			i+1, user.FullName, user.DisplayName, highlight, holdTime, isSleepingTxt(i, queue))
 	}
 	return txt, nil
+}
+
+func (c *Controller) holdTimeTs(i int, queue model.Queue) string {
+	if i == 0 && queue.HoldTs.Unix() > 0 {
+		return " :lock: " + time.Now().Sub(queue.HoldTs).Round(time.Minute).String()
+	}
+	return ""
 }
 func isSleepingTxt(i int, queue model.Queue) string {
 	if queue.HolderIsSleeping && i == 0 {
