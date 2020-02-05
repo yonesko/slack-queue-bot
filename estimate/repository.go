@@ -36,7 +36,7 @@ func (e Estimate) avgRestOfHolding(holdStart time.Time) time.Duration {
 }
 
 type Repository interface {
-	Get() (Estimate, error)
+	Read() (Estimate, error)
 	Save(estimate Estimate) error
 }
 
@@ -68,7 +68,7 @@ func (f *fileRepository) Save(estimate Estimate) error {
 	return nil
 }
 
-func (f *fileRepository) Get() (Estimate, error) {
+func (f *fileRepository) Read() (Estimate, error) {
 	bytes, err := ioutil.ReadFile(f.filename)
 	if os.IsNotExist(err) {
 		return Estimate{}, nil

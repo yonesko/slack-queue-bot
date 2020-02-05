@@ -132,7 +132,7 @@ func (c *Controller) composeShowQueueText(queue model.Queue, authorUserId string
 }
 
 func (c *Controller) estimateTxt(i int, queue model.Queue) string {
-	estimate, err := c.estimateRepository.Get()
+	estimate, err := c.estimateRepository.Read()
 	if err != nil {
 		c.logger.Printf("composeShowQueueText can't get estimate %s", err)
 		return ""
