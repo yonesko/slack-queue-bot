@@ -16,6 +16,7 @@ type QueueService interface {
 	DeleteById(toDelUserId string, authorUserId string) error
 	Pop(authorUserId string) (string, error)
 	Ack(authorUserId string) error
+	Pass(authorUserId string) error
 	DeleteAll() error
 	Show() (model.Queue, error)
 }
@@ -32,6 +33,7 @@ var (
 	QueueIsEmpty        = errors.New("queue is empty")
 	HolderIsNotSleeping = errors.New("holder is not sleeping")
 	YouAreNotHolder     = errors.New("you are not holder")
+	NoOneToPass         = errors.New("no one to pass")
 )
 
 func NewQueueService(repository queue.Repository, queueChangedEventBus event.QueueChangedEventBus) QueueService {
@@ -62,14 +64,14 @@ func (s *service) Add(entity model.QueueEntity) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	queue, err := s.queueRepository.Read()
+	if err != nil {
+		return err
+	}
 	defer func(queueBefore model.Queue) {
 		if err == nil {
 			s.emitEvents(entity.UserId, queueBefore, queue)
 		}
 	}(queue.Copy())
-	if err != nil {
-		return err
-	}
 
 	i := queue.IndexOf(entity.UserId)
 	if i != -1 {
@@ -93,14 +95,14 @@ func (s *service) DeleteById(toDelUserId string, authorUserId string) error {
 //lock must acquired in caller method
 func (s *service) deleteById(toDelUserId string, authorUserId string) error {
 	queue, err := s.queueRepository.Read()
+	if err != nil {
+		return err
+	}
 	defer func(queueBefore model.Queue) {
 		if err == nil {
 			s.emitEvents(authorUserId, queueBefore, queue)
 		}
 	}(queue.Copy())
-	if err != nil {
-		return err
-	}
 	if len(queue.Entities) == 0 {
 		return QueueIsEmpty
 	}
@@ -138,7 +140,37 @@ func (s *service) Show() (model.Queue, error) {
 	defer s.mu.Unlock()
 	return s.queueRepository.Read()
 }
+
+func (s *service) Pass(authorUserId string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	queue, err := s.queueRepository.Read()
+	if err != nil {
+		return err
+	}
+	defer func(queueBefore model.Queue) {
+		if err == nil {
+			s.emitEvents(authorUserId, queueBefore, queue)
+		}
+	}(queue.Copy())
+	i := queue.IndexOf(authorUserId)
+	if i == -1 {
+		return YouAreNotHolder
+	}
+	if len(queue.Entities) < 2 {
+		return NoOneToPass
+	}
+	queue.Entities[0], queue.Entities[1] = queue.Entities[1], queue.Entities[0]
+	err = s.queueRepository.Save(queue)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *service) Ack(authorUserId string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	q, err := s.queueRepository.Read()
 	if err != nil {
 		return err

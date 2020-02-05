@@ -117,6 +117,23 @@ func TestAck(t *testing.T) {
 	service.Add(model.QueueEntity{UserId: "6"})
 }
 
+func TestService_Pass(t *testing.T) {
+	service := mockService()
+	assert.Equal(t, YouAreNotHolder, service.Pass("5653"))
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "4"}))
+	assert.Equal(t, NoOneToPass, service.Pass("4"))
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "6"}))
+	assert.Nil(t, service.Pass("4"))
+	queue, _ := service.Show()
+	equals(queue, []string{"6", "4"})
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "1"}))
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "17"}))
+	equals(queue, []string{"6", "4", "1", "17"})
+	assert.Equal(t, YouAreNotHolder, service.Pass("4"))
+	assert.Nil(t, service.Pass("6"))
+	equals(queue, []string{"4", "6", "1", "17"})
+}
+
 func addUsers(service QueueService, t *testing.T, start, end int, group *sync.WaitGroup) {
 	defer group.Done()
 

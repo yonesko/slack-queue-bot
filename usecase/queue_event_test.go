@@ -121,3 +121,25 @@ func TestNewHolderEventPopOnEmpty(t *testing.T) {
 	assert.Equal(t, QueueIsEmpty, err)
 	assert.Empty(t, bus.Inbox)
 }
+
+func Test_NewHolderEvent_OnPass(t *testing.T) {
+	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
+	queueRepository := queuemock.QueueRepository{model.Queue{}}
+	service := &service{&queueRepository, &bus, sync.Mutex{}}
+
+	assert.Equal(t, YouAreNotHolder, service.Pass("5653"))
+	assert.Empty(t, bus.Inbox)
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "4"}))
+	assert.Equal(t, NoOneToPass, service.Pass("4"))
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "6"}))
+	assert.Nil(t, service.Pass("4"))
+	//6 4
+	assert.Contains(t, bus.Inbox, model.NewSecondEvent{CurrentSecondUserId: "4"})
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "1"}))
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "17"}))
+	//6 4 1 17
+	assert.Equal(t, YouAreNotHolder, service.Pass("4"))
+	//4 6 1 17
+	assert.Nil(t, service.Pass("6"))
+	assert.Contains(t, bus.Inbox, model.NewSecondEvent{CurrentSecondUserId: "6"})
+}
