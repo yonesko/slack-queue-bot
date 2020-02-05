@@ -2,20 +2,20 @@ package listener
 
 import (
 	"github.com/yonesko/slack-queue-bot/estimate"
-	model2 "github.com/yonesko/slack-queue-bot/model"
+	"github.com/yonesko/slack-queue-bot/model"
 	"log"
 	"time"
 )
 
 type HoldTimeEstimateListener struct {
 	estimateRepository estimate.Repository
-	prevEv             *model2.NewHolderEvent
+	prevEv             *model.NewHolderEvent
 }
 
 func NewHoldTimeEstimateListener(estimateRepository estimate.Repository) *HoldTimeEstimateListener {
 	return &HoldTimeEstimateListener{estimateRepository: estimateRepository}
 }
-func (l *HoldTimeEstimateListener) Fire(ev model2.NewHolderEvent) {
+func (l *HoldTimeEstimateListener) Fire(ev model.NewHolderEvent) {
 	if l.prevEv != nil && ev.AuthorUserId == ev.PrevHolderUserId {
 		duration := ev.Ts.Sub(l.prevEv.Ts)
 		if isTimeSeemsLegit(duration) {
