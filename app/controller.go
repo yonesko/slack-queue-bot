@@ -136,6 +136,9 @@ func (c *Controller) estimateTxt(i int, queue model.Queue) string {
 		return ""
 	}
 	duration := estimate.TimeToWait(uint(i), queue.HoldTs).Round(time.Minute)
+	if duration == 0 {
+		return ""
+	}
 	return fmt.Sprintf("~%s (%s)", duration, time.Now().Add(duration).Format("Mon Jan 2 15:04:05"))
 }
 
