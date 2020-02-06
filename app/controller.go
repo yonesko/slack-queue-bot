@@ -125,7 +125,7 @@ func (c *Controller) composeShowQueueText(queue model.Queue, authorUserId string
 			user.FullName,
 			user.DisplayName,
 			c.highlightTxt(u, authorUserId, i, queue),
-			holdTimeTs(i, queue),
+			holdDurationTxt(i, queue),
 			isSleepingTxt(i, queue),
 		)
 	}
@@ -143,7 +143,7 @@ func (c *Controller) highlightTxt(u model.QueueEntity, authorUserId string, i in
 	return ""
 }
 
-func holdTimeTs(i int, queue model.Queue) string {
+func holdDurationTxt(i int, queue model.Queue) string {
 	if i == 0 && queue.HoldTs.Unix() > 0 {
 		return " :lock: " + time.Now().Sub(queue.HoldTs).Round(time.Minute).String()
 	}
