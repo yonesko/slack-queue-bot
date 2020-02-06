@@ -162,7 +162,7 @@ func (s *service) UpdateNewHolder() error {
 	return nil
 }
 
-func (s *service) Pass(authorUserId string) error {
+func (s *service) Pass(holder string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	queue, err := s.rep.Read()
@@ -171,10 +171,10 @@ func (s *service) Pass(authorUserId string) error {
 	}
 	defer func(queueBefore model.Queue) {
 		if err == nil {
-			s.emitEvents(authorUserId, queueBefore, queue)
+			s.emitEvents(holder, queueBefore, queue)
 		}
 	}(queue.Copy())
-	i := queue.IndexOf(authorUserId)
+	i := queue.IndexOf(holder)
 	if i != 0 {
 		return YouAreNotHolder
 	}
