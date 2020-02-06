@@ -30,17 +30,21 @@ func (s *service) notifyNewHolderAndWaitForAck(newHolderEvent model.NewHolderEve
 
 func (s *service) passSleepingHolder(holderUserId string) {
 	err := s.PassFromSleepingHolder(holderUserId)
+	if err == usecase.HolderIsNotSleeping {
+		log.Printf("passSleepingHolder %s", err)
+		return
+	}
 	if err == usecase.YouAreNotHolder {
 		log.Printf("passSleepingHolder %s", err)
 		return
 	}
 	if err == usecase.NoOneToPass {
-		s.gateway.SendAndLog(holderUserId, "я бы передал твой ход следующему, пока ты спишь, но ты один в очереди")
+		s.gateway.SendAndLog(holderUserId, "Я бы передал твой ход следующему, пока ты спишь, но ты один в очереди")
 		return
 	}
 	if err != nil {
 		log.Printf("can't passSleepingHolder %s", err)
 		return
 	}
-	s.gateway.SendAndLog(holderUserId, "твой ход передался следующему, пока ты спал")
+	s.gateway.SendAndLog(holderUserId, "Твой ход передался следующему, пока ты спал")
 }
