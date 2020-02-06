@@ -10,7 +10,7 @@ type QueueService interface {
 	DeleteById(toDelUserId string, authorUserId string) error
 	Pop(authorUserId string) (string, error)
 	Ack(authorUserId string) error
-	PassFromSleepingHolder(authorUserId string) error
+	PassFromSleepingHolder(holder string) error
 	DeleteAll() error
 	Show() (model.Queue, error)
 	UpdateOnNewHolder() error
