@@ -26,6 +26,11 @@ func NewNotifyNewHolderEventListener(slackApi *slack.Client) *NotifyNewHolderEve
 }
 
 func (n *NotifyNewHolderEventListener) Fire(newHolderEvent model.NewHolderEvent) {
+	//update holder : time and isSleeping
+	//if holder is empty time is 0 isSleeping=false and return
+	//on suc send msg: we wait for yor ack
+	//wait for ack and pass then
+
 	n.sendMsg(newHolderEvent.CurrentHolderUserId, fmt.Sprintf(i18n.P.MustGetString("your_turn_came"), waitForAck))
 
 	time.AfterFunc(waitForAck, func() {

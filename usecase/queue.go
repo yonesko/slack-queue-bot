@@ -149,6 +149,15 @@ func (s *service) UpdateNewHolder() error {
 	}
 	if q.CurHolder() == "" {
 		q.HolderIsSleeping = false
+		q.HoldTs = time.Time{}
+	} else {
+		q.HolderIsSleeping = true
+		q.HoldTs = time.Now()
+	}
+
+	err = s.rep.Save(q)
+	if err != nil {
+		return err
 	}
 	return nil
 }
