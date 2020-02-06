@@ -108,6 +108,7 @@ func TestNoRaceConditionsInService(t *testing.T) {
 func TestAck(t *testing.T) {
 	service := mockService()
 	service.Add(model.QueueEntity{UserId: "1"})
+	time.Sleep(time.Millisecond * 5)
 	queue, _ := service.Show()
 	assert.True(t, queue.HolderIsSleeping)
 	assert.Equal(t, usecase.YouAreNotHolder, service.Ack("5"))
