@@ -51,7 +51,7 @@ func (s *service) Add(entity model.QueueEntity) error {
 	}
 	defer func(queueBefore model.Queue) {
 		if err == nil {
-			go s.emitEvents(entity.UserId, queueBefore, queue)
+			s.emitEvents(entity.UserId, queueBefore, queue)
 		}
 	}(queue.Copy())
 
@@ -82,7 +82,7 @@ func (s *service) deleteById(toDelUserId string, authorUserId string) error {
 	}
 	defer func(queueBefore model.Queue) {
 		if err == nil {
-			go s.emitEvents(authorUserId, queueBefore, queue)
+			s.emitEvents(authorUserId, queueBefore, queue)
 		}
 	}(queue.Copy())
 	if len(queue.Entities) == 0 {
@@ -122,9 +122,11 @@ func (s *service) Show() (model.Queue, error) {
 	defer s.mu.Unlock()
 	return s.rep.Read()
 }
+
+//lock must acquired in caller method
 func (s *service) UpdateOnNewHolder() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	//s.mu.Lock()
+	//defer s.mu.Unlock()
 	q, err := s.rep.Read()
 	if err != nil {
 		return err
@@ -153,7 +155,7 @@ func (s *service) Pass(holder string) error {
 	}
 	defer func(queueBefore model.Queue) {
 		if err == nil {
-			go s.emitEvents(holder, queueBefore, queue)
+			s.emitEvents(holder, queueBefore, queue)
 		}
 	}(queue.Copy())
 	i := queue.IndexOf(holder)
@@ -224,7 +226,7 @@ func (s *service) emitNewHolderEvent(before model.Queue, after model.Queue, auth
 				AuthorUserId:        authorUserId,
 				Ts:                  time.Now(),
 			}
-			s.bus.Send(newHolderEvent)
+			go s.bus.Send(newHolderEvent)
 			s.notifyNewHolderAndWaitForAck(newHolderEvent)
 		}
 	}

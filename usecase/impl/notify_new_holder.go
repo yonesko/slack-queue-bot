@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const waitForAck = time.Minute * 7
+const waitForAck = time.Second * 17
 
 func (s *service) notifyNewHolderAndWaitForAck(newHolderEvent model.NewHolderEvent) {
 	curHolder := newHolderEvent.CurrentHolderUserId
@@ -23,11 +23,7 @@ func (s *service) notifyNewHolderAndWaitForAck(newHolderEvent model.NewHolderEve
 		return
 	}
 
-	err = s.gateway.Send(curHolder, fmt.Sprintf(i18n.P.MustGet("your_turn_came"), waitForAck))
-	if err != nil {
-		log.Printf("can't notify holder %s: %s", curHolder, err)
-		return
-	}
+	go s.gateway.SendAndLog(curHolder, fmt.Sprintf(i18n.P.MustGet("your_turn_came"), waitForAck))
 
 	time.AfterFunc(waitForAck, func() { s.passSleepingHolder(curHolder) })
 }
