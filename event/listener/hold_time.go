@@ -7,6 +7,9 @@ import (
 	"time"
 )
 
+type NewHolderEventListener interface {
+	Fire(newHolderEvent model.NewHolderEvent)
+}
 type HoldTimeEstimateListener struct {
 	estimateRepository estimate.Repository
 	prevEv             *model.NewHolderEvent
