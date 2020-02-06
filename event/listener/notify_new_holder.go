@@ -39,7 +39,7 @@ func (n *NotifyNewHolderEventListener) passSleepingHolder(holderUserId string) {
 		return
 	}
 	if err == usecase.NoOneToPass {
-		n.sendMsg(holderUserId, "я бы передал твой ход следующему, пока ты спишь, то ты один в очереди")
+		n.sendMsg(holderUserId, "я бы передал твой ход следующему, пока ты спишь, но ты один в очереди")
 		return
 	}
 	if err != nil {
