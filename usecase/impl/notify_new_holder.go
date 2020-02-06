@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const waitForAck = time.Second * 17 //
+const waitForAck = time.Minute * 7
 
 func (s *service) notifyNewHolderAndWaitForAck(newHolderEvent model.NewHolderEvent) {
 	curHolder := newHolderEvent.CurrentHolderUserId
