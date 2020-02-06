@@ -121,7 +121,7 @@ func Test_NewHolderEvent_CheckForEvents_on_PassFromSleepingHolder(t *testing.T) 
 	i18n.TestInit()
 	bus, service := buildQueueServiceAndBus(model.Queue{})
 
-	assert.Equal(t, usecase.YouAreNotHolder, service.PassFromSleepingHolder("5653"))
+	assert.Equal(t, usecase.HolderIsNotSleeping, service.PassFromSleepingHolder("5653"))
 	assert.Empty(t, bus.Inbox)
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "4"}))
 	assert.Equal(t, usecase.NoOneToPass, service.PassFromSleepingHolder("4"))
