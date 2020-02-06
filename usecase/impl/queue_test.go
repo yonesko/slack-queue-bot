@@ -8,7 +8,7 @@ import (
 	"github.com/yonesko/slack-queue-bot/gateway"
 	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
-	queuemock "github.com/yonesko/slack-queue-bot/queue/mock"
+	"github.com/yonesko/slack-queue-bot/queue/mock"
 	"github.com/yonesko/slack-queue-bot/usecase"
 	"sync"
 	"testing"
@@ -141,20 +141,21 @@ func TestService_UpdateNewHolder(t *testing.T) {
 	assert.Equal(t, now, queue.HoldTs)
 }
 
-func TestService_Pass(t *testing.T) {
+func TestService_PassFromSleepingHolder(t *testing.T) {
+	i18n.TestInit()
 	service := mockService()
-	assert.Equal(t, usecase.YouAreNotHolder, service.Pass("5653"))
+	assert.Equal(t, usecase.HolderIsNotSleeping, service.PassFromSleepingHolder("5653"))
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "4"}))
-	assert.Equal(t, usecase.NoOneToPass, service.Pass("4"))
+	assert.Equal(t, usecase.NoOneToPass, service.PassFromSleepingHolder("4"))
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "6"}))
-	assert.Nil(t, service.Pass("4"))
+	assert.Nil(t, service.PassFromSleepingHolder("4"))
 	queue, _ := service.Show()
 	equals(queue, []string{"6", "4"})
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "1"}))
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "17"}))
 	equals(queue, []string{"6", "4", "1", "17"})
-	assert.Equal(t, usecase.YouAreNotHolder, service.Pass("4"))
-	assert.Nil(t, service.Pass("6"))
+	assert.Equal(t, usecase.YouAreNotHolder, service.PassFromSleepingHolder("4"))
+	assert.Nil(t, service.PassFromSleepingHolder("6"))
 	equals(queue, []string{"4", "6", "1", "17"})
 }
 
@@ -185,7 +186,7 @@ func equals(queue model.Queue, userIds []string) bool {
 
 func mockService() *service {
 	return &service{
-		queuemock.NewQueueRepositoryMock(),
+		&mock.QueueRepository{model.Queue{}},
 		&eventmock.QueueChangedEventBus{Inbox: []interface{}{}},
 		sync.Mutex{},
 		gateway.Mock{},

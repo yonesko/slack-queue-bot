@@ -121,12 +121,12 @@ func Test_NewHolderEvent_OnPass(t *testing.T) {
 	i18n.TestInit()
 	bus, service := buildQueueServiceAndBus(model.Queue{})
 
-	assert.Equal(t, usecase.YouAreNotHolder, service.Pass("5653"))
+	assert.Equal(t, usecase.YouAreNotHolder, service.PassFromSleepingHolder("5653"))
 	assert.Empty(t, bus.Inbox)
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "4"}))
-	assert.Equal(t, usecase.NoOneToPass, service.Pass("4"))
+	assert.Equal(t, usecase.NoOneToPass, service.PassFromSleepingHolder("4"))
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "6"}))
-	assert.Nil(t, service.Pass("4"))
+	assert.Nil(t, service.PassFromSleepingHolder("4"))
 	//6 4
 	time.Sleep(time.Millisecond * 5)
 	containsNewHolderEvent(bus.Inbox, "6", "4", "4")
@@ -134,8 +134,8 @@ func Test_NewHolderEvent_OnPass(t *testing.T) {
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "1"}))
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "17"}))
 	//6 4 1 17
-	assert.Equal(t, usecase.YouAreNotHolder, service.Pass("4"))
-	assert.Nil(t, service.Pass("6"))
+	assert.Equal(t, usecase.YouAreNotHolder, service.PassFromSleepingHolder("4"))
+	assert.Nil(t, service.PassFromSleepingHolder("6"))
 	//4 6 1 17
 	time.Sleep(time.Millisecond * 5)
 	containsNewHolderEvent(bus.Inbox, "4", "6", "6")

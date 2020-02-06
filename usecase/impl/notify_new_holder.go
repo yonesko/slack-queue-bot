@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const waitForAck = time.Second * 17
+const waitForAck = time.Second * 17 //
 
 func (s *service) notifyNewHolderAndWaitForAck(newHolderEvent model.NewHolderEvent) {
 	curHolder := newHolderEvent.CurrentHolderUserId
@@ -29,7 +29,7 @@ func (s *service) notifyNewHolderAndWaitForAck(newHolderEvent model.NewHolderEve
 }
 
 func (s *service) passSleepingHolder(holderUserId string) {
-	err := s.Pass(holderUserId)
+	err := s.PassFromSleepingHolder(holderUserId)
 	if err == usecase.YouAreNotHolder {
 		log.Printf("passSleepingHolder %s", err)
 		return

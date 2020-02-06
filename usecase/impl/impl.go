@@ -146,7 +146,7 @@ func (s *service) UpdateOnNewHolder() error {
 	return nil
 }
 
-func (s *service) Pass(holder string) error {
+func (s *service) PassFromSleepingHolder(holder string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	queue, err := s.rep.Read()
@@ -158,8 +158,10 @@ func (s *service) Pass(holder string) error {
 			s.emitEvents(holder, queueBefore, queue)
 		}
 	}(queue.Copy())
-	i := queue.IndexOf(holder)
-	if i != 0 {
+	if !queue.HolderIsSleeping {
+		return usecase.HolderIsNotSleeping
+	}
+	if queue.CurHolder() != holder {
 		return usecase.YouAreNotHolder
 	}
 	if len(queue.Entities) < 2 {
