@@ -17,7 +17,7 @@ type slackGateway struct {
 func (s slackGateway) SendAndLog(userId, txt string) {
 	err := s.Send(userId, txt)
 	if err != nil {
-		log.Printf("can't send %s %s", userId, txt)
+		log.Printf("can't send %s '%s' %s", userId, txt, err)
 	}
 }
 
