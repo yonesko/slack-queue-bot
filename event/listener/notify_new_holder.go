@@ -51,6 +51,7 @@ func (n *NotifyNewHolderEventListener) passSleepingHolder(holderUserId string) {
 
 func (n *NotifyNewHolderEventListener) sendMsg(holderUserId, txt string) {
 	if holderUserId == "" {
+		log.Printf("sendMsg user id is empty")
 		return
 	}
 	_, _, err := n.slackApi.PostMessage(holderUserId,
