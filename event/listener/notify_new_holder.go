@@ -5,7 +5,7 @@ import (
 	"github.com/nlopes/slack"
 	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
-	"github.com/yonesko/slack-queue-bot/usecase"
+	//"github.com/yonesko/slack-queue-bot/usecase"
 	"log"
 	"time"
 )
@@ -15,8 +15,8 @@ type NewHolderEventListener interface {
 }
 
 type NotifyNewHolderEventListener struct {
-	slackApi     *slack.Client
-	queueService usecase.QueueService
+	slackApi *slack.Client
+	//queueService usecase.QueueService
 }
 
 const waitForAck = time.Minute * 7
@@ -39,19 +39,19 @@ func (n *NotifyNewHolderEventListener) Fire(newHolderEvent model.NewHolderEvent)
 }
 
 func (n *NotifyNewHolderEventListener) passSleepingHolder(holderUserId string) {
-	err := n.queueService.Pass(holderUserId)
-	if err == usecase.YouAreNotHolder {
-		return
-	}
-	if err == usecase.NoOneToPass {
-		n.sendMsg(holderUserId, "я бы передал твой ход следующему, пока ты спишь, но ты один в очереди")
-		return
-	}
-	if err != nil {
-		log.Printf("can't passSleepingHolder %s", err)
-		return
-	}
-	n.sendMsg(holderUserId, "твой ход передался следующему, пока ты спал")
+	//err := n.queueService.Pass(holderUserId)
+	//if err == usecase.YouAreNotHolder {
+	//	return
+	//}
+	//if err == usecase.NoOneToPass {
+	//	n.sendMsg(holderUserId, "я бы передал твой ход следующему, пока ты спишь, но ты один в очереди")
+	//	return
+	//}
+	//if err != nil {
+	//	log.Printf("can't passSleepingHolder %s", err)
+	//	return
+	//}
+	//n.sendMsg(holderUserId, "твой ход передался следующему, пока ты спал")
 }
 
 func (n *NotifyNewHolderEventListener) sendMsg(holderUserId, txt string) {

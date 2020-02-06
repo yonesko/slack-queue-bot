@@ -117,6 +117,23 @@ func TestAck(t *testing.T) {
 	service.Add(model.QueueEntity{UserId: "6"})
 }
 
+func TestService_UpdateNewHolder(t *testing.T) {
+	now := time.Now()
+	patch := monkey.Patch(time.Now, func() time.Time { return now })
+	defer patch.Unpatch()
+
+	service := mockService()
+	assert.Nil(t, service.UpdateNewHolder())
+	queue, _ := service.Show()
+	assert.False(t, queue.HolderIsSleeping)
+	assert.Zero(t, queue.HoldTs)
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "1"}))
+	assert.Nil(t, service.UpdateNewHolder())
+	queue, _ = service.Show()
+	assert.True(t, queue.HolderIsSleeping)
+	assert.Equal(t, now, queue.HoldTs)
+}
+
 func TestService_Pass(t *testing.T) {
 	service := mockService()
 	assert.Equal(t, YouAreNotHolder, service.Pass("5653"))
