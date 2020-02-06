@@ -186,10 +186,10 @@ func (c *Controller) clean(authorUserId string) (string, error) {
 func (c *Controller) ack(authorUserId string) (string, error) {
 	err := c.queueService.Ack(authorUserId)
 	if err == usecase.YouAreNotHolder {
-		return "ты не первый в очереди, твой ack не нужен", nil
+		return "Ты не первый в очереди, твой ack не нужен", nil
 	}
 	if err == usecase.HolderIsNotSleeping {
-		return "ack уже получен", nil
+		return "Ack уже получен", nil
 	}
 	if err != nil {
 		return "", err
