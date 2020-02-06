@@ -23,7 +23,7 @@ func (s *service) notifyNewHolderAndWaitForAck(newHolderEvent model.NewHolderEve
 		return
 	}
 
-	go s.gateway.SendAndLog(curHolder, fmt.Sprintf(i18n.P.MustGet("your_turn_came"), waitForAck))
+	go s.gateway.SendAndLog(curHolder, fmt.Sprintf(i18n.L.MustGet("your_turn_came"), waitForAck))
 
 	time.AfterFunc(waitForAck, func() { s.passSleepingHolder(curHolder) })
 }

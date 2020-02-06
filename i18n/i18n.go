@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-var P labels
+var L labels
 
 const (
 	myLanguage      = "russian"
@@ -24,11 +24,11 @@ func Init() {
 	if err != nil {
 		log.Fatalf("can't open file fo i18n: %s", err)
 	}
-	P = labelsProp{props}
+	L = labelsProp{props}
 }
 
 func TestInit() {
-	P = labelsMock{}
+	L = labelsMock{}
 }
 
 type labels interface {
