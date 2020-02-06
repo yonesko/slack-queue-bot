@@ -117,7 +117,7 @@ func TestNewHolderEventPopOnEmpty(t *testing.T) {
 	assert.Empty(t, bus.Inbox)
 }
 
-func Test_NewHolderEvent_OnPass(t *testing.T) {
+func Test_NewHolderEvent_CheckForEvents_on_PassFromSleepingHolder(t *testing.T) {
 	i18n.TestInit()
 	bus, service := buildQueueServiceAndBus(model.Queue{})
 
