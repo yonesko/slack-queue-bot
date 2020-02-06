@@ -125,8 +125,6 @@ func (s *service) Show() (model.Queue, error) {
 
 //lock must acquired in caller method
 func (s *service) UpdateOnNewHolder() error {
-	//s.mu.Lock()
-	//defer s.mu.Unlock()
 	q, err := s.rep.Read()
 	if err != nil {
 		return err
