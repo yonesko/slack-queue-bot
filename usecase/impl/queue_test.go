@@ -1,4 +1,4 @@
-package usecase
+package impl
 
 import (
 	"bou.ke/monkey"
@@ -7,6 +7,7 @@ import (
 	eventmock "github.com/yonesko/slack-queue-bot/event/mock"
 	"github.com/yonesko/slack-queue-bot/model"
 	queuemock "github.com/yonesko/slack-queue-bot/queue/mock"
+	"github.com/yonesko/slack-queue-bot/usecase"
 	"sync"
 	"testing"
 	"time"
@@ -47,7 +48,7 @@ func TestService_HoldTs(t *testing.T) {
 func TestService_Pop(t *testing.T) {
 	service := mockService()
 	_, err := service.Pop("123")
-	assert.Equal(t, QueueIsEmpty, err)
+	assert.Equal(t, usecase.QueueIsEmpty, err)
 	err = service.Add(model.QueueEntity{UserId: "123"})
 	assert.Nil(t, err)
 	deletedUserId, err := service.Pop("123")
@@ -61,7 +62,7 @@ func TestService_Pop(t *testing.T) {
 func TestService_DeleteAll(t *testing.T) {
 	service := mockService()
 	err := service.DeleteAll()
-	if err != QueueIsEmpty {
+	if err != usecase.QueueIsEmpty {
 		t.Error(err)
 	}
 	err = service.Add(model.QueueEntity{UserId: "123"})
@@ -104,11 +105,11 @@ func TestAck(t *testing.T) {
 	service.Add(model.QueueEntity{UserId: "1"})
 	queue, _ := service.Show()
 	assert.True(t, queue.HolderIsSleeping)
-	assert.Equal(t, YouAreNotHolder, service.Ack("5"))
+	assert.Equal(t, usecase.YouAreNotHolder, service.Ack("5"))
 	queue, _ = service.Show()
 	assert.True(t, queue.HolderIsSleeping)
 	assert.Nil(t, service.Ack("1"))
-	assert.Equal(t, HolderIsNotSleeping, service.Ack("1"))
+	assert.Equal(t, usecase.HolderIsNotSleeping, service.Ack("1"))
 	queue, _ = service.Show()
 	assert.False(t, queue.HolderIsSleeping)
 	service.Add(model.QueueEntity{UserId: "6"})
@@ -136,9 +137,9 @@ func TestService_UpdateNewHolder(t *testing.T) {
 
 func TestService_Pass(t *testing.T) {
 	service := mockService()
-	assert.Equal(t, YouAreNotHolder, service.Pass("5653"))
+	assert.Equal(t, usecase.YouAreNotHolder, service.Pass("5653"))
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "4"}))
-	assert.Equal(t, NoOneToPass, service.Pass("4"))
+	assert.Equal(t, usecase.NoOneToPass, service.Pass("4"))
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "6"}))
 	assert.Nil(t, service.Pass("4"))
 	queue, _ := service.Show()
@@ -146,12 +147,12 @@ func TestService_Pass(t *testing.T) {
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "1"}))
 	assert.Nil(t, service.Add(model.QueueEntity{UserId: "17"}))
 	equals(queue, []string{"6", "4", "1", "17"})
-	assert.Equal(t, YouAreNotHolder, service.Pass("4"))
+	assert.Equal(t, usecase.YouAreNotHolder, service.Pass("4"))
 	assert.Nil(t, service.Pass("6"))
 	equals(queue, []string{"4", "6", "1", "17"})
 }
 
-func addUsers(service QueueService, t *testing.T, start, end int, group *sync.WaitGroup) {
+func addUsers(service usecase.QueueService, t *testing.T, start, end int, group *sync.WaitGroup) {
 	defer group.Done()
 
 	for i := start; i < end; i++ {

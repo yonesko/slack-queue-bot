@@ -8,6 +8,7 @@ import (
 	"github.com/yonesko/slack-queue-bot/event/listener"
 	"github.com/yonesko/slack-queue-bot/queue"
 	"github.com/yonesko/slack-queue-bot/usecase"
+	"github.com/yonesko/slack-queue-bot/usecase/impl"
 	"github.com/yonesko/slack-queue-bot/user"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"io/ioutil"
@@ -58,7 +59,7 @@ func NewApp() *App {
 		controller: newController(
 			lumberWriter,
 			userRepository,
-			usecase.NewQueueService(
+			impl.NewQueueService(
 				queue.NewRepository(),
 				event.NewQueueChangedEventBus(lumberWriter, newHolderEventListeners, newSecondEventListeners),
 			),
