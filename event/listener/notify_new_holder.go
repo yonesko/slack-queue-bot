@@ -27,9 +27,9 @@ func NewNotifyNewHolderEventListener(slackApi *slack.Client) *NotifyNewHolderEve
 
 func (n *NotifyNewHolderEventListener) Fire(newHolderEvent model.NewHolderEvent) {
 	curHolder := newHolderEvent.CurrentHolderUserId
-	err := n.queueService.UpdateNewHolder()
+	err := n.queueService.UpdateOnNewHolder()
 	if err != nil {
-		log.Printf("can't UpdateNewHolder, return")
+		log.Printf("can't UpdateOnNewHolder, return")
 		return
 	}
 	if curHolder == "" {

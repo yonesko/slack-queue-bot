@@ -13,7 +13,7 @@ type QueueService interface {
 	Pass(authorUserId string) error
 	DeleteAll() error
 	Show() (model.Queue, error)
-	UpdateNewHolder() error
+	UpdateOnNewHolder() error
 }
 
 var (

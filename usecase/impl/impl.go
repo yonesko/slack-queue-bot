@@ -120,7 +120,7 @@ func (s *service) Show() (model.Queue, error) {
 	defer s.mu.Unlock()
 	return s.rep.Read()
 }
-func (s *service) UpdateNewHolder() error {
+func (s *service) UpdateOnNewHolder() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	q, err := s.rep.Read()
