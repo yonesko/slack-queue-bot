@@ -15,7 +15,7 @@ func (s *service) notifyNewHolderAndWaitForAck(newHolderEvent model.NewHolderEve
 	curHolder := newHolderEvent.CurrentHolderUserId
 	err := s.UpdateOnNewHolder()
 	if err != nil {
-		log.Printf("can't UpdateOnNewHolder, return")
+		log.Printf("can't UpdateOnNewHolder, return %s", err)
 		return
 	}
 	if curHolder == "" {
