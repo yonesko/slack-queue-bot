@@ -6,6 +6,7 @@ import (
 	"github.com/yonesko/slack-queue-bot/estimate"
 	"github.com/yonesko/slack-queue-bot/event"
 	"github.com/yonesko/slack-queue-bot/event/listener"
+	"github.com/yonesko/slack-queue-bot/gateway"
 	"github.com/yonesko/slack-queue-bot/queue"
 	"github.com/yonesko/slack-queue-bot/usecase/impl"
 	"github.com/yonesko/slack-queue-bot/user"
@@ -55,6 +56,7 @@ func NewApp() *App {
 			impl.NewQueueService(
 				queue.NewRepository(),
 				event.NewQueueChangedEventBus(lumberWriter, newHolderEventListeners, newSecondEventListeners),
+				gateway.NewSlackGateway(slackApi),
 			),
 			estimateRepository,
 		),

@@ -2,8 +2,8 @@ package impl
 
 import (
 	"fmt"
-	"github.com/nlopes/slack"
 	"github.com/yonesko/slack-queue-bot/event"
+	"github.com/yonesko/slack-queue-bot/gateway"
 	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue"
@@ -14,17 +14,17 @@ import (
 )
 
 type service struct {
-	rep      queue.Repository
-	bus      event.QueueChangedEventBus
-	mu       sync.Mutex
-	slackApi *slack.Client
+	rep     queue.Repository
+	bus     event.QueueChangedEventBus
+	mu      sync.Mutex
+	gateway gateway.Gateway
 }
 
-func NewQueueService(repository queue.Repository, queueChangedEventBus event.QueueChangedEventBus) usecase.QueueService {
+func NewQueueService(repository queue.Repository, queueChangedEventBus event.QueueChangedEventBus, gateway gateway.Gateway) usecase.QueueService {
 	if _, err := repository.Read(); err != nil {
 		panic(fmt.Sprintf("can't crete QueueService: %s", err))
 	}
-	return &service{repository, queueChangedEventBus, sync.Mutex{}, nil}
+	return &service{repository, queueChangedEventBus, sync.Mutex{}, gateway}
 }
 
 func (s *service) Pop(authorUserId string) (string, error) {
@@ -246,7 +246,7 @@ func (s *service) notifyNewHolder(newHolderEvent model.NewHolderEvent) {
 		return
 	}
 
-	err = s.sendMsg(curHolder, fmt.Sprintf(i18n.P.MustGetString("your_turn_came"), waitForAck))
+	err = s.gateway.Send(curHolder, fmt.Sprintf(i18n.P.MustGetString("your_turn_came"), waitForAck))
 	if err != nil {
 		log.Printf("can't notify holder %s: %s", curHolder, err)
 		return
@@ -262,31 +262,12 @@ func (s *service) passSleepingHolder(holderUserId string) {
 		return
 	}
 	if err == usecase.NoOneToPass {
-		s.sendMsgAndLog(holderUserId, "я бы передал твой ход следующему, пока ты спишь, но ты один в очереди")
+		s.gateway.SendAndLog(holderUserId, "я бы передал твой ход следующему, пока ты спишь, но ты один в очереди")
 		return
 	}
 	if err != nil {
 		log.Printf("can't passSleepingHolder %s", err)
 		return
 	}
-	s.sendMsgAndLog(holderUserId, "твой ход передался следующему, пока ты спал")
-}
-
-func (s *service) sendMsg(userId, txt string) error {
-	if userId == "" {
-		log.Printf("sendMsg user id is empty")
-		return nil
-	}
-	_, _, err := s.slackApi.PostMessage(userId,
-		slack.MsgOptionText(txt, true),
-		slack.MsgOptionAsUser(true),
-	)
-	return err
-}
-
-func (s *service) sendMsgAndLog(userId, txt string) {
-	err := s.sendMsg(userId, txt)
-	if err != nil {
-		log.Printf("can't send %s %s", userId, txt)
-	}
+	s.gateway.SendAndLog(holderUserId, "твой ход передался следующему, пока ты спал")
 }
