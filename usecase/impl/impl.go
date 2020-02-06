@@ -203,7 +203,7 @@ func (s *service) emitNewSecondEvent(before model.Queue, after model.Queue) {
 	if len(after.Entities) > 1 {
 		secondAfter = after.Entities[1].UserId
 	}
-	if secondBefore != secondAfter {
+	if secondBefore != secondAfter && secondAfter != "" {
 		s.bus.Send(model.NewSecondEvent{CurrentSecondUserId: secondAfter})
 	}
 }
