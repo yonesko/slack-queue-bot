@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	eventmock "github.com/yonesko/slack-queue-bot/event/mock"
+	"github.com/yonesko/slack-queue-bot/gateway"
+	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
 	queuemock "github.com/yonesko/slack-queue-bot/queue/mock"
 	"github.com/yonesko/slack-queue-bot/usecase"
@@ -27,11 +29,13 @@ func TestService_Add_DifferentUsers(t *testing.T) {
 
 //noinspection GoUnhandledErrorResult
 func TestService_HoldTs(t *testing.T) {
+	i18n.TestInit()
 	now := time.Now()
 	patch := monkey.Patch(time.Now, func() time.Time { return now })
 	defer patch.Unpatch()
 	service := mockService()
 	service.Add(model.QueueEntity{UserId: "123"})
+	time.Sleep(time.Millisecond * 5)
 	queue, _ := service.Show()
 	assert.Equal(t, now, queue.HoldTs)
 	service.Add(model.QueueEntity{UserId: "2"})
@@ -41,6 +45,7 @@ func TestService_HoldTs(t *testing.T) {
 	assert.Equal(t, now, queue.HoldTs)
 	now = time.Now().Add(time.Hour)
 	service.DeleteById("123", "123")
+	time.Sleep(time.Millisecond * 5)
 	queue, _ = service.Show()
 	assert.Equal(t, now.String(), queue.HoldTs.String())
 }
@@ -182,6 +187,6 @@ func mockService() *service {
 		queuemock.NewQueueRepositoryMock(),
 		&eventmock.QueueChangedEventBus{Inbox: []interface{}{}},
 		sync.Mutex{},
-		nil,
+		gateway.Mock{},
 	}
 }
