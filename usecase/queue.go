@@ -6,7 +6,6 @@ import (
 	"github.com/yonesko/slack-queue-bot/event"
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue"
-	"log"
 	"sync"
 	"time"
 )
@@ -19,12 +18,13 @@ type QueueService interface {
 	Pass(authorUserId string) error
 	DeleteAll() error
 	Show() (model.Queue, error)
+	UpdateNewHolder() error
 }
 
 type service struct {
-	queueRepository      queue.Repository
-	queueChangedEventBus event.QueueChangedEventBus
-	mu                   sync.Mutex
+	rep queue.Repository
+	bus event.QueueChangedEventBus
+	mu  sync.Mutex
 }
 
 var (
@@ -46,7 +46,7 @@ func NewQueueService(repository queue.Repository, queueChangedEventBus event.Que
 func (s *service) Pop(authorUserId string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	queue, err := s.queueRepository.Read()
+	queue, err := s.rep.Read()
 	if err != nil {
 		return "", err
 	}
@@ -63,7 +63,7 @@ func (s *service) Pop(authorUserId string) (string, error) {
 func (s *service) Add(entity model.QueueEntity) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	queue, err := s.queueRepository.Read()
+	queue, err := s.rep.Read()
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (s *service) Add(entity model.QueueEntity) error {
 		return AlreadyExistErr
 	}
 	queue.Entities = append(queue.Entities, entity)
-	err = s.queueRepository.Save(queue)
+	err = s.rep.Save(queue)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (s *service) DeleteById(toDelUserId string, authorUserId string) error {
 
 //lock must acquired in caller method
 func (s *service) deleteById(toDelUserId string, authorUserId string) error {
-	queue, err := s.queueRepository.Read()
+	queue, err := s.rep.Read()
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func (s *service) deleteById(toDelUserId string, authorUserId string) error {
 		return NoSuchUserErr
 	}
 	queue.Entities = append(queue.Entities[:i], queue.Entities[i+1:]...)
-	err = s.queueRepository.Save(queue)
+	err = s.rep.Save(queue)
 	if err != nil {
 		return err
 	}
@@ -121,14 +121,14 @@ func (s *service) deleteById(toDelUserId string, authorUserId string) error {
 func (s *service) DeleteAll() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	q, err := s.queueRepository.Read()
+	q, err := s.rep.Read()
 	if err != nil {
 		return err
 	}
 	if len(q.Entities) == 0 {
 		return QueueIsEmpty
 	}
-	err = s.queueRepository.Save(model.Queue{})
+	err = s.rep.Save(model.Queue{})
 	if err != nil {
 		return err
 	}
@@ -138,13 +138,25 @@ func (s *service) DeleteAll() error {
 func (s *service) Show() (model.Queue, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.queueRepository.Read()
+	return s.rep.Read()
+}
+func (s *service) UpdateNewHolder() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	q, err := s.rep.Read()
+	if err != nil {
+		return err
+	}
+	if q.CurHolder() == "" {
+		q.HolderIsSleeping = false
+	}
+	return nil
 }
 
 func (s *service) Pass(authorUserId string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	queue, err := s.queueRepository.Read()
+	queue, err := s.rep.Read()
 	if err != nil {
 		return err
 	}
@@ -161,7 +173,7 @@ func (s *service) Pass(authorUserId string) error {
 		return NoOneToPass
 	}
 	queue.Entities[0], queue.Entities[1] = queue.Entities[1], queue.Entities[0]
-	err = s.queueRepository.Save(queue)
+	err = s.rep.Save(queue)
 	if err != nil {
 		return err
 	}
@@ -171,7 +183,7 @@ func (s *service) Pass(authorUserId string) error {
 func (s *service) Ack(authorUserId string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	q, err := s.queueRepository.Read()
+	q, err := s.rep.Read()
 	if err != nil {
 		return err
 	}
@@ -182,27 +194,11 @@ func (s *service) Ack(authorUserId string) error {
 		return HolderIsNotSleeping
 	}
 	q.HolderIsSleeping = false
-	err = s.queueRepository.Save(q)
+	err = s.rep.Save(q)
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-//lock must acquired in caller method
-func (s *service) updateHoldTs() {
-	q, err := s.queueRepository.Read()
-	holdTs := time.Now()
-	if err != nil {
-		log.Printf("updateHoldTs %s", err)
-		holdTs = time.Time{}
-	}
-	q.HoldTs = holdTs
-	q.HolderIsSleeping = true
-	err = s.queueRepository.Save(q)
-	if err != nil {
-		log.Printf("updateHoldTs %s", err)
-	}
 }
 
 func (s *service) emitEvents(authorUserId string, before model.Queue, after model.Queue) {
@@ -219,7 +215,7 @@ func (s *service) emitNewSecondEvent(before model.Queue, after model.Queue) {
 		secondAfter = after.Entities[1].UserId
 	}
 	if secondBefore != secondAfter {
-		s.queueChangedEventBus.Send(model.NewSecondEvent{CurrentSecondUserId: secondAfter})
+		s.bus.Send(model.NewSecondEvent{CurrentSecondUserId: secondAfter})
 	}
 }
 func (s *service) emitNewHolderEvent(before model.Queue, after model.Queue, authorUserId string) {
@@ -231,13 +227,12 @@ func (s *service) emitNewHolderEvent(before model.Queue, after model.Queue, auth
 		holderAfter = after.Entities[0].UserId
 
 		if holderBefore != holderAfter {
-			s.queueChangedEventBus.Send(model.NewHolderEvent{
+			s.bus.Send(model.NewHolderEvent{
 				CurrentHolderUserId: holderAfter,
 				PrevHolderUserId:    holderBefore,
 				AuthorUserId:        authorUserId,
 				Ts:                  time.Now(),
 			})
-			s.updateHoldTs()
 		}
 	}
 }

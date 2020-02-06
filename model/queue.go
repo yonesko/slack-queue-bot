@@ -27,3 +27,10 @@ func (q Queue) Copy() Queue {
 	copy(queue.Entities, q.Entities)
 	return queue
 }
+
+func (q Queue) CurHolder() string {
+	if len(q.Entities) == 0 {
+		return ""
+	}
+	return q.Entities[0].UserId
+}
