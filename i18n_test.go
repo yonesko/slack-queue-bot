@@ -67,7 +67,7 @@ func extractLabelsFromFile(filepath string) map[string]struct{} {
 			if !ok {
 				return true
 			}
-			if fun.Sel.Name == "MustGetString" {
+			if fun.Sel.Name == "MustGet" {
 				val, err := strconv.Unquote(callExpr.Args[0].(*ast.BasicLit).Value)
 				if err != nil {
 					panic(fmt.Errorf("strconv.Unquote %s", err))

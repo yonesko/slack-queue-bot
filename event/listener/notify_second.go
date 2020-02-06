@@ -24,7 +24,7 @@ func (n *NotifyNewSecondEventListener) Fire(ev model.NewSecondEvent) {
 		return
 	}
 	_, _, err := n.slackApi.PostMessage(ev.CurrentSecondUserId,
-		slack.MsgOptionText(i18n.P.MustGetString("you_are_the_second"), true),
+		slack.MsgOptionText(i18n.P.MustGet("you_are_the_second"), true),
 		slack.MsgOptionAsUser(true),
 	)
 	if err != nil {

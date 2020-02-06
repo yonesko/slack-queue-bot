@@ -246,7 +246,7 @@ func (s *service) notifyNewHolder(newHolderEvent model.NewHolderEvent) {
 		return
 	}
 
-	err = s.gateway.Send(curHolder, fmt.Sprintf(i18n.P.MustGetString("your_turn_came"), waitForAck))
+	err = s.gateway.Send(curHolder, fmt.Sprintf(i18n.P.MustGet("your_turn_came"), waitForAck))
 	if err != nil {
 		log.Printf("can't notify holder %s: %s", curHolder, err)
 		return

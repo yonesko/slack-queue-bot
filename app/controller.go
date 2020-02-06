@@ -59,7 +59,7 @@ func (c *Controller) execute(command usecase.Command) string {
 	}
 	if err != nil {
 		c.logger.Println(err)
-		return i18n.P.MustGetString("error_occurred")
+		return i18n.P.MustGet("error_occurred")
 	}
 	return txt
 }
@@ -67,18 +67,18 @@ func (c *Controller) execute(command usecase.Command) string {
 func (c *Controller) addUser(authorUserId string) (string, error) {
 	err := c.queueService.Add(model.QueueEntity{UserId: authorUserId})
 	if err == usecase.AlreadyExistErr {
-		return c.appendQueue(i18n.P.MustGetString("you_are_already_in_the_queue"), authorUserId), nil
+		return c.appendQueue(i18n.P.MustGet("you_are_already_in_the_queue"), authorUserId), nil
 	}
 	if err != nil {
 		return "", err
 	}
-	return c.appendQueue(i18n.P.MustGetString("added_successfully"), authorUserId), nil
+	return c.appendQueue(i18n.P.MustGet("added_successfully"), authorUserId), nil
 }
 
 func (c *Controller) deleteUser(authorUserId string) (string, error) {
 	err := c.queueService.DeleteById(authorUserId, authorUserId)
 	if err == usecase.NoSuchUserErr {
-		return c.appendQueue(i18n.P.MustGetString("you_are_not_in_the_queue"), authorUserId), nil
+		return c.appendQueue(i18n.P.MustGet("you_are_not_in_the_queue"), authorUserId), nil
 	}
 	if err == usecase.QueueIsEmpty {
 		return c.showQueue(authorUserId)
@@ -86,7 +86,7 @@ func (c *Controller) deleteUser(authorUserId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return c.appendQueue(i18n.P.MustGetString("deleted_successfully"), authorUserId), nil
+	return c.appendQueue(i18n.P.MustGet("deleted_successfully"), authorUserId), nil
 }
 
 func (c *Controller) appendQueue(txt string, authorUserId string) string {
@@ -111,7 +111,7 @@ func (c *Controller) showQueue(authorUserId string) (string, error) {
 
 func (c *Controller) composeShowQueueText(queue model.Queue, authorUserId string) (string, error) {
 	if len(queue.Entities) == 0 {
-		return i18n.P.MustGetString("queue_is_empty"), nil
+		return i18n.P.MustGet("queue_is_empty"), nil
 	}
 	txt := ""
 	for i, u := range queue.Entities {
@@ -170,7 +170,7 @@ func (c *Controller) estimateTxt(i int, queue model.Queue) string {
 }
 
 func (c *Controller) showHelp(authorUserId string) string {
-	return fmt.Sprintf(i18n.P.MustGetString("help_text"), c.title(authorUserId))
+	return fmt.Sprintf(i18n.P.MustGet("help_text"), c.title(authorUserId))
 }
 
 func (c *Controller) clean(authorUserId string) (string, error) {
@@ -181,7 +181,7 @@ func (c *Controller) clean(authorUserId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return c.appendQueue(i18n.P.MustGetString("cleaned_successfully"), authorUserId), nil
+	return c.appendQueue(i18n.P.MustGet("cleaned_successfully"), authorUserId), nil
 }
 func (c *Controller) ack(authorUserId string) (string, error) {
 	err := c.queueService.Ack(authorUserId)
@@ -194,7 +194,7 @@ func (c *Controller) ack(authorUserId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return c.appendQueue(i18n.P.MustGetString("ack_is_ok"), authorUserId), nil
+	return c.appendQueue(i18n.P.MustGet("ack_is_ok"), authorUserId), nil
 
 }
 func (c *Controller) pop(authorUserId string) (string, error) {
@@ -205,7 +205,7 @@ func (c *Controller) pop(authorUserId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	txt := fmt.Sprintf(i18n.P.MustGetString("popped_successfully"), c.deletedUserTxt(deletedUserId))
+	txt := fmt.Sprintf(i18n.P.MustGet("popped_successfully"), c.deletedUserTxt(deletedUserId))
 	return c.appendQueue(txt, authorUserId), nil
 }
 
