@@ -145,7 +145,7 @@ func (c *Controller) highlightTxt(u model.QueueEntity, authorUserId string, i in
 
 func holdDurationTxt(i int, queue model.Queue) string {
 	if i == 0 && queue.HoldTs.Unix() > 0 {
-		return " :lock: " + time.Now().Sub(queue.HoldTs).Round(time.Minute).String()
+		return " :lock: " + time.Now().Sub(queue.HoldTs).Round(time.Second).String()
 	}
 	return ""
 }
@@ -162,7 +162,7 @@ func (c *Controller) estimateTxt(i int, queue model.Queue) string {
 		c.logger.Printf("composeShowQueueText can't get estimate %s", err)
 		return ""
 	}
-	duration := estimate.TimeToWait(uint(i), queue.HoldTs).Round(time.Minute)
+	duration := estimate.TimeToWait(uint(i), queue.HoldTs).Round(time.Second)
 	if duration == 0 {
 		return ""
 	}
