@@ -3,6 +3,7 @@ package impl
 import (
 	"github.com/stretchr/testify/assert"
 	eventmock "github.com/yonesko/slack-queue-bot/event/mock"
+	"github.com/yonesko/slack-queue-bot/gateway"
 	"github.com/yonesko/slack-queue-bot/model"
 	queuemock "github.com/yonesko/slack-queue-bot/queue/mock"
 	"github.com/yonesko/slack-queue-bot/usecase"
@@ -11,10 +12,7 @@ import (
 )
 
 func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
-	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
-	queueRepository := queuemock.QueueRepository{model.Queue{}}
-	service := &service{&queueRepository, &bus, sync.Mutex{}, nil}
-
+	bus, service := buildQueueServiceAndBus()
 	err := service.Add(model.QueueEntity{UserId: "123"})
 	assert.Nil(t, err)
 	assert.Len(t, bus.Inbox, 1)
@@ -23,10 +21,12 @@ func TestNewHolderEventAddToEmptyQueue(t *testing.T) {
 	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).AuthorUserId)
 }
 
+//noinspection GoUnhandledErrorResult
 func Test_NewHolderEvent_TheSecond_HolderRemoved(t *testing.T) {
-	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
-	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}, {"z"}}}}
-	service := &service{&queueRepository, &bus, sync.Mutex{}, nil}
+	bus, service := buildQueueServiceAndBus()
+	service.Add(model.QueueEntity{UserId: "123"})
+	service.Add(model.QueueEntity{UserId: "abc"})
+	service.Add(model.QueueEntity{UserId: "z"})
 
 	err := service.DeleteById("123", "123")
 	assert.Nil(t, err)
@@ -112,9 +112,7 @@ func TestNewHolderEventPopOnEmpty(t *testing.T) {
 }
 
 func Test_NewHolderEvent_OnPass(t *testing.T) {
-	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
-	queueRepository := queuemock.QueueRepository{model.Queue{}}
-	service := &service{&queueRepository, &bus, sync.Mutex{}, nil}
+	bus, service := buildQueueServiceAndBus()
 
 	assert.Equal(t, usecase.YouAreNotHolder, service.Pass("5653"))
 	assert.Empty(t, bus.Inbox)
@@ -133,6 +131,13 @@ func Test_NewHolderEvent_OnPass(t *testing.T) {
 	//4 6 1 17
 	containsNewHolderEvent(bus.Inbox, "4", "6", "6")
 	assert.Contains(t, bus.Inbox, model.NewSecondEvent{CurrentSecondUserId: "6"})
+}
+
+func buildQueueServiceAndBus() (eventmock.QueueChangedEventBus, *service) {
+	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
+	queueRepository := queuemock.QueueRepository{model.Queue{}}
+	service := &service{&queueRepository, &bus, sync.Mutex{}, gateway.Mock{}}
+	return bus, service
 }
 
 func containsNewHolderEvent(inbox []interface{}, cur, au, prev string) bool {
