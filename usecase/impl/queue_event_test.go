@@ -100,18 +100,6 @@ func TestNewHolderEventPopAnotherUser(t *testing.T) {
 	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).PrevHolderUserId)
 	assert.Equal(t, "abc", bus.Inbox[0].(model.NewHolderEvent).AuthorUserId)
 }
-func TestNewHolderEventPopYourself(t *testing.T) {
-	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
-	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}}}}
-	service := &service{&queueRepository, &bus, sync.Mutex{}}
-
-	_, err := service.Pop("123")
-	assert.Nil(t, err)
-	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, "", bus.Inbox[0].(model.NewHolderEvent).CurrentHolderUserId)
-	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).PrevHolderUserId)
-	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).AuthorUserId)
-}
 
 func TestNewHolderEventPopOnEmpty(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
