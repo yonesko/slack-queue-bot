@@ -7,7 +7,6 @@ import (
 	"github.com/yonesko/slack-queue-bot/event"
 	"github.com/yonesko/slack-queue-bot/event/listener"
 	"github.com/yonesko/slack-queue-bot/queue"
-	"github.com/yonesko/slack-queue-bot/usecase"
 	"github.com/yonesko/slack-queue-bot/usecase/impl"
 	"github.com/yonesko/slack-queue-bot/user"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -22,12 +21,9 @@ const (
 )
 
 type App struct {
-	userRepository user.Repository
-	queueService   usecase.QueueService
-	lumberWriter   lumberjack.Logger
-	rtm            *slack.RTM
-	logger         *log.Logger
-	controller     *Controller
+	rtm        *slack.RTM
+	logger     *log.Logger
+	controller *Controller
 }
 
 func NewApp() *App {
@@ -52,10 +48,8 @@ func NewApp() *App {
 		listener.NewNotifyNewSecondEventListener(slackApi),
 	}
 	return &App{
-		userRepository: userRepository,
-		lumberWriter:   lumberjack.Logger{},
-		rtm:            connectToRTM(slackApi),
-		logger:         log.New(lumberWriter, "app: ", log.Lshortfile|log.LstdFlags),
+		rtm:    connectToRTM(slackApi),
+		logger: log.New(lumberWriter, "app: ", log.Lshortfile|log.LstdFlags),
 		controller: newController(
 			lumberWriter,
 			userRepository,
