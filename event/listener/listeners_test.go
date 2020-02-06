@@ -1,9 +1,8 @@
-package event
+package listener
 
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/yonesko/slack-queue-bot/estimate"
-	"github.com/yonesko/slack-queue-bot/event/listener"
 	"github.com/yonesko/slack-queue-bot/model"
 	"strconv"
 	"testing"
@@ -12,7 +11,7 @@ import (
 
 func TestHoldTimeEstimateListener_FirstInQueue(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := listener.NewHoldTimeEstimateListener(rep)
+	listener := NewHoldTimeEstimateListener(rep)
 
 	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "123",
@@ -34,7 +33,7 @@ func TestHoldTimeEstimateListener_FirstInQueue(t *testing.T) {
 
 func TestHoldTimeEstimateListener_TooLongTime(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := listener.NewHoldTimeEstimateListener(rep)
+	listener := NewHoldTimeEstimateListener(rep)
 
 	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "123",
@@ -56,7 +55,7 @@ func TestHoldTimeEstimateListener_TooLongTime(t *testing.T) {
 
 func TestHoldTimeEstimateListener_InMiddleOfQueue(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := listener.NewHoldTimeEstimateListener(rep)
+	listener := NewHoldTimeEstimateListener(rep)
 
 	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "1",
@@ -78,7 +77,7 @@ func TestHoldTimeEstimateListener_InMiddleOfQueue(t *testing.T) {
 
 func TestHoldTimeEstimateListener_ForceDel(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := listener.NewHoldTimeEstimateListener(rep)
+	listener := NewHoldTimeEstimateListener(rep)
 
 	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "1",
@@ -100,7 +99,7 @@ func TestHoldTimeEstimateListener_ForceDel(t *testing.T) {
 
 func TestHoldTimeEstimateListener_MultiplyEvents(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := listener.NewHoldTimeEstimateListener(rep)
+	listener := NewHoldTimeEstimateListener(rep)
 
 	for i := 1; i <= 100; i++ {
 		listener.Fire(model.NewHolderEvent{
