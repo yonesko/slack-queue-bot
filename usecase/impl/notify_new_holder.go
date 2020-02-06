@@ -23,9 +23,15 @@ func (s *service) notifyNewHolderAndWaitForAck(newHolderEvent model.NewHolderEve
 		return
 	}
 
-	go s.gateway.SendAndLog(curHolder, fmt.Sprintf(i18n.L.MustGet("your_turn_came"), waitForAck))
-
-	time.AfterFunc(waitForAck, func() { s.passSleepingHolder(curHolder) })
+	go func() {
+		txt := fmt.Sprintf(i18n.L.MustGet("your_turn_came"), waitForAck)
+		err := s.gateway.Send(curHolder, txt)
+		if err != nil {
+			log.Printf("can't send %s '%s' %s", curHolder, txt, err)
+			return
+		}
+		time.AfterFunc(waitForAck, func() { s.passSleepingHolder(curHolder) })
+	}()
 }
 
 func (s *service) passSleepingHolder(holderUserId string) {
