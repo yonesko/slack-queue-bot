@@ -57,6 +57,8 @@ func extractData(ev *slack.MessageEvent) interface{} {
 		return usecase.CleanCommand{}
 	case "pop":
 		return usecase.PopCommand{}
+	case "ack", "ак":
+		return usecase.AckCommand{}
 	}
 	return usecase.HelpCommand{}
 }

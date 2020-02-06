@@ -1,12 +1,15 @@
-package usecase
+package impl
 
 import (
 	"bou.ke/monkey"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	eventmock "github.com/yonesko/slack-queue-bot/event/mock"
+	"github.com/yonesko/slack-queue-bot/gateway"
+	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
-	queuemock "github.com/yonesko/slack-queue-bot/queue/mock"
+	"github.com/yonesko/slack-queue-bot/queue/mock"
+	"github.com/yonesko/slack-queue-bot/usecase"
 	"sync"
 	"testing"
 	"time"
@@ -26,11 +29,13 @@ func TestService_Add_DifferentUsers(t *testing.T) {
 
 //noinspection GoUnhandledErrorResult
 func TestService_HoldTs(t *testing.T) {
+	i18n.TestInit()
 	now := time.Now()
 	patch := monkey.Patch(time.Now, func() time.Time { return now })
 	defer patch.Unpatch()
 	service := mockService()
 	service.Add(model.QueueEntity{UserId: "123"})
+	time.Sleep(time.Millisecond * 5)
 	queue, _ := service.Show()
 	assert.Equal(t, now, queue.HoldTs)
 	service.Add(model.QueueEntity{UserId: "2"})
@@ -40,6 +45,7 @@ func TestService_HoldTs(t *testing.T) {
 	assert.Equal(t, now, queue.HoldTs)
 	now = time.Now().Add(time.Hour)
 	service.DeleteById("123", "123")
+	time.Sleep(time.Millisecond * 5)
 	queue, _ = service.Show()
 	assert.Equal(t, now.String(), queue.HoldTs.String())
 }
@@ -47,7 +53,7 @@ func TestService_HoldTs(t *testing.T) {
 func TestService_Pop(t *testing.T) {
 	service := mockService()
 	_, err := service.Pop("123")
-	assert.Equal(t, QueueIsEmpty, err)
+	assert.Equal(t, usecase.QueueIsEmpty, err)
 	err = service.Add(model.QueueEntity{UserId: "123"})
 	assert.Nil(t, err)
 	deletedUserId, err := service.Pop("123")
@@ -61,7 +67,7 @@ func TestService_Pop(t *testing.T) {
 func TestService_DeleteAll(t *testing.T) {
 	service := mockService()
 	err := service.DeleteAll()
-	if err != QueueIsEmpty {
+	if err != usecase.QueueIsEmpty {
 		t.Error(err)
 	}
 	err = service.Add(model.QueueEntity{UserId: "123"})
@@ -82,7 +88,6 @@ func TestService_Add_Idempotent(t *testing.T) {
 }
 
 func TestNoRaceConditionsInService(t *testing.T) {
-	t.Skip("code run in 1 routine now")
 	service := mockService()
 	group := &sync.WaitGroup{}
 	chunks, workers := 100, 100
@@ -99,7 +104,62 @@ func TestNoRaceConditionsInService(t *testing.T) {
 	}
 }
 
-func addUsers(service QueueService, t *testing.T, start, end int, group *sync.WaitGroup) {
+//noinspection GoUnhandledErrorResult
+func TestAck(t *testing.T) {
+	service := mockService()
+	service.Add(model.QueueEntity{UserId: "1"})
+	time.Sleep(time.Millisecond * 5)
+	queue, _ := service.Show()
+	assert.True(t, queue.HolderIsSleeping)
+	assert.Equal(t, usecase.YouAreNotHolder, service.Ack("5"))
+	queue, _ = service.Show()
+	assert.True(t, queue.HolderIsSleeping)
+	assert.Nil(t, service.Ack("1"))
+	assert.Equal(t, usecase.HolderIsNotSleeping, service.Ack("1"))
+	queue, _ = service.Show()
+	assert.False(t, queue.HolderIsSleeping)
+	service.Add(model.QueueEntity{UserId: "6"})
+	queue, _ = service.Show()
+	assert.False(t, queue.HolderIsSleeping)
+	service.Add(model.QueueEntity{UserId: "6"})
+}
+
+func TestService_UpdateNewHolder(t *testing.T) {
+	now := time.Now()
+	patch := monkey.Patch(time.Now, func() time.Time { return now })
+	defer patch.Unpatch()
+
+	service := mockService()
+	assert.Nil(t, service.UpdateOnNewHolder())
+	queue, _ := service.Show()
+	assert.False(t, queue.HolderIsSleeping)
+	assert.Zero(t, queue.HoldTs)
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "1"}))
+	assert.Nil(t, service.UpdateOnNewHolder())
+	queue, _ = service.Show()
+	assert.True(t, queue.HolderIsSleeping)
+	assert.Equal(t, now, queue.HoldTs)
+}
+
+func TestService_PassFromSleepingHolder(t *testing.T) {
+	i18n.TestInit()
+	service := mockService()
+	assert.Equal(t, usecase.HolderIsNotSleeping, service.PassFromSleepingHolder("5653"))
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "4"}))
+	assert.Equal(t, usecase.NoOneToPass, service.PassFromSleepingHolder("4"))
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "6"}))
+	assert.Nil(t, service.PassFromSleepingHolder("4"))
+	queue, _ := service.Show()
+	equals(queue, []string{"6", "4"})
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "1"}))
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "17"}))
+	equals(queue, []string{"6", "4", "1", "17"})
+	assert.Equal(t, usecase.YouAreNotHolder, service.PassFromSleepingHolder("4"))
+	assert.Nil(t, service.PassFromSleepingHolder("6"))
+	equals(queue, []string{"4", "6", "1", "17"})
+}
+
+func addUsers(service usecase.QueueService, t *testing.T, start, end int, group *sync.WaitGroup) {
 	defer group.Done()
 
 	for i := start; i < end; i++ {
@@ -126,7 +186,9 @@ func equals(queue model.Queue, userIds []string) bool {
 
 func mockService() *service {
 	return &service{
-		queuemock.NewQueueRepositoryMock(),
+		&mock.QueueRepository{model.Queue{}},
 		&eventmock.QueueChangedEventBus{Inbox: []interface{}{}},
+		sync.Mutex{},
+		gateway.Mock{},
 	}
 }

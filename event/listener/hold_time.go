@@ -7,6 +7,9 @@ import (
 	"time"
 )
 
+type NewHolderEventListener interface {
+	Fire(newHolderEvent model.NewHolderEvent)
+}
 type HoldTimeEstimateListener struct {
 	estimateRepository estimate.Repository
 	prevEv             *model.NewHolderEvent
@@ -32,7 +35,7 @@ func isTimeSeemsLegit(duration time.Duration) bool {
 }
 
 func (l *HoldTimeEstimateListener) calcEstimate(duration time.Duration) {
-	estimate, err := l.estimateRepository.Get()
+	estimate, err := l.estimateRepository.Read()
 	if err != nil {
 		log.Printf("can't calc estimate: %s", err)
 		return

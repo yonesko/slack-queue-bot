@@ -51,13 +51,15 @@ func (c *Controller) execute(command usecase.Command) string {
 		txt, err = c.clean(command.AuthorUserId)
 	case usecase.PopCommand:
 		txt, err = c.pop(command.AuthorUserId)
+	case usecase.AckCommand:
+		txt, err = c.ack(command.AuthorUserId)
 	default:
 		c.logger.Printf("undefined command : %v", command)
 		return c.showHelp(command.AuthorUserId)
 	}
 	if err != nil {
 		c.logger.Println(err)
-		return i18n.P.MustGetString("error_occurred")
+		return i18n.L.MustGet("error_occurred")
 	}
 	return txt
 }
@@ -65,18 +67,18 @@ func (c *Controller) execute(command usecase.Command) string {
 func (c *Controller) addUser(authorUserId string) (string, error) {
 	err := c.queueService.Add(model.QueueEntity{UserId: authorUserId})
 	if err == usecase.AlreadyExistErr {
-		return c.appendQueue(i18n.P.MustGetString("you_are_already_in_the_queue"), authorUserId), nil
+		return c.appendQueue(i18n.L.MustGet("you_are_already_in_the_queue"), authorUserId), nil
 	}
 	if err != nil {
 		return "", err
 	}
-	return c.appendQueue(i18n.P.MustGetString("added_successfully"), authorUserId), nil
+	return c.appendQueue(i18n.L.MustGet("added_successfully"), authorUserId), nil
 }
 
 func (c *Controller) deleteUser(authorUserId string) (string, error) {
 	err := c.queueService.DeleteById(authorUserId, authorUserId)
 	if err == usecase.NoSuchUserErr {
-		return c.appendQueue(i18n.P.MustGetString("you_are_not_in_the_queue"), authorUserId), nil
+		return c.appendQueue(i18n.L.MustGet("you_are_not_in_the_queue"), authorUserId), nil
 	}
 	if err == usecase.QueueIsEmpty {
 		return c.showQueue(authorUserId)
@@ -84,7 +86,7 @@ func (c *Controller) deleteUser(authorUserId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return c.appendQueue(i18n.P.MustGetString("deleted_successfully"), authorUserId), nil
+	return c.appendQueue(i18n.L.MustGet("deleted_successfully"), authorUserId), nil
 }
 
 func (c *Controller) appendQueue(txt string, authorUserId string) string {
@@ -109,7 +111,7 @@ func (c *Controller) showQueue(authorUserId string) (string, error) {
 
 func (c *Controller) composeShowQueueText(queue model.Queue, authorUserId string) (string, error) {
 	if len(queue.Entities) == 0 {
-		return i18n.P.MustGetString("queue_is_empty"), nil
+		return i18n.L.MustGet("queue_is_empty"), nil
 	}
 	txt := ""
 	for i, u := range queue.Entities {
@@ -117,25 +119,50 @@ func (c *Controller) composeShowQueueText(queue model.Queue, authorUserId string
 		if err != nil {
 			return "", fmt.Errorf("can't composeShowQueueText: %s", err)
 		}
-		highlight, holdTime := "", ""
-		if u.UserId == authorUserId {
-			highlight = ":point_left::skin-tone-2:" + c.estimateTxt(i, queue)
-		}
-		if i == 0 && queue.HoldTs.Unix() > 0 {
-			holdTime = ":lock: " + time.Now().Sub(queue.HoldTs).Round(time.Minute).String()
-		}
-		txt += fmt.Sprintf("`%dº` %s (%s) %s %s\n", i+1, user.FullName, user.DisplayName, highlight, holdTime)
+		txt += fmt.Sprintf(
+			"`%dº` %s (%s) %s%s%s\n",
+			i+1,
+			user.FullName,
+			user.DisplayName,
+			c.highlightTxt(u, authorUserId, i, queue),
+			holdDurationTxt(i, queue),
+			isSleepingTxt(i, queue),
+		)
 	}
 	return txt, nil
 }
 
+func (c *Controller) highlightTxt(u model.QueueEntity, authorUserId string, i int, queue model.Queue) string {
+	if u.UserId == authorUserId {
+		txt := ":point_left::skin-tone-2:"
+		if i > 0 {
+			txt += c.estimateTxt(i, queue)
+		}
+		return txt
+	}
+	return ""
+}
+
+func holdDurationTxt(i int, queue model.Queue) string {
+	if i == 0 && queue.HoldTs.Unix() > 0 {
+		return " :lock: " + time.Now().Sub(queue.HoldTs).Round(time.Second).String()
+	}
+	return ""
+}
+func isSleepingTxt(i int, queue model.Queue) string {
+	if queue.HolderIsSleeping && i == 0 {
+		return " :sleeping:"
+	}
+	return ""
+}
+
 func (c *Controller) estimateTxt(i int, queue model.Queue) string {
-	estimate, err := c.estimateRepository.Get()
+	estimate, err := c.estimateRepository.Read()
 	if err != nil {
 		c.logger.Printf("composeShowQueueText can't get estimate %s", err)
 		return ""
 	}
-	duration := estimate.TimeToWait(uint(i), queue.HoldTs).Round(time.Minute)
+	duration := estimate.TimeToWait(uint(i), queue.HoldTs).Round(time.Second)
 	if duration == 0 {
 		return ""
 	}
@@ -143,7 +170,7 @@ func (c *Controller) estimateTxt(i int, queue model.Queue) string {
 }
 
 func (c *Controller) showHelp(authorUserId string) string {
-	return fmt.Sprintf(i18n.P.MustGetString("help_text"), c.title(authorUserId))
+	return fmt.Sprintf(i18n.L.MustGet("help_text"), c.title(authorUserId))
 }
 
 func (c *Controller) clean(authorUserId string) (string, error) {
@@ -154,9 +181,22 @@ func (c *Controller) clean(authorUserId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return c.appendQueue(i18n.P.MustGetString("cleaned_successfully"), authorUserId), nil
+	return c.appendQueue(i18n.L.MustGet("cleaned_successfully"), authorUserId), nil
 }
+func (c *Controller) ack(authorUserId string) (string, error) {
+	err := c.queueService.Ack(authorUserId)
+	if err == usecase.YouAreNotHolder {
+		return "Ты не первый в очереди, твой ack не нужен", nil
+	}
+	if err == usecase.HolderIsNotSleeping {
+		return "Ack уже получен", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return c.appendQueue(i18n.L.MustGet("ack_is_ok"), authorUserId), nil
 
+}
 func (c *Controller) pop(authorUserId string) (string, error) {
 	deletedUserId, err := c.queueService.Pop(authorUserId)
 	if err == usecase.QueueIsEmpty {
@@ -165,7 +205,7 @@ func (c *Controller) pop(authorUserId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	txt := fmt.Sprintf(i18n.P.MustGetString("popped_successfully"), c.deletedUserTxt(deletedUserId))
+	txt := fmt.Sprintf(i18n.L.MustGet("popped_successfully"), c.deletedUserTxt(deletedUserId))
 	return c.appendQueue(txt, authorUserId), nil
 }
 

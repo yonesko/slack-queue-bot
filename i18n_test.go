@@ -21,11 +21,11 @@ func TestAllLabelsAreUsedAndDefined(t *testing.T) {
 		t.Error("no labels are used, use some or skip this test")
 	}
 	for l := range usedLabels {
-		if val, ok := i18n.P.Get(l); !ok || len(strings.TrimSpace(val)) == 0 {
+		if val, ok := i18n.L.Get(l); !ok || len(strings.TrimSpace(val)) == 0 {
 			t.Errorf("label %s is undefined", l)
 		}
 	}
-	for _, l := range i18n.P.Keys() {
+	for _, l := range i18n.L.Keys() {
 		if _, ok := usedLabels[l]; !ok {
 			t.Errorf("label %s is unused\n", l)
 		}
@@ -67,7 +67,7 @@ func extractLabelsFromFile(filepath string) map[string]struct{} {
 			if !ok {
 				return true
 			}
-			if fun.Sel.Name == "MustGetString" {
+			if fun.Sel.Name == "MustGet" {
 				val, err := strconv.Unquote(callExpr.Args[0].(*ast.BasicLit).Value)
 				if err != nil {
 					panic(fmt.Errorf("strconv.Unquote %s", err))

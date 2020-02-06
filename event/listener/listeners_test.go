@@ -1,9 +1,8 @@
-package event
+package listener
 
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/yonesko/slack-queue-bot/estimate"
-	"github.com/yonesko/slack-queue-bot/event/listener"
 	"github.com/yonesko/slack-queue-bot/model"
 	"strconv"
 	"testing"
@@ -12,7 +11,7 @@ import (
 
 func TestHoldTimeEstimateListener_FirstInQueue(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := listener.NewHoldTimeEstimateListener(rep)
+	listener := NewHoldTimeEstimateListener(rep)
 
 	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "123",
@@ -27,14 +26,14 @@ func TestHoldTimeEstimateListener_FirstInQueue(t *testing.T) {
 		AuthorUserId:        "123",
 		Ts:                  time.Unix(int64((time.Minute * 35).Seconds()), 0),
 	})
-	duration, err := rep.Get()
+	duration, err := rep.Read()
 	assert.Nil(t, err)
 	assert.Equal(t, estimate.Estimate{time.Minute * 35, 1}, duration)
 }
 
 func TestHoldTimeEstimateListener_TooLongTime(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := listener.NewHoldTimeEstimateListener(rep)
+	listener := NewHoldTimeEstimateListener(rep)
 
 	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "123",
@@ -49,14 +48,14 @@ func TestHoldTimeEstimateListener_TooLongTime(t *testing.T) {
 		AuthorUserId:        "123",
 		Ts:                  time.Unix(int64((time.Hour*2).Seconds())+1, 0),
 	})
-	duration, err := rep.Get()
+	duration, err := rep.Read()
 	assert.Nil(t, err)
 	assert.Equal(t, estimate.Estimate{0, 0}, duration)
 }
 
 func TestHoldTimeEstimateListener_InMiddleOfQueue(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := listener.NewHoldTimeEstimateListener(rep)
+	listener := NewHoldTimeEstimateListener(rep)
 
 	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "1",
@@ -71,14 +70,14 @@ func TestHoldTimeEstimateListener_InMiddleOfQueue(t *testing.T) {
 		AuthorUserId:        "1",
 		Ts:                  time.Unix(int64((time.Minute * 35).Seconds()), 0),
 	})
-	duration, err := rep.Get()
+	duration, err := rep.Read()
 	assert.Nil(t, err)
 	assert.Equal(t, estimate.Estimate{time.Minute * 35, 1}, duration)
 }
 
 func TestHoldTimeEstimateListener_ForceDel(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := listener.NewHoldTimeEstimateListener(rep)
+	listener := NewHoldTimeEstimateListener(rep)
 
 	listener.Fire(model.NewHolderEvent{
 		CurrentHolderUserId: "1",
@@ -93,14 +92,14 @@ func TestHoldTimeEstimateListener_ForceDel(t *testing.T) {
 		AuthorUserId:        "4",
 		Ts:                  time.Unix(int64((time.Minute * 35).Seconds()), 0),
 	})
-	duration, err := rep.Get()
+	duration, err := rep.Read()
 	assert.Nil(t, err)
 	assert.Equal(t, estimate.Estimate{time.Second * 0, 0}, duration)
 }
 
 func TestHoldTimeEstimateListener_MultiplyEvents(t *testing.T) {
 	rep := &estimate.RepositoryMock{}
-	listener := listener.NewHoldTimeEstimateListener(rep)
+	listener := NewHoldTimeEstimateListener(rep)
 
 	for i := 1; i <= 100; i++ {
 		listener.Fire(model.NewHolderEvent{
@@ -111,7 +110,7 @@ func TestHoldTimeEstimateListener_MultiplyEvents(t *testing.T) {
 		})
 	}
 
-	duration, err := rep.Get()
+	duration, err := rep.Read()
 	assert.Nil(t, err)
 	assert.Equal(t, estimate.Estimate{time.Minute * 35, 99}, duration)
 }

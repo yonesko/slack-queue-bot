@@ -4,7 +4,7 @@ type RepositoryMock struct {
 	estimate Estimate
 }
 
-func (r *RepositoryMock) Get() (Estimate, error) {
+func (r *RepositoryMock) Read() (Estimate, error) {
 	return r.estimate, nil
 }
 

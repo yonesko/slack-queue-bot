@@ -3,8 +3,9 @@ package model
 import "time"
 
 type Queue struct {
-	Entities []QueueEntity `json:"entities"`
-	HoldTs   time.Time     `json:"hold_ts"`
+	Entities         []QueueEntity `json:"entities"`
+	HoldTs           time.Time     `json:"hold_ts"`
+	HolderIsSleeping bool          `json:"holder_is_sleeping"`
 }
 
 type QueueEntity struct {
@@ -25,4 +26,11 @@ func (q Queue) Copy() Queue {
 	queue := Queue{Entities: make([]QueueEntity, len(q.Entities))}
 	copy(queue.Entities, q.Entities)
 	return queue
+}
+
+func (q Queue) CurHolder() string {
+	if len(q.Entities) == 0 {
+		return ""
+	}
+	return q.Entities[0].UserId
 }
