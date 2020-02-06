@@ -182,5 +182,6 @@ func mockService() *service {
 		queuemock.NewQueueRepositoryMock(),
 		&eventmock.QueueChangedEventBus{Inbox: []interface{}{}},
 		sync.Mutex{},
+		nil,
 	}
 }

@@ -2,25 +2,29 @@ package impl
 
 import (
 	"fmt"
+	"github.com/nlopes/slack"
 	"github.com/yonesko/slack-queue-bot/event"
+	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue"
 	"github.com/yonesko/slack-queue-bot/usecase"
+	"log"
 	"sync"
 	"time"
 )
 
 type service struct {
-	rep queue.Repository
-	bus event.QueueChangedEventBus
-	mu  sync.Mutex
+	rep      queue.Repository
+	bus      event.QueueChangedEventBus
+	mu       sync.Mutex
+	slackApi *slack.Client
 }
 
 func NewQueueService(repository queue.Repository, queueChangedEventBus event.QueueChangedEventBus) usecase.QueueService {
 	if _, err := repository.Read(); err != nil {
 		panic(fmt.Sprintf("can't crete QueueService: %s", err))
 	}
-	return &service{repository, queueChangedEventBus, sync.Mutex{}}
+	return &service{repository, queueChangedEventBus, sync.Mutex{}, nil}
 }
 
 func (s *service) Pop(authorUserId string) (string, error) {
@@ -49,7 +53,7 @@ func (s *service) Add(entity model.QueueEntity) error {
 	}
 	defer func(queueBefore model.Queue) {
 		if err == nil {
-			s.emitEvents(entity.UserId, queueBefore, queue)
+			go s.emitEvents(entity.UserId, queueBefore, queue)
 		}
 	}(queue.Copy())
 
@@ -80,7 +84,7 @@ func (s *service) deleteById(toDelUserId string, authorUserId string) error {
 	}
 	defer func(queueBefore model.Queue) {
 		if err == nil {
-			s.emitEvents(authorUserId, queueBefore, queue)
+			go s.emitEvents(authorUserId, queueBefore, queue)
 		}
 	}(queue.Copy())
 	if len(queue.Entities) == 0 {
@@ -151,7 +155,7 @@ func (s *service) Pass(holder string) error {
 	}
 	defer func(queueBefore model.Queue) {
 		if err == nil {
-			s.emitEvents(holder, queueBefore, queue)
+			go s.emitEvents(holder, queueBefore, queue)
 		}
 	}(queue.Copy())
 	i := queue.IndexOf(holder)
@@ -216,12 +220,73 @@ func (s *service) emitNewHolderEvent(before model.Queue, after model.Queue, auth
 		holderAfter = after.Entities[0].UserId
 
 		if holderBefore != holderAfter {
-			s.bus.Send(model.NewHolderEvent{
+			newHolderEvent := model.NewHolderEvent{
 				CurrentHolderUserId: holderAfter,
 				PrevHolderUserId:    holderBefore,
 				AuthorUserId:        authorUserId,
 				Ts:                  time.Now(),
-			})
+			}
+			s.bus.Send(newHolderEvent)
+			s.notifyNewHolder(newHolderEvent)
 		}
+	}
+}
+
+const waitForAck = time.Minute * 7
+
+func (s *service) notifyNewHolder(newHolderEvent model.NewHolderEvent) {
+	curHolder := newHolderEvent.CurrentHolderUserId
+	err := s.UpdateOnNewHolder()
+	if err != nil {
+		log.Printf("can't UpdateOnNewHolder, return")
+		return
+	}
+	if curHolder == "" {
+		log.Printf("holder is empty, return")
+		return
+	}
+
+	err = s.sendMsg(curHolder, fmt.Sprintf(i18n.P.MustGetString("your_turn_came"), waitForAck))
+	if err != nil {
+		log.Printf("can't notify holder %s: %s", curHolder, err)
+		return
+	}
+
+	time.AfterFunc(waitForAck, func() { s.passSleepingHolder(curHolder) })
+}
+
+func (s *service) passSleepingHolder(holderUserId string) {
+	err := s.Pass(holderUserId)
+	if err == usecase.YouAreNotHolder {
+		log.Printf("passSleepingHolder %s", err)
+		return
+	}
+	if err == usecase.NoOneToPass {
+		s.sendMsgAndLog(holderUserId, "я бы передал твой ход следующему, пока ты спишь, но ты один в очереди")
+		return
+	}
+	if err != nil {
+		log.Printf("can't passSleepingHolder %s", err)
+		return
+	}
+	s.sendMsgAndLog(holderUserId, "твой ход передался следующему, пока ты спал")
+}
+
+func (s *service) sendMsg(userId, txt string) error {
+	if userId == "" {
+		log.Printf("sendMsg user id is empty")
+		return nil
+	}
+	_, _, err := s.slackApi.PostMessage(userId,
+		slack.MsgOptionText(txt, true),
+		slack.MsgOptionAsUser(true),
+	)
+	return err
+}
+
+func (s *service) sendMsgAndLog(userId, txt string) {
+	err := s.sendMsg(userId, txt)
+	if err != nil {
+		log.Printf("can't send %s %s", userId, txt)
 	}
 }
