@@ -30,6 +30,7 @@ func (s slackGateway) Send(userId, txt string) error {
 		log.Printf("sendMsg user id is empty")
 		return nil
 	}
+	log.Printf("sending to %s '%s'", userId, txt)
 	_, _, err := s.slackApi.PostMessage(userId,
 		slack.MsgOptionText(txt, true),
 		slack.MsgOptionAsUser(true),
