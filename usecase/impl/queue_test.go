@@ -77,6 +77,27 @@ func TestService_DeleteAll(t *testing.T) {
 	equals(queue, []string{"123"})
 }
 
+func Test_Pass(t *testing.T) {
+	i18n.TestInit()
+	service := mockService()
+	assert.Equal(t, usecase.QueueIsEmpty, service.Pass(""))
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "123"}))
+	assert.Equal(t, usecase.NoSuchUserErr, service.Pass("333"))
+	assert.Equal(t, usecase.NoOneToPass, service.Pass("123"))
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "456"}))
+	assert.Nil(t, service.Pass("123"))
+	queue, _ := service.Show()
+	equals(queue, []string{"456", "123"})
+	//
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "a"}))
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "b"}))
+	assert.Nil(t, service.Add(model.QueueEntity{UserId: "c"}))
+	equals(queue, []string{"456", "123", "a", "b", "c"})
+	assert.Nil(t, service.Pass("123"))
+	queue, _ = service.Show()
+	equals(queue, []string{"456", "a", "123", "b", "c"})
+}
+
 func TestService_Add_Idempotent(t *testing.T) {
 	service := mockService()
 	err := service.Add(model.QueueEntity{UserId: "123"})

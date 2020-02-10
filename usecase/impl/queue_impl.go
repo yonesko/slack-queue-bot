@@ -25,6 +25,37 @@ func NewQueueService(repository queue.Repository, queueChangedEventBus event.Que
 	return &service{repository, queueChangedEventBus, sync.Mutex{}, gateway}
 }
 
+func (s *service) Pass(authorUserId string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	queue, err := s.rep.Read()
+	if err != nil {
+		return err
+	}
+	defer func(queueBefore model.Queue) {
+		if err == nil {
+			s.emitEvents(authorUserId, queueBefore, queue)
+		}
+	}(queue.Copy())
+	if len(queue.Entities) == 0 {
+		return usecase.QueueIsEmpty
+	}
+	i := queue.IndexOf(authorUserId)
+	if i == -1 {
+		return usecase.NoSuchUserErr
+	}
+	nexti := i + 1
+	if nexti >= len(queue.Entities) {
+		return usecase.NoOneToPass
+	}
+	queue.Entities[i], queue.Entities[nexti] = queue.Entities[nexti], queue.Entities[i]
+	err = s.rep.Save(queue)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *service) Pop(authorUserId string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
