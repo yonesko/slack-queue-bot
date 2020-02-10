@@ -11,6 +11,7 @@ This bot supports next commands:
 * `show`  >   Show the queue 
 * `clean` >   Delete all users in the queue 
 * `pop`  >   Delete first user of the queue
+* `pass`  >   Pass the queue
 
 ## backlog
 #### features
