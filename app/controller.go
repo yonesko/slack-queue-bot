@@ -54,6 +54,8 @@ func (c *Controller) execute(command usecase.Command) string {
 		txt, err = c.pop(command.AuthorUserId)
 	case usecase.AckCommand:
 		txt, err = c.ack(command.AuthorUserId)
+	case usecase.PassCommand:
+		txt, err = c.pass(command.AuthorUserId)
 	default:
 		c.logger.Printf("undefined command : %v", command)
 		return c.showHelp(command.AuthorUserId)
@@ -198,7 +200,7 @@ func (c *Controller) estimateTxt(i int, queue model.Queue) string {
 	if duration == 0 {
 		return ""
 	}
-	return fmt.Sprintf("~%s (%s)", duration, time.Now().Add(duration).Format("Mon Jan 2 15:04"))
+	return fmt.Sprintf("~%s (%s)", humanizeDuration(duration), time.Now().Add(duration).Format("Mon Jan 2 15:04"))
 }
 
 func (c *Controller) showHelp(authorUserId string) string {
@@ -227,7 +229,6 @@ func (c *Controller) ack(authorUserId string) (string, error) {
 		return "", err
 	}
 	return c.appendQueue(i18n.L.MustGet("ack_is_ok"), authorUserId), nil
-
 }
 func (c *Controller) pop(authorUserId string) (string, error) {
 	deletedUserId, err := c.queueService.Pop(authorUserId)
@@ -239,6 +240,19 @@ func (c *Controller) pop(authorUserId string) (string, error) {
 	}
 	txt := fmt.Sprintf(i18n.L.MustGet("popped_successfully"), c.deletedUserTxt(deletedUserId))
 	return c.appendQueue(txt, authorUserId), nil
+}
+func (c *Controller) pass(authorUserId string) (string, error) {
+	err := c.queueService.Pass(authorUserId)
+	if err == usecase.QueueIsEmpty {
+		return c.showQueue(authorUserId)
+	}
+	if err == usecase.NoSuchUserErr {
+		return c.appendQueue(i18n.L.MustGet("you_are_not_in_the_queue"), authorUserId), nil
+	}
+	if err == usecase.NoOneToPass {
+		return "Некому передать", nil
+	}
+	return c.appendQueue("Махнул тебя", authorUserId), nil
 }
 
 func (c *Controller) deletedUserTxt(deletedUserId string) string {
