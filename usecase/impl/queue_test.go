@@ -66,7 +66,7 @@ func TestService_Pop(t *testing.T) {
 
 func TestService_DeleteAll(t *testing.T) {
 	service := mockService()
-	err := service.DeleteAll()
+	err := service.DeleteAll("")
 	if err != usecase.QueueIsEmpty {
 		t.Error(err)
 	}

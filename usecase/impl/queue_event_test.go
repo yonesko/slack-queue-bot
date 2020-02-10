@@ -104,6 +104,12 @@ func Test_Pass_emits_events(t *testing.T) {
 	assert.Empty(t, bus.Inbox)
 }
 
+//func Test_DeletedEvent(t *testing.T) {
+//	bus, service := buildQueueServiceAndBus(model.Queue{Entities: []model.QueueEntity{{"1"}, {"2"}, {"3"}}})
+//	assert.Nil(t, service.DeleteAll())
+//	//assert.Contains(t, bus.Inbox, model.DeletedEvent{AuthorUserId:})
+//}
+
 func TestNewHolderEventForceDeleteNotHolder(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}}}

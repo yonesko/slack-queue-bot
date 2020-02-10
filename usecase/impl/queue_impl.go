@@ -131,7 +131,7 @@ func (s *service) deleteById(toDelUserId string, authorUserId string) error {
 	return nil
 }
 
-func (s *service) DeleteAll() error {
+func (s *service) DeleteAll(authorUserId string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	q, err := s.rep.Read()

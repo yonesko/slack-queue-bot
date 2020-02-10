@@ -208,7 +208,7 @@ func (c *Controller) showHelp(authorUserId string) string {
 }
 
 func (c *Controller) clean(authorUserId string) (string, error) {
-	err := c.queueService.DeleteAll()
+	err := c.queueService.DeleteAll(authorUserId)
 	if err == usecase.QueueIsEmpty {
 		return c.showQueue(authorUserId)
 	}
