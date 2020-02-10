@@ -12,3 +12,7 @@ type NewHolderEvent struct {
 type NewSecondEvent struct {
 	CurrentSecondUserId string
 }
+
+type DeletedEvent struct {
+	AuthorUserId string
+}
