@@ -84,6 +84,26 @@ func TestNewHolderEventSelfDeleteNotHolder(t *testing.T) {
 	assert.Empty(t, bus.Inbox)
 }
 
+//noinspection GoUnhandledErrorResult
+func Test_Pass_emits_events(t *testing.T) {
+	i18n.TestInit()
+	bus, service := buildQueueServiceAndBus(model.Queue{Entities: []model.QueueEntity{{"123"}}})
+	service.Pass("123")
+	assert.Empty(t, bus.Inbox)
+	//
+	service.Add(model.QueueEntity{UserId: "a"})
+	service.Pass("123")
+	assert.Contains(t, bus.Inbox, model.NewSecondEvent{CurrentSecondUserId: "123"})
+	time.Sleep(time.Millisecond * 5)
+	assert.True(t, containsNewHolderEvent(bus.Inbox, "a", "123", "123"))
+	//
+	bus.Inbox = nil
+	service.Add(model.QueueEntity{UserId: "b"})
+	service.Add(model.QueueEntity{UserId: "c"})
+	time.Sleep(time.Millisecond * 5)
+	assert.Empty(t, bus.Inbox)
+}
+
 func TestNewHolderEventForceDeleteNotHolder(t *testing.T) {
 	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
 	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}}}

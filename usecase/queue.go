@@ -11,6 +11,7 @@ type QueueService interface {
 	Pop(authorUserId string) (string, error)
 	Ack(authorUserId string) error
 	PassFromSleepingHolder(holder string) error
+	Pass(authorUserId string) error
 	DeleteAll() error
 	Show() (model.Queue, error)
 	UpdateOnNewHolder() error
