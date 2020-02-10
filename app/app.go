@@ -42,6 +42,23 @@ func NewApp() *App {
 	userRepository := user.NewRepository(slackApi)
 	slackGateway := gateway.NewSlackGateway(slackApi)
 	estimateRepository := estimate.NewRepository()
+	return &App{
+		rtm:    connectToRTM(slackApi),
+		logger: log.New(lumberWriter, "app: ", log.Lshortfile|log.LstdFlags),
+		controller: newController(
+			lumberWriter,
+			userRepository,
+			impl.NewQueueService(
+				queue.NewRepository(),
+				buildBus(lumberWriter, estimateRepository, slackApi, slackGateway, userRepository),
+				slackGateway,
+			),
+			estimateRepository,
+		),
+	}
+}
+
+func buildBus(lumberWriter *lumberjack.Logger, estimateRepository estimate.Repository, slackApi *slack.Client, slackGateway gateway.Gateway, userRepository user.Repository) event.QueueChangedEventBus {
 	newHolderEventListeners := []listener.NewHolderEventListener{
 		listener.NewHoldTimeEstimateListener(estimateRepository),
 	}
@@ -51,20 +68,7 @@ func NewApp() *App {
 	deletedEventListeners := []listener.DeletedEventListener{
 		listener.NewNotifyDeletedEventListener(slackGateway, userRepository),
 	}
-	return &App{
-		rtm:    connectToRTM(slackApi),
-		logger: log.New(lumberWriter, "app: ", log.Lshortfile|log.LstdFlags),
-		controller: newController(
-			lumberWriter,
-			userRepository,
-			impl.NewQueueService(
-				queue.NewRepository(),
-				event.NewQueueChangedEventBus(lumberWriter, newHolderEventListeners, newSecondEventListeners, deletedEventListeners),
-				slackGateway,
-			),
-			estimateRepository,
-		),
-	}
+	return event.NewQueueChangedEventBus(lumberWriter, newHolderEventListeners, newSecondEventListeners, deletedEventListeners)
 }
 
 func (app *App) Run() {
