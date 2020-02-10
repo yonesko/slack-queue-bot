@@ -1,7 +1,6 @@
 package listener
 
 import (
-	"github.com/nlopes/slack"
 	"github.com/yonesko/slack-queue-bot/gateway"
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/user"
@@ -12,13 +11,12 @@ type DeletedEventListener interface {
 }
 
 type notifyDeletedEventListener struct {
-	slackApi       *slack.Client
 	gateway        gateway.Gateway
 	userRepository user.Repository
 }
 
-func NewNotifyDeletedEventListener(slackApi *slack.Client) *notifyDeletedEventListener {
-	return &notifyDeletedEventListener{slackApi: slackApi}
+func NewNotifyDeletedEventListener(gateway gateway.Gateway, userRepository user.Repository) *notifyDeletedEventListener {
+	return &notifyDeletedEventListener{gateway: gateway, userRepository: userRepository}
 }
 
 func (n *notifyDeletedEventListener) Fire(ev model.DeletedEvent) {
