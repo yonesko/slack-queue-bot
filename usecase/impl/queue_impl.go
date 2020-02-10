@@ -134,11 +134,16 @@ func (s *service) deleteById(toDelUserId string, authorUserId string) error {
 func (s *service) DeleteAll(authorUserId string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	q, err := s.rep.Read()
+	queue, err := s.rep.Read()
 	if err != nil {
 		return err
 	}
-	if len(q.Entities) == 0 {
+	defer func(queueBefore model.Queue) {
+		if err == nil {
+			s.emitEvents(authorUserId, queueBefore, queue)
+		}
+	}(queue.Copy())
+	if len(queue.Entities) == 0 {
 		return usecase.QueueIsEmpty
 	}
 	err = s.rep.Save(model.Queue{})
