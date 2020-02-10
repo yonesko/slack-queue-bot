@@ -72,6 +72,7 @@ func (app *App) Run() {
 				break
 			}
 			responseText := app.controller.execute(extractCommand(ev))
+			app.logger.Printf("answer '%s' to %s ", responseText, ev.Channel)
 			app.rtm.SendMessage(app.rtm.NewOutgoingMessage(responseText, ev.Channel, slack.RTMsgOptionTS(ev.ThreadTimestamp)))
 		case *slack.OutgoingErrorEvent:
 			app.logger.Printf("Can't send msg: %s\n", ev.Error())
