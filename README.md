@@ -17,8 +17,6 @@ This bot supports next commands:
 * direct notification when you've been deleted
 * estimate on show
 * require reason to add in the queue
-* pass queue command
-* local command names
 * ack in https://api.slack.com/interactive-messages
 #### tech
 * add logger with levels to grep errors
