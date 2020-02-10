@@ -14,5 +14,6 @@ type NewSecondEvent struct {
 }
 
 type DeletedEvent struct {
-	AuthorUserId string
+	AuthorUserId  string
+	DeletedUserId string
 }

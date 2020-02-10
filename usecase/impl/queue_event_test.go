@@ -107,7 +107,9 @@ func Test_Pass_emits_events(t *testing.T) {
 func Test_delete_all_emits_DeletedEvent(t *testing.T) {
 	bus, service := buildQueueServiceAndBus(model.Queue{Entities: []model.QueueEntity{{"1"}, {"2"}, {"3"}}})
 	assert.Nil(t, service.DeleteAll("5"))
-	assert.Contains(t, bus.Inbox, model.DeletedEvent{"5"})
+	assert.Contains(t, bus.Inbox, model.DeletedEvent{"5", "1"})
+	assert.Contains(t, bus.Inbox, model.DeletedEvent{"5", "2"})
+	assert.Contains(t, bus.Inbox, model.DeletedEvent{"5", "3"})
 }
 
 func TestNewHolderEventForceDeleteNotHolder(t *testing.T) {

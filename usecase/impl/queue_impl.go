@@ -146,7 +146,8 @@ func (s *service) DeleteAll(authorUserId string) error {
 	if len(queue.Entities) == 0 {
 		return usecase.QueueIsEmpty
 	}
-	err = s.rep.Save(model.Queue{})
+	queue = model.Queue{}
+	err = s.rep.Save(queue)
 	if err != nil {
 		return err
 	}
@@ -233,6 +234,7 @@ func (s *service) Ack(authorUserId string) error {
 func (s *service) emitEvents(authorUserId string, before model.Queue, after model.Queue) {
 	s.emitNewHolderEvent(before, after, authorUserId)
 	s.emitNewSecondEvent(before, after)
+	s.emitDeletedEvent(before, after, authorUserId)
 }
 
 func (s *service) emitNewSecondEvent(before model.Queue, after model.Queue) {
@@ -264,6 +266,14 @@ func (s *service) emitNewHolderEvent(before model.Queue, after model.Queue, auth
 			}
 			go s.bus.Send(newHolderEvent)
 			s.notifyNewHolderAndWaitForAck(newHolderEvent)
+		}
+	}
+}
+
+func (s *service) emitDeletedEvent(before model.Queue, after model.Queue, authorUserId string) {
+	for _, e := range before.Entities {
+		if after.IndexOf(e.UserId) == -1 && e.UserId != authorUserId {
+			s.bus.Send(model.DeletedEvent{AuthorUserId: authorUserId, DeletedUserId: e.UserId})
 		}
 	}
 }
