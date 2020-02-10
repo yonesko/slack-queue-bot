@@ -50,7 +50,7 @@ func NewApp() *App {
 			userRepository,
 			impl.NewQueueService(
 				queue.NewRepository(),
-				buildBus(lumberWriter, estimateRepository, slackApi, slackGateway, userRepository),
+				buildBus(lumberWriter, estimateRepository, slackGateway, userRepository),
 				slackGateway,
 			),
 			estimateRepository,
@@ -58,7 +58,7 @@ func NewApp() *App {
 	}
 }
 
-func buildBus(lumberWriter *lumberjack.Logger, estimateRepository estimate.Repository, slackApi *slack.Client, slackGateway gateway.Gateway, userRepository user.Repository) event.QueueChangedEventBus {
+func buildBus(lumberWriter *lumberjack.Logger, estimateRepository estimate.Repository, slackGateway gateway.Gateway, userRepository user.Repository) event.QueueChangedEventBus {
 	newHolderEventListeners := []listener.NewHolderEventListener{
 		listener.NewHoldTimeEstimateListener(estimateRepository),
 	}
