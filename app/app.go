@@ -63,7 +63,7 @@ func buildBus(lumberWriter *lumberjack.Logger, estimateRepository estimate.Repos
 		listener.NewHoldTimeEstimateListener(estimateRepository),
 	}
 	newSecondEventListeners := []listener.NewSecondEventListener{
-		listener.NewNotifyNewSecondEventListener(slackApi),
+		listener.NewNotifyNewSecondEventListener(slackGateway),
 	}
 	deletedEventListeners := []listener.DeletedEventListener{
 		listener.NewNotifyDeletedEventListener(slackGateway, userRepository),

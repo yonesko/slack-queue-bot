@@ -1,10 +1,9 @@
 package listener
 
 import (
-	"github.com/nlopes/slack"
+	"github.com/yonesko/slack-queue-bot/gateway"
 	"github.com/yonesko/slack-queue-bot/i18n"
 	"github.com/yonesko/slack-queue-bot/model"
-	"log"
 )
 
 type NewSecondEventListener interface {
@@ -12,22 +11,13 @@ type NewSecondEventListener interface {
 }
 
 type NotifyNewSecondEventListener struct {
-	slackApi *slack.Client
+	gateway gateway.Gateway
 }
 
-func NewNotifyNewSecondEventListener(slackApi *slack.Client) *NotifyNewSecondEventListener {
-	return &NotifyNewSecondEventListener{slackApi: slackApi}
+func NewNotifyNewSecondEventListener(gateway gateway.Gateway) *NotifyNewSecondEventListener {
+	return &NotifyNewSecondEventListener{gateway: gateway}
 }
 
 func (n *NotifyNewSecondEventListener) Fire(ev model.NewSecondEvent) {
-	if ev.CurrentSecondUserId == "" {
-		return
-	}
-	_, _, err := n.slackApi.PostMessage(ev.CurrentSecondUserId,
-		slack.MsgOptionText(i18n.L.MustGet("you_are_the_second"), true),
-		slack.MsgOptionAsUser(true),
-	)
-	if err != nil {
-		log.Printf("can't notify %s", err)
-	}
+	n.gateway.SendAndLog(ev.CurrentSecondUserId, i18n.L.MustGet("you_are_the_second"))
 }
