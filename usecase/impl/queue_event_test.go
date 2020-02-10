@@ -97,13 +97,11 @@ func Test_Pass_emits_events(t *testing.T) {
 	time.Sleep(time.Millisecond * 5)
 	assert.True(t, containsNewHolderEvent(bus.Inbox, "a", "123", "123"))
 	//
-	//assert.Nil(t, service.Add(model.QueueEntity{UserId: "a"}))
-	//assert.Nil(t, service.Add(model.QueueEntity{UserId: "b"}))
-	//assert.Nil(t, service.Add(model.QueueEntity{UserId: "c"}))
-	//equals(queue, []string{"456", "123", "a", "b", "c"})
-	//assert.Nil(t, service.Pass("123"))
-	//queue, _ = service.Show()
-	//equals(queue, []string{"456", "a", "123", "b", "c"})
+	bus.Inbox = nil
+	service.Add(model.QueueEntity{UserId: "b"})
+	service.Add(model.QueueEntity{UserId: "c"})
+	time.Sleep(time.Millisecond * 5)
+	assert.Empty(t, bus.Inbox)
 }
 
 func TestNewHolderEventForceDeleteNotHolder(t *testing.T) {
