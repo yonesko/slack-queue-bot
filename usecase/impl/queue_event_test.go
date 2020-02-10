@@ -90,7 +90,12 @@ func Test_Pass_emits_events(t *testing.T) {
 	bus, service := buildQueueServiceAndBus(model.Queue{Entities: []model.QueueEntity{{"123"}}})
 	service.Pass("123")
 	assert.Empty(t, bus.Inbox)
-	//assert.Contains(t, bus.Inbox, model.NewSecondEvent{CurrentSecondUserId: "123"})
+	//
+	service.Add(model.QueueEntity{UserId: "a"})
+	service.Pass("123")
+	assert.Contains(t, bus.Inbox, model.NewSecondEvent{CurrentSecondUserId: "123"})
+	time.Sleep(time.Millisecond * 5)
+	assert.True(t, containsNewHolderEvent(bus.Inbox, "a", "123", "123"))
 	//
 	//assert.Nil(t, service.Add(model.QueueEntity{UserId: "a"}))
 	//assert.Nil(t, service.Add(model.QueueEntity{UserId: "b"}))
