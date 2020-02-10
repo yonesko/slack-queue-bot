@@ -15,6 +15,8 @@ type DelCommand struct {
 
 type ShowCommand struct {
 }
+type PassCommand struct {
+}
 
 type CleanCommand struct {
 }
