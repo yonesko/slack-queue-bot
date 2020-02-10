@@ -11,11 +11,12 @@ type QueueChangedEventBus interface {
 	Send(event interface{})
 }
 
-func NewQueueChangedEventBus(lumberWriter io.Writer, newHolderEventListeners []listener.NewHolderEventListener, newSecondEventListeners []listener.NewSecondEventListener) QueueChangedEventBus {
+func NewQueueChangedEventBus(lumberWriter io.Writer, newHolderEventListeners []listener.NewHolderEventListener, newSecondEventListeners []listener.NewSecondEventListener, deletedEventListeners []listener.DeletedEventListener) QueueChangedEventBus {
 	return &queueChangedEventBus{
 		logger:                  log.New(lumberWriter, "event-bus: ", log.Lshortfile|log.LstdFlags),
 		newHolderEventListeners: newHolderEventListeners,
 		newSecondEventListeners: newSecondEventListeners,
+		deletedEventListeners:   deletedEventListeners,
 	}
 }
 
@@ -23,6 +24,7 @@ type queueChangedEventBus struct {
 	logger                  *log.Logger
 	newHolderEventListeners []listener.NewHolderEventListener
 	newSecondEventListeners []listener.NewSecondEventListener
+	deletedEventListeners   []listener.DeletedEventListener
 }
 
 func (q *queueChangedEventBus) Send(event interface{}) {
@@ -34,6 +36,10 @@ func (q *queueChangedEventBus) Send(event interface{}) {
 		}
 	case model.NewSecondEvent:
 		for _, l := range q.newSecondEventListeners {
+			go l.Fire(event)
+		}
+	case model.DeletedEvent:
+		for _, l := range q.deletedEventListeners {
 			go l.Fire(event)
 		}
 	default:

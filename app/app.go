@@ -40,12 +40,16 @@ func NewApp() *App {
 		slack.OptionLog(log.New(lumberWriter, "slack_api: ", log.Lshortfile|log.LstdFlags)),
 	)
 	userRepository := user.NewRepository(slackApi)
+	slackGateway := gateway.NewSlackGateway(slackApi)
 	estimateRepository := estimate.NewRepository()
 	newHolderEventListeners := []listener.NewHolderEventListener{
 		listener.NewHoldTimeEstimateListener(estimateRepository),
 	}
 	newSecondEventListeners := []listener.NewSecondEventListener{
 		listener.NewNotifyNewSecondEventListener(slackApi),
+	}
+	deletedEventListeners := []listener.DeletedEventListener{
+		listener.NewNotifyDeletedEventListener(slackGateway, userRepository),
 	}
 	return &App{
 		rtm:    connectToRTM(slackApi),
@@ -55,8 +59,8 @@ func NewApp() *App {
 			userRepository,
 			impl.NewQueueService(
 				queue.NewRepository(),
-				event.NewQueueChangedEventBus(lumberWriter, newHolderEventListeners, newSecondEventListeners),
-				gateway.NewSlackGateway(slackApi),
+				event.NewQueueChangedEventBus(lumberWriter, newHolderEventListeners, newSecondEventListeners, deletedEventListeners),
+				slackGateway,
 			),
 			estimateRepository,
 		),
