@@ -15,7 +15,6 @@ This bot supports next commands:
 
 ## backlog
 #### features
-* direct notification when you've been deleted
 * ack in https://api.slack.com/interactive-messages
 #### tech
 * add logger with levels to grep errors
