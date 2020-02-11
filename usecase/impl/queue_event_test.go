@@ -126,11 +126,18 @@ func Test_pop_emits_DeletedEvent(t *testing.T) {
 	assert.Contains(t, bus.Inbox, model.DeletedEvent{"2", "1"})
 }
 
-func TestNewHolderEventForceDeleteNotHolder(t *testing.T) {
+func Test_no_new_holder_event_when_delete_not_holder(t *testing.T) {
 	bus, service := buildQueueServiceAndBus(model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}})
 
 	assert.Nil(t, service.DeleteById("abc", "jjfftg"))
-	assert.Empty(t, bus.Inbox)
+	assert.Condition(t, func() bool {
+		for _, e := range bus.Inbox {
+			if _, ok := e.(model.NewHolderEvent); ok {
+				return false
+			}
+		}
+		return true
+	})
 }
 
 func TestNewHolderEventPopAnotherUser(t *testing.T) {
