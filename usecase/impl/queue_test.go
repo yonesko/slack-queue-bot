@@ -112,7 +112,7 @@ func TestNoRaceConditionsInService(t *testing.T) {
 	i18n.TestInit()
 	service := mockService()
 	group := &sync.WaitGroup{}
-	chunks, workers := 100, 100
+	chunks, workers := 100, 10
 	for i := 0; i < workers; i++ {
 		group.Add(1)
 		go addUsers(service, t, i*chunks, (i+1)*chunks, group)
