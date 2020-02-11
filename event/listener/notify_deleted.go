@@ -20,7 +20,7 @@ func NewNotifyDeletedEventListener(gateway gateway.Gateway, userRepository user.
 }
 
 func (n *notifyDeletedEventListener) Fire(ev model.DeletedEvent) {
-	n.gateway.SendAndLog(ev.DeletedUserId, n.deleterTxt(ev.AuthorUserId)+" выкинул тебя  из маршрутки")
+	n.gateway.SendAndLog(ev.DeletedUserId, n.deleterTxt(ev.AuthorUserId)+" выкинул тебя из маршрутки")
 }
 
 func (n *notifyDeletedEventListener) deleterTxt(userId string) string {
