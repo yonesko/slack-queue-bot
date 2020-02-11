@@ -109,6 +109,7 @@ func TestService_Add_Idempotent(t *testing.T) {
 }
 
 func TestNoRaceConditionsInService(t *testing.T) {
+	i18n.TestInit()
 	service := mockService()
 	group := &sync.WaitGroup{}
 	chunks, workers := 100, 100
