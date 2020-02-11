@@ -271,8 +271,10 @@ func (s *service) emitNewHolderEvent(before model.Queue, after model.Queue, auth
 }
 
 func (s *service) emitDeletedEvent(before model.Queue, after model.Queue, authorUserId string) {
+	afterIndex := after.Index()
 	for _, e := range before.Entities {
-		if after.IndexOf(e.UserId) == -1 && e.UserId != authorUserId {
+		_, ok := afterIndex[e.UserId]
+		if !ok && e.UserId != authorUserId {
 			s.bus.Send(model.DeletedEvent{AuthorUserId: authorUserId, DeletedUserId: e.UserId})
 		}
 	}
