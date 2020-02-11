@@ -22,7 +22,7 @@ func (q Queue) IndexOf(userId string) int {
 	return -1
 }
 
-func (q Queue) Index() map[string]int {
+func (q Queue) UserIdIndex() map[string]int {
 	ans := map[string]int{}
 	for i, e := range q.Entities {
 		ans[e.UserId] = i

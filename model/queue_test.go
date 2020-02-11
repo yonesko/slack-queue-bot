@@ -5,16 +5,16 @@ import (
 	"testing"
 )
 
-func TestQueue_Index(t *testing.T) {
+func TestQueue_UserIdIndex(t *testing.T) {
 	queue := Queue{}
-	assert.Equal(t, map[string]int{}, queue.Index())
+	assert.Equal(t, map[string]int{}, queue.UserIdIndex())
 	queue = Queue{Entities: []QueueEntity{{"1"}}}
 	assert.Equal(t, map[string]int{
 		"1": 0,
-	}, queue.Index())
+	}, queue.UserIdIndex())
 	queue = Queue{Entities: []QueueEntity{{"1"}, {"2"}}}
 	assert.Equal(t, map[string]int{
 		"1": 0,
 		"2": 1,
-	}, queue.Index())
+	}, queue.UserIdIndex())
 }
