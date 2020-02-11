@@ -116,6 +116,9 @@ func TestNoRaceConditionsInService(t *testing.T) {
 		group.Add(1)
 		go addUsers(service, t, i*chunks, (i+1)*chunks, group)
 	}
+	time.AfterFunc(time.Second*10, func() {
+		t.Error("Time outed")
+	})
 	group.Wait()
 
 	queue, err := service.Show()
