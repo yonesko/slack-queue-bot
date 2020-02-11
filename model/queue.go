@@ -22,6 +22,14 @@ func (q Queue) IndexOf(userId string) int {
 	return -1
 }
 
+func (q Queue) UserIdIndex() map[string]int {
+	ans := map[string]int{}
+	for i, e := range q.Entities {
+		ans[e.UserId] = i
+	}
+	return ans
+}
+
 func (q Queue) Copy() Queue {
 	queue := Queue{Entities: make([]QueueEntity, len(q.Entities))}
 	copy(queue.Entities, q.Entities)

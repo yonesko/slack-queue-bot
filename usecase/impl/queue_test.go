@@ -66,7 +66,7 @@ func TestService_Pop(t *testing.T) {
 
 func TestService_DeleteAll(t *testing.T) {
 	service := mockService()
-	err := service.DeleteAll()
+	err := service.DeleteAll("")
 	if err != usecase.QueueIsEmpty {
 		t.Error(err)
 	}
@@ -109,9 +109,10 @@ func TestService_Add_Idempotent(t *testing.T) {
 }
 
 func TestNoRaceConditionsInService(t *testing.T) {
+	i18n.TestInit()
 	service := mockService()
 	group := &sync.WaitGroup{}
-	chunks, workers := 100, 100
+	chunks, workers := 100, 10
 	for i := 0; i < workers; i++ {
 		group.Add(1)
 		go addUsers(service, t, i*chunks, (i+1)*chunks, group)
@@ -122,6 +123,17 @@ func TestNoRaceConditionsInService(t *testing.T) {
 	assert.Nil(t, err)
 	if len(queue.Entities) != chunks*workers {
 		t.Errorf("must be %d, got %d", chunks*workers, len(queue.Entities))
+	}
+}
+
+func addUsers(service usecase.QueueService, t *testing.T, start, end int, group *sync.WaitGroup) {
+	defer group.Done()
+
+	for i := start; i < end; i++ {
+		err := service.Add(model.QueueEntity{UserId: fmt.Sprint(i)})
+		if err != nil {
+			t.Error(err)
+		}
 	}
 }
 
@@ -178,17 +190,6 @@ func TestService_PassFromSleepingHolder(t *testing.T) {
 	assert.Equal(t, usecase.YouAreNotHolder, service.PassFromSleepingHolder("4"))
 	assert.Nil(t, service.PassFromSleepingHolder("6"))
 	equals(queue, []string{"4", "6", "1", "17"})
-}
-
-func addUsers(service usecase.QueueService, t *testing.T, start, end int, group *sync.WaitGroup) {
-	defer group.Done()
-
-	for i := start; i < end; i++ {
-		err := service.Add(model.QueueEntity{UserId: fmt.Sprint(i)})
-		if err != nil {
-			t.Error(err)
-		}
-	}
 }
 
 func equals(queue model.Queue, userIds []string) bool {

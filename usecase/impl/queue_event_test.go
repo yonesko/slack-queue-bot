@@ -46,8 +46,7 @@ func Test_NewHolderEvent_TheSecond_SecondRemoved(t *testing.T) {
 	err := service.DeleteById("abc", "123")
 	time.Sleep(time.Millisecond * 10)
 	assert.Nil(t, err)
-	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, "z", bus.Inbox[0].(model.NewSecondEvent).CurrentSecondUserId)
+	assert.Contains(t, bus.Inbox, model.NewSecondEvent{CurrentSecondUserId: "z"})
 }
 
 //noinspection GoUnhandledErrorResult
@@ -104,14 +103,41 @@ func Test_Pass_emits_events(t *testing.T) {
 	assert.Empty(t, bus.Inbox)
 }
 
-func TestNewHolderEventForceDeleteNotHolder(t *testing.T) {
-	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
-	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}}}
-	service := &service{&queueRepository, &bus, sync.Mutex{}, nil}
+func Test_delete_all_emits_DeletedEvent(t *testing.T) {
+	bus, service := buildQueueServiceAndBus(model.Queue{Entities: []model.QueueEntity{{"1"}, {"2"}, {"3"}}})
+	assert.Nil(t, service.DeleteAll("5"))
+	assert.Contains(t, bus.Inbox, model.DeletedEvent{"5", "1"})
+	assert.Contains(t, bus.Inbox, model.DeletedEvent{"5", "2"})
+	assert.Contains(t, bus.Inbox, model.DeletedEvent{"5", "3"})
+}
 
-	err := service.DeleteById("abc", "jjfftg")
+func Test_self_delete_all_emits_DeletedEvent(t *testing.T) {
+	bus, service := buildQueueServiceAndBus(model.Queue{Entities: []model.QueueEntity{{"1"}, {"2"}, {"3"}}})
+	assert.Nil(t, service.DeleteAll("2"))
+	assert.Contains(t, bus.Inbox, model.DeletedEvent{"2", "1"})
+	assert.Contains(t, bus.Inbox, model.DeletedEvent{"2", "3"})
+}
+
+func Test_pop_emits_DeletedEvent(t *testing.T) {
+	i18n.TestInit()
+	bus, service := buildQueueServiceAndBus(model.Queue{Entities: []model.QueueEntity{{"1"}, {"2"}, {"3"}}})
+	_, err := service.Pop("2")
 	assert.Nil(t, err)
-	assert.Empty(t, bus.Inbox)
+	assert.Contains(t, bus.Inbox, model.DeletedEvent{"2", "1"})
+}
+
+func Test_no_new_holder_event_when_delete_not_holder(t *testing.T) {
+	bus, service := buildQueueServiceAndBus(model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}})
+
+	assert.Nil(t, service.DeleteById("abc", "jjfftg"))
+	assert.Condition(t, func() bool {
+		for _, e := range bus.Inbox {
+			if _, ok := e.(model.NewHolderEvent); ok {
+				return false
+			}
+		}
+		return true
+	})
 }
 
 func TestNewHolderEventPopAnotherUser(t *testing.T) {
@@ -121,10 +147,7 @@ func TestNewHolderEventPopAnotherUser(t *testing.T) {
 	_, err := service.Pop("abc")
 	time.Sleep(time.Millisecond * 10)
 	assert.Nil(t, err)
-	assert.Len(t, bus.Inbox, 1)
-	assert.Equal(t, "abc", bus.Inbox[0].(model.NewHolderEvent).CurrentHolderUserId)
-	assert.Equal(t, "123", bus.Inbox[0].(model.NewHolderEvent).PrevHolderUserId)
-	assert.Equal(t, "abc", bus.Inbox[0].(model.NewHolderEvent).AuthorUserId)
+	containsNewHolderEvent(bus.Inbox, "abc", "abc", "123")
 }
 
 func TestNewHolderEventPopOnEmpty(t *testing.T) {
