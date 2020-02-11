@@ -127,9 +127,7 @@ func Test_pop_emits_DeletedEvent(t *testing.T) {
 }
 
 func TestNewHolderEventForceDeleteNotHolder(t *testing.T) {
-	bus := eventmock.QueueChangedEventBus{Inbox: []interface{}{}}
-	queueRepository := queuemock.QueueRepository{model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}}}
-	service := &service{&queueRepository, &bus, sync.Mutex{}, nil}
+	bus, service := buildQueueServiceAndBus(model.Queue{Entities: []model.QueueEntity{{"123"}, {"abc"}}})
 
 	err := service.DeleteById("abc", "jjfftg")
 	assert.Nil(t, err)
