@@ -126,6 +126,17 @@ func TestNoRaceConditionsInService(t *testing.T) {
 	}
 }
 
+func addUsers(service usecase.QueueService, t *testing.T, start, end int, group *sync.WaitGroup) {
+	defer group.Done()
+
+	for i := start; i < end; i++ {
+		err := service.Add(model.QueueEntity{UserId: fmt.Sprint(i)})
+		if err != nil {
+			t.Error(err)
+		}
+	}
+}
+
 //noinspection GoUnhandledErrorResult
 func TestAck(t *testing.T) {
 	service := mockService()
@@ -179,17 +190,6 @@ func TestService_PassFromSleepingHolder(t *testing.T) {
 	assert.Equal(t, usecase.YouAreNotHolder, service.PassFromSleepingHolder("4"))
 	assert.Nil(t, service.PassFromSleepingHolder("6"))
 	equals(queue, []string{"4", "6", "1", "17"})
-}
-
-func addUsers(service usecase.QueueService, t *testing.T, start, end int, group *sync.WaitGroup) {
-	defer group.Done()
-
-	for i := start; i < end; i++ {
-		err := service.Add(model.QueueEntity{UserId: fmt.Sprint(i)})
-		if err != nil {
-			t.Error(err)
-		}
-	}
 }
 
 func equals(queue model.Queue, userIds []string) bool {
