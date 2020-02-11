@@ -10,6 +10,7 @@ import (
 	"github.com/yonesko/slack-queue-bot/model"
 	"github.com/yonesko/slack-queue-bot/queue/mock"
 	"github.com/yonesko/slack-queue-bot/usecase"
+	"log"
 	"sync"
 	"testing"
 	"time"
@@ -188,6 +189,7 @@ func addUsers(service usecase.QueueService, t *testing.T, start, end int, group 
 		err := service.Add(model.QueueEntity{UserId: fmt.Sprint(i)})
 		if err != nil {
 			t.Error(err)
+			log.Printf("addUsers err %s", err)
 		}
 	}
 }
